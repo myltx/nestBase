@@ -1,0 +1,11 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "description": "NestBase 前端应用（预留）",
+  "private": true,
+  "scripts": {
+    "dev": "echo '前端应用开发中...'",
+    "build": "echo '前端应用构建中...'",
+    "start": "echo '前端应用启动中...'"
+  }
+}

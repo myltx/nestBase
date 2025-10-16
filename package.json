@@ -1,0 +1,33 @@
+{
+  "name": "nestbase-monorepo",
+  "version": "1.0.0",
+  "description": "NestBase Monorepo - 现代化全栈应用框架",
+  "private": true,
+  "author": "Your Name",
+  "license": "MIT",
+  "scripts": {
+    "dev": "pnpm --filter backend dev",
+    "dev:backend": "pnpm --filter backend dev",
+    "build": "pnpm --filter backend build",
+    "build:backend": "pnpm --filter backend build",
+    "start": "pnpm --filter backend start",
+    "start:prod": "pnpm --filter backend start:prod",
+    "lint": "pnpm -r lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "test": "pnpm -r test",
+    "prisma:generate": "pnpm --filter backend prisma:generate",
+    "prisma:migrate": "pnpm --filter backend prisma:migrate",
+    "prisma:studio": "pnpm --filter backend prisma:studio",
+    "prisma:seed": "pnpm --filter backend prisma:seed",
+    "clean": "pnpm -r exec rm -rf node_modules dist",
+    "clean:all": "pnpm clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "prettier": "^3.1.1",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}

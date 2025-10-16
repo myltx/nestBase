@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// 用户模型
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  username  String   @unique
+  firstName String?  @map("first_name")
+  lastName  String?  @map("last_name")
+  role      Role     @default(USER)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+// 角色枚举
+enum Role {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+// 项目模型
+model Project {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  url         String?
+  tech        String[] // 技术栈数组
+  github      String?
+  demo        String?
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("projects")
+}

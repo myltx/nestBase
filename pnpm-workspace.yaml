@@ -1,0 +1,12 @@
+# pnpm-workspace.yaml
+# Monorepo workspace 配置文件
+
+packages:
+  # 后端应用
+  - 'apps/backend'
+
+  # 前端应用（预留）
+  - 'apps/frontend'
+
+  # 共享包（可选）
+  - 'packages/*'

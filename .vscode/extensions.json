@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "prisma.prisma",
+    "firsttris.vscode-jest-runner",
+    "humao.rest-client",
+    "rangav.vscode-thunder-client"
+  ]
+}

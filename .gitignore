@@ -1,0 +1,53 @@
+# 依赖
+node_modules/
+**/node_modules/
+
+# 编译输出
+dist/
+**/dist/
+build/
+**/build/
+
+# 环境变量
+.env
+.env.local
+.env.*.local
+**/.env
+**/.env.local
+
+# 日志
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.swp
+*.swo
+*.sublime-workspace
+
+# 测试
+coverage/
+.nyc_output/
+
+# Prisma
+apps/backend/prisma/migrations/*
+!apps/backend/prisma/migrations/.gitkeep
+
+# 临时文件
+*.tmp
+*.temp
+.cache/
