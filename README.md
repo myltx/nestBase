@@ -20,24 +20,28 @@
 ## ✨ 功能特性
 
 ### 🔐 认证授权
+
 - ✅ JWT Token 认证机制
 - ✅ 用户注册、登录、登出
 - ✅ 基于角色的访问控制（RBAC）
 - ✅ Passport.js 策略集成
 
 ### 📦 数据管理
+
 - ✅ Prisma ORM 数据库访问
 - ✅ Supabase PostgreSQL 集成
 - ✅ 完整的 CRUD 操作
 - ✅ 数据验证与转换（class-validator）
 
 ### 📚 API 文档
+
 - ✅ Swagger/OpenAPI 自动生成文档
 - ✅ 在线接口测试功能
 - ✅ 蓝色主题风格设计
 - ✅ JWT 认证支持
 
 ### 🏗️ 架构设计
+
 - ✅ 模块化架构设计
 - ✅ 统一响应格式
 - ✅ 全局异常处理
@@ -47,15 +51,15 @@
 
 ## 🛠️ 技术栈
 
-| 技术 | 版本 | 说明 |
-|------|------|------|
-| **NestJS** | 10.x | 渐进式 Node.js 框架 |
-| **Prisma ORM** | 5.x | 现代化数据库工具包 |
-| **Supabase** | 2.x | 开源 Firebase 替代方案 |
-| **JWT** | 10.x | JSON Web Token 认证 |
-| **Swagger** | 7.x | API 文档生成工具 |
-| **TypeScript** | 5.x | JavaScript 超集 |
-| **class-validator** | 0.14.x | 装饰器验证库 |
+| 技术                | 版本   | 说明                   |
+| ------------------- | ------ | ---------------------- |
+| **NestJS**          | 10.x   | 渐进式 Node.js 框架    |
+| **Prisma ORM**      | 5.x    | 现代化数据库工具包     |
+| **Supabase**        | 2.x    | 开源 Firebase 替代方案 |
+| **JWT**             | 10.x   | JSON Web Token 认证    |
+| **Swagger**         | 7.x    | API 文档生成工具       |
+| **TypeScript**      | 5.x    | JavaScript 超集        |
+| **class-validator** | 0.14.x | 装饰器验证库           |
 
 ---
 
@@ -142,6 +146,7 @@ JWT_EXPIRES_IN=7d
 ```
 
 **重要提示**：
+
 - 如果你看到 "Not IPv4 compatible" 提示，必须使用 **Session Pooler**
 - 密码中的特殊字符需要 URL 编码（例如 `@` → `%40`）
 - 从 Supabase 控制台获取连接字符串：**Settings → Database → Connection string → URI**
@@ -173,6 +178,7 @@ pnpm prisma:seed
 ```
 
 **注意**：
+
 - 首次使用时推荐使用 `npx prisma db push` 快速同步数据库
 - 生产环境应使用 `prisma migrate` 进行版本化迁移管理
 
@@ -188,6 +194,7 @@ pnpm dev
 ```
 
 启动成功后访问：
+
 - **API 服务**: http://localhost:3000
 - **Swagger 文档**: http://localhost:3000/api-docs
 
@@ -206,6 +213,7 @@ pnpm dev
 **OpenAPI JSON 地址**: http://localhost:3000/api/swagger/json
 
 **使用方法**:
+
 1. 在 Apifox 中选择 "导入" → "URL 导入"
 2. 输入上述 URL
 3. 点击 "导入" 即可自动导入所有接口
@@ -218,10 +226,10 @@ pnpm dev
 
 数据库种子脚本已创建以下测试账户：
 
-| 角色 | 用户名 | 邮箱 | 密码 |
-|------|--------|------|------|
-| **管理员** | admin | admin@example.com | admin123 |
-| **普通用户** | testuser | user@example.com | user123 |
+| 角色         | 用户名   | 邮箱              | 密码     |
+| ------------ | -------- | ----------------- | -------- |
+| **管理员**   | admin    | admin@example.com | admin123 |
+| **普通用户** | testuser | user@example.com  | user123  |
 
 ### 主要接口
 
@@ -491,19 +499,20 @@ DIRECT_URL="postgresql://postgres.[ref]:[PASSWORD]@aws-x-region.pooler.supabase.
 如果你的数据库密码包含特殊字符，需要进行 URL 编码：
 
 | 字符 | URL 编码 |
-|------|----------|
-| `@` | `%40` |
-| `#` | `%23` |
-| `$` | `%24` |
-| `%` | `%25` |
-| `&` | `%26` |
-| `+` | `%2B` |
-| `/` | `%2F` |
-| `:` | `%3A` |
-| `=` | `%3D` |
-| `?` | `%3F` |
+| ---- | -------- |
+| `@`  | `%40`    |
+| `#`  | `%23`    |
+| `$`  | `%24`    |
+| `%`  | `%25`    |
+| `&`  | `%26`    |
+| `+`  | `%2B`    |
+| `/`  | `%2F`    |
+| `:`  | `%3A`    |
+| `=`  | `%3D`    |
+| `?`  | `%3F`    |
 
 **示例**：
+
 ```
 原密码：my@pass#word
 编码后：my%40pass%23word
@@ -516,6 +525,7 @@ DIRECT_URL="postgresql://postgres.[ref]:[PASSWORD]@aws-x-region.pooler.supabase.
 **错误**：`Can't reach database server`
 
 **解决方案**：
+
 - 检查是否使用了正确的连接池端口
 - 确认网络可以访问 Supabase
 - 使用 Session Pooler 而不是直连
@@ -525,6 +535,7 @@ DIRECT_URL="postgresql://postgres.[ref]:[PASSWORD]@aws-x-region.pooler.supabase.
 **错误**：`Authentication failed against database server`
 
 **解决方案**：
+
 - 确认密码是否正确
 - 检查特殊字符是否已 URL 编码
 - 从 Supabase 控制台重新获取连接字符串
@@ -545,19 +556,19 @@ datasource db {
 
 ## 🌍 环境变量说明
 
-| 变量名 | 说明 | 默认值 | 必填 |
-|--------|------|--------|------|
-| `NODE_ENV` | 运行环境 | development | 否 |
-| `PORT` | 服务端口 | 3000 | 否 |
-| `API_PREFIX` | API 路径前缀 | api | 否 |
-| `DATABASE_URL` | 数据库连接字符串（用于应用运行时） | - | **是** |
-| `DIRECT_URL` | 直连数据库字符串（用于迁移） | - | **是** |
-| `SUPABASE_URL` | Supabase 项目 URL | - | 是 |
-| `SUPABASE_ANON_KEY` | Supabase 匿名密钥 | - | 是 |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase 服务密钥 | - | 否 |
-| `JWT_SECRET` | JWT 签名密钥 | - | **是** |
-| `JWT_EXPIRES_IN` | JWT 过期时间 | 7d | 否 |
-| `SWAGGER_PATH` | Swagger 文档路径 | api-docs | 否 |
+| 变量名                      | 说明                               | 默认值      | 必填   |
+| --------------------------- | ---------------------------------- | ----------- | ------ |
+| `NODE_ENV`                  | 运行环境                           | development | 否     |
+| `PORT`                      | 服务端口                           | 3000        | 否     |
+| `API_PREFIX`                | API 路径前缀                       | api         | 否     |
+| `DATABASE_URL`              | 数据库连接字符串（用于应用运行时） | -           | **是** |
+| `DIRECT_URL`                | 直连数据库字符串（用于迁移）       | -           | **是** |
+| `SUPABASE_URL`              | Supabase 项目 URL                  | -           | 是     |
+| `SUPABASE_ANON_KEY`         | Supabase 匿名密钥                  | -           | 是     |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase 服务密钥                  | -           | 否     |
+| `JWT_SECRET`                | JWT 签名密钥                       | -           | **是** |
+| `JWT_EXPIRES_IN`            | JWT 过期时间                       | 7d          | 否     |
+| `SWAGGER_PATH`              | Swagger 文档路径                   | api-docs    | 否     |
 
 **重要配置说明**：
 
@@ -581,6 +592,7 @@ datasource db {
 ### 添加新模块
 
 1. 使用 NestJS CLI 生成模块：
+
    ```bash
    nest g module modules/your-module
    nest g controller modules/your-module
@@ -593,7 +605,7 @@ datasource db {
    ```typescript
    @ApiTags('模块名称')
    @Controller('your-module')
-   export class YourModuleController { }
+   export class YourModuleController {}
    ```
 
 ### 数据验证
@@ -713,8 +725,8 @@ CMD ["node", "dist/main"]
 
 如有问题或建议，请通过以下方式联系：
 
-- 📧 Email: your-email@example.com
-- 🐛 Issues: [GitHub Issues](https://github.com/your-username/nestbase/issues)
+- 📧 Email: 865147643@qq.com
+- 🐛 Issues: [GitHub Issues](https://github.com/myltx/nestBase/issues)
 
 ---
 
