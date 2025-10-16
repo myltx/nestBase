@@ -9,6 +9,7 @@ import {
   UpdateProjectDto,
   QueryProjectDto,
 } from './dto';
+import { BusinessCode } from '@common/constants/business-codes';
 
 /**
  * 项目服务
@@ -29,7 +30,10 @@ export class ProjectsService {
 
       return project;
     } catch (error) {
-      throw new BadRequestException('创建项目失败');
+      throw new BadRequestException({
+        message: '创建项目失败',
+        code: BusinessCode.BAD_REQUEST,
+      });
     }
   }
 
@@ -123,7 +127,10 @@ export class ProjectsService {
     });
 
     if (!project) {
-      throw new NotFoundException(`项目 #${id} 不存在`);
+      throw new NotFoundException({
+        message: `项目 #${id} 不存在`,
+        code: BusinessCode.RESOURCE_NOT_FOUND,
+      });
     }
 
     return project;
@@ -144,7 +151,10 @@ export class ProjectsService {
 
       return project;
     } catch (error) {
-      throw new BadRequestException('更新项目失败');
+      throw new BadRequestException({
+        message: '更新项目失败',
+        code: BusinessCode.BAD_REQUEST,
+      });
     }
   }
 
@@ -162,7 +172,10 @@ export class ProjectsService {
 
       return { message: '项目删除成功' };
     } catch (error) {
-      throw new BadRequestException('删除项目失败');
+      throw new BadRequestException({
+        message: '删除项目失败',
+        code: BusinessCode.BAD_REQUEST,
+      });
     }
   }
 

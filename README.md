@@ -282,6 +282,7 @@ curl -X POST http://localhost:3000/api/auth/login \
 
 ```json
 {
+  "code": 0,
   "success": true,
   "data": {
     "user": {
@@ -434,8 +435,39 @@ enum Role {
    ```
    Authorization: Bearer <token>
    ```
+
+   **前端示例**:
+   ```javascript
+   // 使用 axios
+   axios.get('/api/auth/profile', {
+     headers: {
+       Authorization: `Bearer ${token}`
+     }
+   });
+
+   // 使用 fetch
+   fetch('/api/auth/profile', {
+     headers: {
+       'Authorization': `Bearer ${token}`
+     }
+   });
+   ```
+
 3. 服务器通过 `JwtAuthGuard` 验证 Token 有效性
 4. 通过验证后，用户信息存储在 `request.user` 中
+
+### 用户注册限制
+
+**重要**: 注册接口仅允许创建普通用户（USER 角色），无法通过注册接口创建管理员账户。
+
+- ✅ 普通用户可以通过 `/api/auth/register` 注册
+- ❌ 无法注册管理员（ADMIN）或协调员（MODERATOR）角色
+- 🔐 管理员账户只能通过数据库种子脚本或管理员手动创建
+
+**管理员账户创建方式**:
+1. 运行数据库种子脚本：`pnpm prisma:seed`
+2. 通过 Prisma Studio 手动创建：`pnpm prisma:studio`
+3. 由现有管理员通过后台管理接口创建
 
 ### 角色权限控制
 
@@ -589,6 +621,88 @@ datasource db {
 
 ## 📝 开发指南
 
+### API 命名规范
+
+本项目采用统一的 **camelCase（小驼峰）** 命名规范，确保前后端数据交互的一致性。
+
+📖 **详细设计文档**：[API_NAMING_CONVENTION.md](apps/backend/API_NAMING_CONVENTION.md)
+
+#### 快速概览
+
+#### 命名转换流程
+
+```
+前端 (camelCase) → 后端 API (camelCase) → 数据库 (snake_case)
+   ↑                                              ↓
+   └──────────────── Prisma 自动转换 ──────────────┘
+```
+
+#### 实现方式
+
+1. **Prisma Schema 使用 `@map()` 映射**：
+   ```prisma
+   model User {
+     firstName String?  @map("first_name")  // API: firstName, DB: first_name
+     lastName  String?  @map("last_name")   // API: lastName,  DB: last_name
+     createdAt DateTime @map("created_at")  // API: createdAt, DB: created_at
+     @@map("users")                         // 表名映射
+   }
+   ```
+
+2. **DTO 使用 camelCase**：
+   ```typescript
+   export class CreateUserDto {
+     firstName?: string;  // 前端发送: firstName
+     lastName?: string;   // 后端接收: firstName
+   }
+   ```
+
+3. **API 响应自动使用 camelCase**：
+   ```json
+   {
+     "id": "uuid",
+     "firstName": "John",      // ✅ camelCase
+     "lastName": "Doe",         // ✅ camelCase
+     "createdAt": "2025-01-15"  // ✅ camelCase
+   }
+   ```
+
+#### 为什么这样设计？
+
+✅ **优势**：
+- **前端友好**：JavaScript/TypeScript 标准命名，无需转换
+- **数据库规范**：PostgreSQL 保持 snake_case 传统
+- **零性能开销**：Prisma 在编译时生成转换代码，无运行时开销
+- **类型安全**：TypeScript 类型定义完全匹配
+- **维护简单**：只需在 Prisma schema 中配置一次 `@map()`
+
+❌ **不推荐的方案**：
+- ~~添加全局拦截器转换字段名~~（性能损耗，复杂度高）
+- ~~前端手动转换~~（代码重复，容易出错）
+- ~~API 使用 snake_case~~（不符合 JavaScript 规范）
+
+#### 添加新字段示例
+
+```prisma
+// 1. 在 Prisma Schema 中添加字段
+model User {
+  phoneNumber String? @map("phone_number")  // 使用 @map() 映射
+}
+
+// 2. 生成 Prisma Client
+// pnpm prisma:generate
+
+// 3. 在 DTO 中使用 camelCase
+export class CreateUserDto {
+  phoneNumber?: string;  // ✅ 自动映射到数据库的 phone_number
+}
+
+// 4. API 响应自动使用 camelCase
+{
+  "phoneNumber": "13800138000"  // ✅ 前端直接使用
+}
+```
+
 ### 添加新模块
 
 1. 使用 NestJS CLI 生成模块：
@@ -631,20 +745,46 @@ export class CreateUserDto {
 
 所有 API 响应自动使用以下格式：
 
+#### 成功响应
+
 ```typescript
 {
-  success: boolean,      // 请求是否成功
-  data: any,            // 响应数据
-  message: string,      // 响应消息
-  timestamp: string     // 时间戳
+  code: number,         // 业务状态码（0 表示成功）
+  success: boolean,     // 请求是否成功
+  data: any,           // 响应数据
+  message: string,     // 响应消息
+  timestamp: string    // 时间戳
 }
 ```
 
-错误响应格式：
+**示例**:
+```json
+{
+  "code": 0,
+  "success": true,
+  "data": {
+    "user": {
+      "id": "uuid",
+      "email": "admin@example.com",
+      "username": "admin",
+      "role": "ADMIN"
+    },
+    "token": {
+      "accessToken": "eyJhbGc...",
+      "expiresIn": "7d"
+    }
+  },
+  "message": "success",
+  "timestamp": "2025-10-16T08:00:00.000Z"
+}
+```
+
+#### 错误响应
 
 ```typescript
 {
-  success: false,
+  code: number,         // 业务状态码（非 0 表示错误）
+  success: false,       // 请求失败
   statusCode: number,   // HTTP 状态码
   message: string,      // 错误消息
   errors: any,          // 详细错误信息
@@ -652,6 +792,43 @@ export class CreateUserDto {
   path: string          // 请求路径
 }
 ```
+
+**示例**:
+```json
+{
+  "code": 1106,
+  "success": false,
+  "statusCode": 409,
+  "message": "邮箱已被注册",
+  "errors": null,
+  "timestamp": "2025-10-16T08:00:00.000Z",
+  "path": "/api/auth/register"
+}
+```
+
+#### 业务状态码
+
+本项目使用业务状态码来标识具体的业务错误，详细状态码列表请查看：
+
+- [BUSINESS_CODES.md](apps/backend/BUSINESS_CODES.md) - 完整状态码列表和使用说明
+- [BUSINESS_CODES_IMPLEMENTATION.md](apps/backend/BUSINESS_CODES_IMPLEMENTATION.md) - 所有模块实现详情
+
+常用状态码：
+- `0`: 操作成功
+- `1101`: 用户名或密码错误
+- `1104`: 用户不存在
+- `1106`: 邮箱已被注册
+- `1107`: 用户名已被使用
+- `1108`: 无法注册管理员账户
+- `1201`: 资源不存在
+
+**模块覆盖情况**:
+- ✅ **AuthService**: 7 处异常处理
+- ✅ **UsersService**: 6 处异常处理
+- ✅ **ProjectsService**: 4 处异常处理
+- ✅ **全局拦截器**: 统一响应格式
+
+
 
 ---
 

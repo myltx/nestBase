@@ -12,6 +12,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { BusinessCode, HTTP_TO_BUSINESS_CODE } from '../constants/business-codes';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -23,10 +24,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = '服务器内部错误';
     let errors: any = null;
+    let businessCode = BusinessCode.INTERNAL_SERVER_ERROR;
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
+
+      // 根据 HTTP 状态码映射业务状态码
+      businessCode = HTTP_TO_BUSINESS_CODE[status] || BusinessCode.INTERNAL_SERVER_ERROR;
 
       if (typeof exceptionResponse === 'string') {
         message = exceptionResponse;
@@ -34,6 +39,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
         const responseObj = exceptionResponse as any;
         message = responseObj.message || message;
         errors = responseObj.errors || responseObj.error || null;
+
+        // 如果响应中包含自定义的 code，使用它
+        if (responseObj.code !== undefined) {
+          businessCode = responseObj.code;
+        }
       }
     } else if (exception instanceof Error) {
       message = exception.message;
@@ -48,6 +58,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     });
 
     response.status(status).json({
+      code: businessCode,
       success: false,
       statusCode: status,
       message,

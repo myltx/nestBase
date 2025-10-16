@@ -13,6 +13,7 @@ import {
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto, UpdateUserDto, QueryUserDto } from './dto';
+import { BusinessCode } from '@common/constants/business-codes';
 
 @Injectable()
 export class UsersService {
@@ -30,7 +31,10 @@ export class UsersService {
     });
 
     if (existingUserByEmail) {
-      throw new ConflictException('邮箱已被注册');
+      throw new ConflictException({
+        message: '邮箱已被注册',
+        code: BusinessCode.EMAIL_ALREADY_EXISTS,
+      });
     }
 
     // 检查用户名是否已存在
@@ -39,7 +43,10 @@ export class UsersService {
     });
 
     if (existingUserByUsername) {
-      throw new ConflictException('用户名已被使用');
+      throw new ConflictException({
+        message: '用户名已被使用',
+        code: BusinessCode.USERNAME_ALREADY_EXISTS,
+      });
     }
 
     // 加密密码
@@ -81,7 +88,10 @@ export class UsersService {
     const limitNum = parseInt(limit, 10);
 
     if (pageNum < 1 || limitNum < 1) {
-      throw new BadRequestException('页码和每页数量必须大于 0');
+      throw new BadRequestException({
+        message: '页码和每页数量必须大于 0',
+        code: BusinessCode.VALIDATION_ERROR,
+      });
     }
 
     const skip = (pageNum - 1) * limitNum;
@@ -157,7 +167,10 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException(`用户 ID ${id} 不存在`);
+      throw new NotFoundException({
+        message: `用户 ID ${id} 不存在`,
+        code: BusinessCode.USER_NOT_FOUND,
+      });
     }
 
     return user;
@@ -173,7 +186,10 @@ export class UsersService {
     });
 
     if (!existingUser) {
-      throw new NotFoundException(`用户 ID ${id} 不存在`);
+      throw new NotFoundException({
+        message: `用户 ID ${id} 不存在`,
+        code: BusinessCode.USER_NOT_FOUND,
+      });
     }
 
     // 准备更新数据
@@ -230,7 +246,10 @@ export class UsersService {
     });
 
     if (!existingUser) {
-      throw new NotFoundException(`用户 ID ${id} 不存在`);
+      throw new NotFoundException({
+        message: `用户 ID ${id} 不存在`,
+        code: BusinessCode.USER_NOT_FOUND,
+      });
     }
 
     // 删除用户

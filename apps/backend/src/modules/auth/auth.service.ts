@@ -9,12 +9,14 @@ import {
   ConflictException,
   UnauthorizedException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto, LoginDto } from './dto';
+import { BusinessCode } from '@common/constants/business-codes';
 
 @Injectable()
 export class AuthService {
@@ -26,6 +28,8 @@ export class AuthService {
 
   /**
    * 用户注册
+   * 注意：注册接口仅允许创建普通用户（USER 角色）
+   * 管理员账户只能通过数据库迁移或管理员手动创建
    */
   async register(registerDto: RegisterDto) {
     const { email, username, password, firstName, lastName } = registerDto;
@@ -36,7 +40,10 @@ export class AuthService {
     });
 
     if (existingUserByEmail) {
-      throw new ConflictException('邮箱已被注册');
+      throw new ConflictException({
+        message: '邮箱已被注册',
+        code: BusinessCode.EMAIL_ALREADY_EXISTS,
+      });
     }
 
     // 检查用户名是否已存在
@@ -45,13 +52,17 @@ export class AuthService {
     });
 
     if (existingUserByUsername) {
-      throw new ConflictException('用户名已被使用');
+      throw new ConflictException({
+        message: '用户名已被使用',
+        code: BusinessCode.USERNAME_ALREADY_EXISTS,
+      });
     }
 
     // 加密密码
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 创建用户
+    // 创建用户（仅创建普通用户，role 默认为 USER）
+    // 注意：此处不接受任何 role 参数，防止用户尝试注册管理员账户
     const user = await this.prisma.user.create({
       data: {
         email,
@@ -59,6 +70,7 @@ export class AuthService {
         password: hashedPassword,
         firstName,
         lastName,
+        // role 字段不设置，使用 Prisma schema 中的默认值 USER
       },
       select: {
         id: true,
@@ -94,19 +106,28 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('用户名或密码错误');
+      throw new UnauthorizedException({
+        message: '用户名或密码错误',
+        code: BusinessCode.INVALID_CREDENTIALS,
+      });
     }
 
     // 验证密码
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException('用户名或密码错误');
+      throw new UnauthorizedException({
+        message: '用户名或密码错误',
+        code: BusinessCode.INVALID_CREDENTIALS,
+      });
     }
 
     // 检查用户是否激活
     if (!user.isActive) {
-      throw new UnauthorizedException('账户已被禁用');
+      throw new UnauthorizedException({
+        message: '账户已被禁用',
+        code: BusinessCode.FORBIDDEN,
+      });
     }
 
     // 生成 Token
@@ -160,12 +181,18 @@ export class AuthService {
       });
 
       if (!user || !user.isActive) {
-        throw new UnauthorizedException('无效的 Token');
+        throw new UnauthorizedException({
+          message: '无效的 Token',
+          code: BusinessCode.TOKEN_INVALID,
+        });
       }
 
       return user;
     } catch (error) {
-      throw new UnauthorizedException('Token 验证失败');
+      throw new UnauthorizedException({
+        message: 'Token 验证失败',
+        code: BusinessCode.TOKEN_INVALID,
+      });
     }
   }
 }

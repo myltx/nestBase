@@ -9,8 +9,10 @@ import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { SKIP_TRANSFORM_KEY } from '../decorators/skip-transform.decorator';
+import { BusinessCode } from '../constants/business-codes';
 
 export interface Response<T> {
+  code: number;
   success: boolean;
   data: T;
   message: string;
@@ -36,6 +38,7 @@ export class TransformInterceptor<T> implements NestInterceptor<T, Response<T>> 
     // 正常转换
     return next.handle().pipe(
       map((data) => ({
+        code: BusinessCode.SUCCESS,
         success: true,
         data: data,
         message: 'success',
