@@ -9,7 +9,6 @@ import {
   ConflictException,
   UnauthorizedException,
   BadRequestException,
-  ForbiddenException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -28,7 +27,7 @@ export class AuthService {
 
   /**
    * 用户注册
-   * 注意：注册接口仅允许创建普通用户（USER 角色）
+   * 注意:注册接口仅允许创建普通用户(USER 角色)
    * 管理员账户只能通过数据库迁移或管理员手动创建
    */
   async register(registerDto: RegisterDto) {
@@ -61,8 +60,19 @@ export class AuthService {
     // 加密密码
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 创建用户（仅创建普通用户，roles 默认为 [USER]）
-    // 注意：此处不接受任何 roles 参数，防止用户尝试注册管理员账户
+    // 获取 USER 角色
+    const userRole = await this.prisma.role.findUnique({
+      where: { code: 'USER' },
+    });
+
+    if (!userRole) {
+      throw new BadRequestException({
+        message: '系统角色未初始化',
+        code: BusinessCode.SYSTEM_ERROR,
+      });
+    }
+
+    // 创建用户并分配 USER 角色
     const user = await this.prisma.user.create({
       data: {
         email,
@@ -71,7 +81,11 @@ export class AuthService {
         firstName,
         lastName,
         avatar,
-        // roles 字段不设置，使用 Prisma schema 中的默认值 [USER]
+        userRoles: {
+          create: {
+            roleId: userRole.id,
+          },
+        },
       },
       select: {
         id: true,
@@ -80,17 +94,39 @@ export class AuthService {
         firstName: true,
         lastName: true,
         avatar: true,
-        roles: true,
         isActive: true,
         createdAt: true,
+        userRoles: {
+          include: {
+            role: {
+              select: {
+                code: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
 
+    // 提取角色code数组
+    const roles = user.userRoles.map((ur) => ur.role.code);
+
     // 生成 Token
-    const token = await this.generateToken(user);
+    const token = await this.generateToken({ ...user, roles });
 
     return {
-      user,
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        avatar: user.avatar,
+        isActive: user.isActive,
+        createdAt: user.createdAt,
+        roles,
+      },
       token,
     };
   }
@@ -101,10 +137,22 @@ export class AuthService {
   async login(loginDto: LoginDto) {
     const { username, password } = loginDto;
 
-    // 查找用户（支持邮箱或用户名登录）
+    // 查找用户(支持邮箱或用户名登录)
     const user = await this.prisma.user.findFirst({
       where: {
         OR: [{ username }, { email: username }],
+      },
+      include: {
+        userRoles: {
+          include: {
+            role: {
+              select: {
+                code: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -133,8 +181,11 @@ export class AuthService {
       });
     }
 
+    // 提取角色code数组
+    const roles = user.userRoles.map((ur) => ur.role.code);
+
     // 生成 Token
-    const token = await this.generateToken(user);
+    const token = await this.generateToken({ ...user, roles });
 
     return {
       user: {
@@ -144,9 +195,9 @@ export class AuthService {
         firstName: user.firstName,
         lastName: user.lastName,
         avatar: user.avatar,
-        roles: user.roles,
         isActive: user.isActive,
         createdAt: user.createdAt,
+        roles,
       },
       token,
     };
@@ -160,7 +211,7 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       username: user.username,
-      roles: user.roles, // 使用 roles 数组
+      roles: user.roles, // 使用 roles 数组(角色code字符串数组)
     };
 
     return {
@@ -170,7 +221,7 @@ export class AuthService {
   }
 
   /**
-   * 验证 Token（可选功能）
+   * 验证 Token(可选功能)
    */
   async validateToken(token: string) {
     try {
@@ -184,8 +235,17 @@ export class AuthService {
           firstName: true,
           lastName: true,
           avatar: true,
-          roles: true,
           isActive: true,
+          userRoles: {
+            include: {
+              role: {
+                select: {
+                  code: true,
+                  name: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -196,7 +256,13 @@ export class AuthService {
         });
       }
 
-      return user;
+      // 提取角色code数组
+      const roles = user.userRoles.map((ur) => ur.role.code);
+
+      return {
+        ...user,
+        roles,
+      };
     } catch (error) {
       throw new UnauthorizedException({
         message: 'Token 验证失败',

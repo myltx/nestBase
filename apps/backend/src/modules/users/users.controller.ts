@@ -20,7 +20,6 @@ import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto, QueryUserDto } from './dto';
 import { JwtAuthGuard, RolesGuard } from '@common/guards';
 import { Roles } from '@common/decorators';
-import { Role } from '@prisma/client';
 
 @ApiTags('用户模块')
 @Controller('users')
@@ -30,7 +29,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  @Roles(Role.ADMIN)
+  @Roles('ADMIN')
   @ApiOperation({ summary: '创建用户（仅管理员）' })
   @ApiResponse({ status: 201, description: '创建成功' })
   @ApiResponse({ status: 403, description: '权限不足' })
@@ -56,7 +55,7 @@ export class UsersController {
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN)
+  @Roles('ADMIN')
   @ApiOperation({ summary: '更新用户信息（仅管理员）' })
   @ApiResponse({ status: 200, description: '更新成功' })
   @ApiResponse({ status: 403, description: '权限不足' })
@@ -66,7 +65,7 @@ export class UsersController {
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN)
+  @Roles('ADMIN')
   @ApiOperation({ summary: '删除用户（仅管理员）' })
   @ApiResponse({ status: 200, description: '删除成功' })
   @ApiResponse({ status: 403, description: '权限不足' })

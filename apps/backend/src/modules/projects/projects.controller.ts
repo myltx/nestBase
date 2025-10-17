@@ -22,7 +22,6 @@ import {
 } from './dto';
 import { Public } from '@common/decorators/public.decorator';
 import { Roles } from '@common/decorators/roles.decorator';
-import { Role } from '@prisma/client';
 
 /**
  * 项目管理控制器
@@ -36,7 +35,7 @@ export class ProjectsController {
    * 创建项目（仅管理员）
    */
   @Post()
-  @Roles(Role.ADMIN)
+  @Roles('ADMIN')
   @ApiBearerAuth()
   @ApiOperation({ summary: '创建项目' })
   @ApiResponse({ status: 201, description: '项目创建成功' })
@@ -96,7 +95,7 @@ export class ProjectsController {
    * 更新项目（仅管理员）
    */
   @Patch(':id')
-  @Roles(Role.ADMIN)
+  @Roles('ADMIN')
   @ApiBearerAuth()
   @ApiOperation({ summary: '更新项目' })
   @ApiResponse({ status: 200, description: '更新成功' })
@@ -112,7 +111,7 @@ export class ProjectsController {
    * 切换项目精选状态（仅管理员）
    */
   @Patch(':id/toggle-featured')
-  @Roles(Role.ADMIN)
+  @Roles('ADMIN')
   @ApiBearerAuth()
   @ApiOperation({ summary: '切换项目精选状态' })
   @ApiResponse({ status: 200, description: '操作成功' })
@@ -127,7 +126,7 @@ export class ProjectsController {
    * 删除项目（仅管理员）
    */
   @Delete(':id')
-  @Roles(Role.ADMIN)
+  @Roles('ADMIN')
   @ApiBearerAuth()
   @ApiOperation({ summary: '删除项目' })
   @ApiResponse({ status: 200, description: '删除成功' })

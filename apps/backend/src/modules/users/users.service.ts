@@ -20,7 +20,7 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   /**
-   * 用户字段选择器（排除密码）
+   * 用户字段选择器(排除密码)
    */
   private readonly userSelect = {
     id: true,
@@ -29,17 +29,27 @@ export class UsersService {
     firstName: true,
     lastName: true,
     avatar: true,
-    roles: true,
     isActive: true,
     createdAt: true,
     updatedAt: true,
+    userRoles: {
+      include: {
+        role: {
+          select: {
+            id: true,
+            code: true,
+            name: true,
+          },
+        },
+      },
+    },
   };
 
   /**
    * 创建用户
    */
   async create(createUserDto: CreateUserDto) {
-    const { email, username, password, firstName, lastName, avatar, roles } = createUserDto;
+    const { email, username, password, firstName, lastName, avatar, roleIds } = createUserDto;
 
     // 检查邮箱是否已存在
     const existingUserByEmail = await this.prisma.user.findUnique({
@@ -65,10 +75,43 @@ export class UsersService {
       });
     }
 
+    // 如果没有提供角色ID,默认分配 USER 角色
+    let assignRoleIds = roleIds;
+    if (!assignRoleIds || assignRoleIds.length === 0) {
+      const userRole = await this.prisma.role.findUnique({
+        where: { code: 'USER' },
+      });
+
+      if (!userRole) {
+        throw new BadRequestException({
+          message: '系统角色未初始化',
+          code: BusinessCode.SYSTEM_ERROR,
+        });
+      }
+
+      assignRoleIds = [userRole.id];
+    } else {
+      // 验证角色ID是否存在
+      const roles = await this.prisma.role.findMany({
+        where: {
+          id: {
+            in: assignRoleIds,
+          },
+        },
+      });
+
+      if (roles.length !== assignRoleIds.length) {
+        throw new BadRequestException({
+          message: '部分角色 ID 不存在',
+          code: BusinessCode.NOT_FOUND,
+        });
+      }
+    }
+
     // 加密密码
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 创建用户
+    // 创建用户并分配角色
     const user = await this.prisma.user.create({
       data: {
         email,
@@ -77,16 +120,21 @@ export class UsersService {
         firstName,
         lastName,
         avatar,
-        roles,
+        userRoles: {
+          create: assignRoleIds.map((roleId) => ({
+            roleId,
+          })),
+        },
       },
       select: this.userSelect,
     });
 
-    return user;
+    // 格式化返回数据
+    return this.formatUser(user);
   }
 
   /**
-   * 查询所有用户（支持分页和搜索）
+   * 查询所有用户(支持分页和搜索)
    */
   async findAll(queryDto: QueryUserDto) {
     const { search, role, page = '1', limit = '10' } = queryDto;
@@ -115,14 +163,18 @@ export class UsersService {
       ];
     }
 
-    // 支持按角色筛选（角色数组中包含指定角色）
+    // 支持按角色code筛选
     if (role) {
-      where.roles = {
-        has: role,
+      where.userRoles = {
+        some: {
+          role: {
+            code: role,
+          },
+        },
       };
     }
 
-    // 查询用户（排除密码字段）
+    // 查询用户(排除密码字段)
     const [users, total] = await Promise.all([
       this.prisma.user.findMany({
         where,
@@ -137,7 +189,7 @@ export class UsersService {
     ]);
 
     return {
-      data: users,
+      data: users.map((user) => this.formatUser(user)),
       meta: {
         total,
         page: pageNum,
@@ -148,7 +200,7 @@ export class UsersService {
   }
 
   /**
-   * 根据 ID 查询用户（排除密码）
+   * 根据 ID 查询用户(排除密码)
    */
   async findOne(id: string) {
     const user = await this.prisma.user.findUnique({
@@ -163,7 +215,7 @@ export class UsersService {
       });
     }
 
-    return user;
+    return this.formatUser(user);
   }
 
   /**
@@ -197,27 +249,71 @@ export class UsersService {
       updateData.avatar = updateUserDto.avatar;
     }
 
-    if (updateUserDto.roles !== undefined) {
-      updateData.roles = updateUserDto.roles;
-    }
-
     if (updateUserDto.isActive !== undefined) {
       updateData.isActive = updateUserDto.isActive;
     }
 
-    // 如果更新密码，需要加密
+    // 如果更新密码,需要加密
     if (updateUserDto.password) {
       updateData.password = await bcrypt.hash(updateUserDto.password, 10);
     }
 
-    // 更新用户（排除密码字段）
-    const user = await this.prisma.user.update({
-      where: { id },
-      data: updateData,
-      select: this.userSelect,
+    // 处理角色更新
+    if (updateUserDto.roleIds !== undefined) {
+      // 验证角色ID是否存在
+      const roles = await this.prisma.role.findMany({
+        where: {
+          id: {
+            in: updateUserDto.roleIds,
+          },
+        },
+      });
+
+      if (roles.length !== updateUserDto.roleIds.length) {
+        throw new BadRequestException({
+          message: '部分角色 ID 不存在',
+          code: BusinessCode.NOT_FOUND,
+        });
+      }
+    }
+
+    // 使用事务更新用户和角色
+    const user = await this.prisma.$transaction(async (prisma) => {
+      // 更新用户基本信息
+      const updatedUser = await prisma.user.update({
+        where: { id },
+        data: updateData,
+        select: this.userSelect,
+      });
+
+      // 如果需要更新角色
+      if (updateUserDto.roleIds !== undefined) {
+        // 删除现有角色关联
+        await prisma.userRole.deleteMany({
+          where: { userId: id },
+        });
+
+        // 创建新的角色关联
+        if (updateUserDto.roleIds.length > 0) {
+          await prisma.userRole.createMany({
+            data: updateUserDto.roleIds.map((roleId) => ({
+              userId: id,
+              roleId,
+            })),
+          });
+        }
+
+        // 重新查询用户以获取最新角色
+        return prisma.user.findUnique({
+          where: { id },
+          select: this.userSelect,
+        });
+      }
+
+      return updatedUser;
     });
 
-    return user;
+    return this.formatUser(user);
   }
 
   /**
@@ -236,11 +332,26 @@ export class UsersService {
       });
     }
 
-    // 删除用户
+    // 删除用户(会级联删除 userRoles)
     await this.prisma.user.delete({
       where: { id },
     });
 
     return { message: '用户删除成功' };
+  }
+
+  /**
+   * 格式化用户数据,将 userRoles 转换为 roles 数组
+   */
+  private formatUser(user: any) {
+    const { userRoles, ...userData } = user;
+    return {
+      ...userData,
+      roles: userRoles.map((ur: any) => ({
+        id: ur.role.id,
+        code: ur.role.code,
+        name: ur.role.name,
+      })),
+    };
   }
 }

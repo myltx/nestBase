@@ -9,13 +9,12 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
-import { Role } from '@prisma/client';
 
 export interface JwtPayload {
   sub: string;
   email: string;
   username: string;
-  roles: Role[];
+  roles: string[]; // 角色code数组
 }
 
 @Injectable()
@@ -41,14 +40,26 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         firstName: true,
         lastName: true,
         avatar: true,
-        roles: true,
         isActive: true,
+        userRoles: {
+          include: {
+            role: {
+              select: {
+                code: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
 
     if (!user || !user.isActive) {
       throw new UnauthorizedException('用户不存在或已被禁用');
     }
+
+    // 提取角色 code 数组
+    const roleCodes = user.userRoles.map((ur) => ur.role.code);
 
     return {
       id: user.id,
@@ -57,7 +68,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       firstName: user.firstName,
       lastName: user.lastName,
       avatar: user.avatar,
-      roles: user.roles,
+      roles: roleCodes, // 返回角色code数组
     };
   }
 }

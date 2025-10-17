@@ -1,0 +1,81 @@
+{
+  "users": [
+    {
+      "id": "f6633136-834b-42be-87b0-e7da44b7727d",
+      "email": "admin@example.com",
+      "password": "$2b$10$l.ALg4zHf4GKsR7a1oYXYOKvt0L2QG9nDrxm/ExEP/Oh0tq6nn6Wu",
+      "username": "admin",
+      "first_name": "Admin",
+      "last_name": "User",
+      "is_active": true,
+      "created_at": "2025-10-17T05:56:14.122Z",
+      "updated_at": "2025-10-17T05:56:14.122Z",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=admin",
+      "roles": [
+        "ADMIN",
+        "MODERATOR"
+      ]
+    },
+    {
+      "id": "73bb5a39-0acd-4105-a3f6-fdd729afb676",
+      "email": "user@example.com",
+      "password": "$2b$10$/USFFeswP18pTQqtY7Acz.YOendsiKZNypBsc6MU.4khgG7r1HTT.",
+      "username": "testuser",
+      "first_name": "Test",
+      "last_name": "User",
+      "is_active": true,
+      "created_at": "2025-10-17T05:56:14.483Z",
+      "updated_at": "2025-10-17T05:56:14.483Z",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=testuser",
+      "roles": [
+        "USER"
+      ]
+    },
+    {
+      "id": "e42ad00c-736d-4ab2-be1a-e4890d9e6aab",
+      "email": "moderator@example.com",
+      "password": "$2b$10$VRSFjAYU6OeXBN.yhQUf2eLBd8cABgrJDACiZ6UuiHvNw1ouQT8G2",
+      "username": "moderator",
+      "first_name": "Moderator",
+      "last_name": "User",
+      "is_active": true,
+      "created_at": "2025-10-17T05:56:14.873Z",
+      "updated_at": "2025-10-17T05:56:14.873Z",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=moderator",
+      "roles": [
+        "MODERATOR"
+      ]
+    },
+    {
+      "id": "04ee1c18-2f80-428e-8df3-5e0e40bbbe31",
+      "email": "865147643@qq.com",
+      "password": "$2b$10$MADZKaZ7fWzKuWlQpd/WqODEmq6O4cN3Q5ZaBrIZlLnn11xGHWgyW",
+      "username": "Admin",
+      "first_name": "傲天",
+      "last_name": "龙",
+      "is_active": true,
+      "created_at": "2025-10-17T06:16:43.368Z",
+      "updated_at": "2025-10-17T06:16:43.368Z",
+      "avatar": null,
+      "roles": [
+        "USER"
+      ]
+    },
+    {
+      "id": "6961255a-ec92-48c3-81e4-7b82a34019b9",
+      "email": "714507484@qq.com",
+      "password": "$2b$10$Q2MNidDGerSLjoBL8FzHCuV39gYmVlz0HCzFKl1CX3q3i/JU1hUoy",
+      "username": "test",
+      "first_name": "傲天",
+      "last_name": "龙",
+      "is_active": true,
+      "created_at": "2025-10-17T06:17:30.284Z",
+      "updated_at": "2025-10-17T06:17:30.284Z",
+      "avatar": null,
+      "roles": [
+        "USER"
+      ]
+    }
+  ],
+  "timestamp": "2025-10-17T08:47:31.383Z"
+}

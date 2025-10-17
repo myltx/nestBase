@@ -8,28 +8,50 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// 角色模型
+model Role {
+  id          String     @id @default(uuid())
+  code        String     @unique // 角色代码 (USER, ADMIN, MODERATOR)
+  name        String     @unique // 角色名称 (用户, 管理员, 协调员)
+  description String?    // 角色描述
+  isSystem    Boolean    @default(false) @map("is_system") // 是否系统内置角色
+  isActive    Boolean    @default(true) @map("is_active") // 是否启用
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  userRoles   UserRole[]
+  roleMenus   RoleMenu[]
+
+  @@map("roles")
+}
+
 // 用户模型
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
+  id        String     @id @default(uuid())
+  email     String     @unique
   password  String
-  username  String   @unique
-  firstName String?  @map("first_name")
-  lastName  String?  @map("last_name")
-  avatar    String?  // 用户头像 URL
-  roles     Role[]   @default([USER]) // 用户角色数组，支持多角色
-  isActive  Boolean  @default(true) @map("is_active")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  username  String     @unique
+  firstName String?    @map("first_name")
+  lastName  String?    @map("last_name")
+  avatar    String?    // 用户头像 URL
+  isActive  Boolean    @default(true) @map("is_active")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  userRoles UserRole[] // 用户角色关联
 
   @@map("users")
 }
 
-// 角色枚举
-enum Role {
-  USER
-  ADMIN
-  MODERATOR
+// 用户角色关联模型
+model UserRole {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  roleId    String   @map("role_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, roleId])
+  @@map("user_roles")
 }
 
 // 项目模型
@@ -46,4 +68,55 @@ model Project {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("projects")
+}
+
+// 菜单模型
+model Menu {
+  id             String     @id @default(uuid())
+  routeKey       String     @unique @map("route_key") // 路由唯一标识
+  routePath      String     @map("route_path") // 路由路径
+  title          String // 菜单标题
+  i18nKey        String?    @map("i18n_key") // 国际化 key
+  icon           String? // Iconify 图标
+  localIcon      String?    @map("local_icon") // 本地图标
+  iconFontSize   Int?       @map("icon_font_size") // 图标大小
+  order          Int?       @default(0) // 排序
+  parentId       String?    @map("parent_id") // 父菜单 ID
+  parent         Menu?      @relation("MenuHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children       Menu[]     @relation("MenuHierarchy")
+  component      String? // 页面组件路径
+  href           String? // 外链地址
+  hideInMenu     Boolean    @default(false) @map("hide_in_menu") // 是否在菜单中隐藏
+  activeMenu     String?    @map("active_menu") // 激活的菜单 key
+  multiTab       Boolean    @default(false) @map("multi_tab") // 是否支持多标签页
+  fixedIndexInTab Int?      @map("fixed_index_in_tab") // 固定在标签页的索引
+  status         MenuStatus @default(ENABLED) // 菜单状态
+  keepAlive      Boolean    @default(false) @map("keep_alive") // 是否缓存
+  constant       Boolean    @default(false) // 是否为常量路由（无需登录和权限验证）
+  query          Json? // 查询参数 JSON
+  isActive       Boolean    @default(true) @map("is_active") // 是否启用
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+  roleMenus      RoleMenu[]
+
+  @@map("menus")
+}
+
+// 菜单状态枚举
+enum MenuStatus {
+  ENABLED  // 启用
+  DISABLED // 禁用
+}
+
+// 角色菜单关联模型
+model RoleMenu {
+  id        String   @id @default(uuid())
+  roleId    String   @map("role_id") // 角色 ID
+  menuId    String   @map("menu_id") // 菜单 ID
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  menu      Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([roleId, menuId])
+  @@map("role_menus")
 }

@@ -11,6 +11,8 @@ import { PrismaModule } from './modules/prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { ProjectsModule } from './modules/projects/projects.module';
+import { MenusModule } from './modules/menus/menus.module';
+import { RolesModule } from './modules/roles/roles.module';
 import { SwaggerModule as SwaggerDocModule } from './modules/swagger/swagger.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
@@ -28,6 +30,8 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     AuthModule,
     UsersModule,
     ProjectsModule,
+    MenusModule,
+    RolesModule,
     SwaggerDocModule,
   ],
   providers: [

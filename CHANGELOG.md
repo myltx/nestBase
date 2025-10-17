@@ -1,5 +1,599 @@
 # 📝 更新日志
 
+## [1.3.1] - 2025-10-17
+
+### ✨ 新增功能
+
+#### 1. **菜单模型字段增强**
+
+为菜单系统添加了 `component` 和 `status` 字段，提升了路由管理的灵活性和状态控制。
+
+**新增字段**：
+- `component` (String?, 可选) - 页面组件路径，用于前端动态加载对应的页面组件
+- `status` (MenuStatus, 必填，默认 ENABLED) - 菜单状态枚举，控制菜单的启用/禁用状态
+
+**MenuStatus 枚举**：
+```prisma
+enum MenuStatus {
+  ENABLED  // 启用
+  DISABLED // 禁用
+}
+```
+
+**影响的文件**：
+- `prisma/schema.prisma` - 添加 component 和 status 字段，新增 MenuStatus 枚举
+- `src/modules/menus/dto/create-menu.dto.ts` - 添加 component 和 status 字段验证
+- `src/modules/menus/dto/update-menu.dto.ts` - 自动继承新字段
+- `src/modules/menus/dto/query-menu.dto.ts` - 添加 status 过滤条件
+
+**使用示例**：
+```typescript
+// 创建菜单时指定组件路径和状态
+{
+  "routeKey": "dashboard",
+  "routePath": "/dashboard",
+  "title": "仪表盘",
+  "component": "views/dashboard/index",  // 新增
+  "status": "ENABLED"                     // 新增
+}
+```
+
+### 🔧 改进
+
+#### 1. **菜单状态管理**
+
+- 支持通过 `status` 字段控制菜单的启用/禁用
+- 查询接口支持按状态筛选菜单
+- 默认所有新创建的菜单状态为 `ENABLED`
+
+#### 2. **前端组件路径映射**
+
+- `component` 字段存储页面组件的相对路径
+- 前端可以根据该字段动态导入对应组件
+- 支持懒加载和代码分割优化
+
+#### 3. **DTO 验证增强**
+
+- `component` 字段：可选字符串，支持路径格式验证
+- `status` 字段：枚举类型验证，仅接受 ENABLED 或 DISABLED
+
+### 📚 文档更新
+
+更新了以下文档以反映新字段：
+- `CHANGELOG.md` - 添加 v1.3.1 版本更新说明
+
+### 🛠️ 技术变更
+
+#### 数据库迁移
+
+使用 `prisma db push` 应用 schema 更改，**不会删除现有数据**：
+
+```bash
+# 推送 schema 变更（保留现有数据）
+npx prisma db push
+
+# 重新生成 Prisma Client
+npx prisma generate
+```
+
+**数据迁移说明**：
+- 新字段 `component` 为可选，现有菜单数据保持 `null`
+- 新字段 `status` 有默认值 `ENABLED`，现有菜单自动设置为启用状态
+- **用户数据不受影响**，保留所有现有用户账户
+
+### 📊 更新的数据库模型
+
+```prisma
+model Menu {
+  id             String     @id @default(uuid())
+  routeKey       String     @unique @map("route_key")
+  routePath      String     @map("route_path")
+  title          String
+  i18nKey        String?    @map("i18n_key")
+  icon           String?
+  localIcon      String?    @map("local_icon")
+  iconFontSize   Int?       @map("icon_font_size")
+  order          Int?       @default(0)
+  parentId       String?    @map("parent_id")
+  parent         Menu?      @relation("MenuHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children       Menu[]     @relation("MenuHierarchy")
+  component      String?                      // 新增：页面组件路径
+  href           String?
+  hideInMenu     Boolean    @default(false) @map("hide_in_menu")
+  activeMenu     String?    @map("active_menu")
+  multiTab       Boolean    @default(false) @map("multi_tab")
+  fixedIndexInTab Int?      @map("fixed_index_in_tab")
+  status         MenuStatus @default(ENABLED) // 新增：菜单状态
+  keepAlive      Boolean    @default(false) @map("keep_alive")
+  constant       Boolean    @default(false)
+  query          Json?
+  isActive       Boolean    @default(true) @map("is_active")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+  roleMenus      RoleMenu[]
+
+  @@map("menus")
+}
+```
+
+### 💡 前端集成指南
+
+#### 使用 component 字段动态加载组件
+
+```typescript
+// 根据 component 字段动态导入组件
+const loadComponent = (componentPath: string) => {
+  return () => import(`@/${componentPath}.vue`);
+};
+
+// 转换菜单为路由
+const convertToRoutes = (menus: Menu[]) => {
+  return menus.map(menu => ({
+    path: menu.routePath,
+    name: menu.routeKey,
+    component: menu.component ? loadComponent(menu.component) : Layout,
+    meta: {
+      title: menu.title,
+      status: menu.status,  // 新增状态信息
+      // ... 其他 meta 字段
+    },
+    children: menu.children ? convertToRoutes(menu.children) : []
+  }));
+};
+```
+
+#### 根据状态过滤菜单
+
+```typescript
+// 仅显示启用的菜单
+const enabledMenus = menus.filter(menu => menu.status === 'ENABLED');
+```
+
+### 🧪 测试建议
+
+#### 需要测试的场景
+
+1. **component 字段**
+   - ✅ 创建菜单时设置组件路径
+   - ✅ 更新菜单的组件路径
+   - ✅ 组件路径为空时的处理
+   - ✅ 前端根据路径动态加载组件
+
+2. **status 字段**
+   - ✅ 新菜单默认状态为 ENABLED
+   - ✅ 设置菜单状态为 DISABLED
+   - ✅ 按状态筛选菜单列表
+   - ✅ 禁用菜单在前端的显示控制
+
+3. **数据完整性**
+   - ✅ 现有菜单数据完整保留
+   - ✅ 现有用户数据不受影响
+   - ✅ 角色菜单关联关系保持不变
+
+### 📦 部署注意事项
+
+#### 迁移步骤
+
+1. **应用数据库变更**（无需备份，安全操作）
+   ```bash
+   cd apps/backend
+   npx prisma db push
+   npx prisma generate
+   ```
+
+2. **重启应用**
+   ```bash
+   pnpm dev  # 开发环境
+   ```
+
+3. **验证字段**
+   - 检查现有菜单是否正确显示
+   - 验证新字段是否可用
+   - 测试菜单的创建和更新
+
+#### 前端同步更新
+
+**更新菜单类型定义**：
+
+```typescript
+interface Menu {
+  id: string;
+  routeKey: string;
+  routePath: string;
+  title: string;
+  component?: string;        // 新增
+  status: 'ENABLED' | 'DISABLED';  // 新增
+  // ... 其他字段
+}
+```
+
+### 🔗 相关版本
+
+- 基于版本：v1.3.0
+- 前置依赖：菜单管理系统 (v1.3.0)
+
+---
+
+## [1.3.0] - 2025-10-17
+
+### ✨ 新增功能
+
+#### 1. **菜单管理系统**
+
+基于前端 Vue Router 类型定义，实现了完整的后端菜单管理系统。
+
+**核心特性**：
+- 支持树形层级结构（父子菜单关系）
+- 基于角色的菜单权限控制（RBAC）
+- 与前端路由类型完全兼容
+- 支持国际化配置（i18nKey）
+- 支持图标配置（Iconify 和本地图标）
+- 支持菜单排序、隐藏、缓存等丰富配置
+- 动态路由生成
+
+**影响的文件**：
+- `prisma/schema.prisma` - 新增 Menu 和 RoleMenu 模型
+- `src/modules/menus/` - 完整的菜单模块
+- `src/common/decorators/get-user.decorator.ts` - 新增用户装饰器
+- `src/app.module.ts` - 注册菜单模块
+- `prisma/seed.ts` - 添加示例菜单数据
+
+**数据库模型**：
+
+```prisma
+// 菜单模型
+model Menu {
+  id              String     @id @default(uuid())
+  routeKey        String     @unique @map("route_key")
+  routePath       String     @map("route_path")
+  title           String
+  i18nKey         String?    @map("i18n_key")
+  icon            String?
+  localIcon       String?    @map("local_icon")
+  iconFontSize    Int?       @map("icon_font_size")
+  order           Int?       @default(0)
+  parentId        String?    @map("parent_id")
+  parent          Menu?      @relation("MenuHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children        Menu[]     @relation("MenuHierarchy")
+  href            String?
+  hideInMenu      Boolean    @default(false) @map("hide_in_menu")
+  activeMenu      String?    @map("active_menu")
+  multiTab        Boolean    @default(false) @map("multi_tab")
+  fixedIndexInTab Int?       @map("fixed_index_in_tab")
+  keepAlive       Boolean    @default(false) @map("keep_alive")
+  constant        Boolean    @default(false)
+  query           Json?
+  isActive        Boolean    @default(true) @map("is_active")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+  roleMenus       RoleMenu[]
+}
+
+// 角色菜单关联模型
+model RoleMenu {
+  id        String   @id @default(uuid())
+  role      Role
+  menuId    String   @map("menu_id")
+  menu      Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+  @@unique([role, menuId])
+}
+```
+
+#### 2. **菜单 API 接口**
+
+**管理接口（仅管理员）**：
+- `POST /api/menus` - 创建菜单
+- `GET /api/menus` - 查询所有菜单（支持搜索和筛选）
+- `GET /api/menus/tree` - 获取树形菜单结构
+- `GET /api/menus/:id` - 根据 ID 查询菜单
+- `PATCH /api/menus/:id` - 更新菜单
+- `DELETE /api/menus/:id` - 删除菜单
+
+**权限管理接口（仅管理员）**：
+- `POST /api/menus/assign` - 为角色分配菜单
+- `GET /api/menus/role/:role` - 获取角色的菜单列表
+
+**用户接口**：
+- `GET /api/menus/user-routes` - 获取当前用户的路由菜单（树形结构）
+
+#### 3. **GetUser 装饰器**
+
+新增 `@GetUser()` 装饰器，用于从请求中提取当前用户信息。
+
+**使用示例**：
+```typescript
+@Get('user-routes')
+getUserRoutes(@GetUser() user: any) {
+  return this.menusService.findByRoles(user.roles);
+}
+```
+
+### 🔧 改进
+
+#### 1. **菜单服务功能**
+
+- 支持父子菜单层级关系
+- 自动构建树形结构
+- 根据用户角色过滤菜单
+- 菜单启用/禁用状态管理
+- 级联删除保护（有子菜单的不能删除）
+
+#### 2. **角色菜单关联**
+
+- 一对多关系：一个角色可以拥有多个菜单
+- 唯一约束：同一角色不能重复关联同一菜单
+- 级联删除：删除菜单时自动删除关联关系
+- 批量分配：支持一次性为角色分配多个菜单
+
+#### 3. **前端路由兼容**
+
+完全兼容前端 `route.d.ts` 定义的所有字段：
+
+```typescript
+interface RouteMeta {
+  title: string;                  // ✅ 映射到 Menu.title
+  i18nKey?: string;               // ✅ 映射到 Menu.i18nKey
+  roles?: string[];               // ✅ 通过 RoleMenu 关联
+  keepAlive?: boolean;            // ✅ 映射到 Menu.keepAlive
+  constant?: boolean;             // ✅ 映射到 Menu.constant
+  icon?: string;                  // ✅ 映射到 Menu.icon
+  localIcon?: string;             // ✅ 映射到 Menu.localIcon
+  iconFontSize?: number;          // ✅ 映射到 Menu.iconFontSize
+  order?: number;                 // ✅ 映射到 Menu.order
+  href?: string;                  // ✅ 映射到 Menu.href
+  hideInMenu?: boolean;           // ✅ 映射到 Menu.hideInMenu
+  activeMenu?: string;            // ✅ 映射到 Menu.activeMenu
+  multiTab?: boolean;             // ✅ 映射到 Menu.multiTab
+  fixedIndexInTab?: number;       // ✅ 映射到 Menu.fixedIndexInTab
+  query?: { key: string; value: string }[]; // ✅ 映射到 Menu.query (JSON)
+}
+```
+
+### 📚 文档更新
+
+#### 更新的文档
+
+1. **README.md**
+   - 添加菜单模块接口说明
+   - 添加菜单系统特性介绍
+   - 更新主要接口列表
+
+2. **CHANGELOG.md**
+   - 添加 v1.3.0 版本更新日志
+   - 详细记录菜单系统所有功能
+   - 提供前端集成指南
+
+### 🛠️ 技术变更
+
+#### 数据库迁移
+
+新增两张表：
+
+```bash
+# 推送 schema 变更
+npx prisma db push
+
+# 重新生成 Prisma Client
+npx prisma generate
+
+# 填充示例菜单数据
+npx prisma db seed
+```
+
+#### 示例菜单数据
+
+种子脚本创建了以下菜单结构：
+
+**根菜单**：
+1. 首页 (`home`)
+2. 用户管理 (`user-management`)
+   - 用户列表 (`user-list`)
+   - 角色管理 (`role-management`)
+3. 系统管理 (`system`)
+   - 菜单管理 (`menu-management`)
+   - 系统设置 (`system-settings`)
+4. 项目管理 (`projects`)
+
+**角色菜单分配**：
+- **ADMIN**: 拥有所有菜单（8个）
+- **MODERATOR**: 拥有首页、用户管理、项目管理（4个）
+- **USER**: 拥有首页、项目管理（2个）
+
+### 📊 API 使用示例
+
+#### 获取当前用户的路由菜单
+
+**请求**：
+```bash
+GET /api/menus/user-routes
+Authorization: Bearer <token>
+```
+
+**响应**（树形结构）：
+```json
+{
+  "code": 0,
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "routeKey": "home",
+      "routePath": "/home",
+      "title": "首页",
+      "i18nKey": "route.home",
+      "icon": "mdi:home",
+      "order": 1,
+      "children": []
+    },
+    {
+      "id": "uuid",
+      "routeKey": "user-management",
+      "routePath": "/user-management",
+      "title": "用户管理",
+      "icon": "mdi:account-group",
+      "order": 2,
+      "children": [
+        {
+          "id": "uuid",
+          "routeKey": "user-list",
+          "routePath": "/user-management/list",
+          "title": "用户列表",
+          "icon": "mdi:account-multiple",
+          "order": 1,
+          "children": []
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### 为角色分配菜单
+
+**请求**：
+```bash
+POST /api/menus/assign
+Content-Type: application/json
+Authorization: Bearer <admin_token>
+
+{
+  "role": "USER",
+  "menuIds": ["menu-id-1", "menu-id-2", "menu-id-3"]
+}
+```
+
+**响应**：
+```json
+{
+  "code": 0,
+  "success": true,
+  "data": {
+    "message": "角色菜单分配成功",
+    "role": "USER",
+    "menuCount": 3
+  }
+}
+```
+
+#### 创建菜单
+
+**请求**：
+```bash
+POST /api/menus
+Content-Type: application/json
+Authorization: Bearer <admin_token>
+
+{
+  "routeKey": "dashboard",
+  "routePath": "/dashboard",
+  "title": "仪表盘",
+  "i18nKey": "route.dashboard",
+  "icon": "mdi:view-dashboard",
+  "order": 0,
+  "keepAlive": true
+}
+```
+
+### 🧪 测试结果
+
+所有接口测试通过：
+
+- ✅ 创建菜单 - 支持层级结构
+- ✅ 查询所有菜单 - 返回树形数据
+- ✅ 查询用户路由 - 根据角色过滤
+- ✅ 更新菜单 - 支持父菜单修改
+- ✅ 删除菜单 - 级联删除保护
+- ✅ 角色菜单分配 - 批量分配成功
+- ✅ 权限控制 - ADMIN 可管理，USER 只能查看自己的路由
+
+**角色权限验证**：
+- ADMIN 用户：可以看到全部 8 个菜单
+- MODERATOR 用户：可以看到 4 个菜单
+- USER 用户：可以看到 2 个菜单
+
+### 💡 前端集成指南
+
+#### 1. 获取用户路由
+
+在用户登录后，调用 `/api/menus/user-routes` 获取该用户的路由配置：
+
+```typescript
+// 获取用户路由
+const getUserRoutes = async () => {
+  const response = await axios.get('/api/menus/user-routes', {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+  return response.data.data; // 返回树形菜单结构
+};
+```
+
+#### 2. 转换为前端路由
+
+后端返回的菜单数据可以直接映射到前端路由：
+
+```typescript
+const convertToRoutes = (menus: Menu[]) => {
+  return menus.map(menu => ({
+    path: menu.routePath,
+    name: menu.routeKey,
+    meta: {
+      title: menu.title,
+      i18nKey: menu.i18nKey,
+      icon: menu.icon,
+      localIcon: menu.localIcon,
+      order: menu.order,
+      hideInMenu: menu.hideInMenu,
+      keepAlive: menu.keepAlive,
+      // ... 其他字段
+    },
+    children: menu.children ? convertToRoutes(menu.children) : []
+  }));
+};
+```
+
+#### 3. 动态添加路由
+
+```typescript
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+const userRoutes = await getUserRoutes();
+const routes = convertToRoutes(userRoutes);
+
+// 动态添加路由
+routes.forEach(route => {
+  router.addRoute(route);
+});
+```
+
+### 🔮 未来计划
+
+1. **菜单管理后台**
+   - 可视化菜单树编辑器
+   - 拖拽排序功能
+   - 菜单图标选择器
+
+2. **权限细化**
+   - 支持按钮级别权限控制
+   - 菜单与接口权限关联
+   - 权限矩阵可视化
+
+3. **菜单缓存**
+   - Redis 缓存用户路由
+   - 提升路由查询性能
+   - 支持路由热更新
+
+### 📝 相关文档
+
+- [API 文档](README.md#api-文档)
+- [数据库模型](README.md#数据库模型)
+- [前端路由定义](apps/frontend/route.d.ts)
+
+---
+
 ## [1.2.0] - 2025-10-17
 
 ### ✨ 新增功能

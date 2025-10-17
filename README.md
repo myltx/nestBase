@@ -254,6 +254,27 @@ PATCH  /api/users/:id      # 更新用户（仅管理员）
 DELETE /api/users/:id      # 删除用户（仅管理员）
 ```
 
+#### 📁 菜单模块（v1.3.0 新增）
+
+```http
+GET    /api/menus                  # 查询所有菜单（仅管理员）
+GET    /api/menus/tree             # 获取树形菜单结构（仅管理员）
+GET    /api/menus/user-routes      # 获取当前用户的路由菜单
+GET    /api/menus/:id              # 根据 ID 查询菜单（仅管理员）
+POST   /api/menus                  # 创建菜单（仅管理员）
+PATCH  /api/menus/:id              # 更新菜单（仅管理员）
+DELETE /api/menus/:id              # 删除菜单（仅管理员）
+POST   /api/menus/assign           # 为角色分配菜单（仅管理员）
+GET    /api/menus/role/:role       # 获取角色的菜单（仅管理员）
+```
+
+**菜单系统特性**：
+- ✅ 支持树形层级结构（父子菜单）
+- ✅ 基于角色的菜单权限控制
+- ✅ 与前端路由定义完全兼容
+- ✅ 支持国际化、图标、排序等丰富配置
+- ✅ 动态路由生成
+
 ### 使用示例
 
 #### 注册新用户

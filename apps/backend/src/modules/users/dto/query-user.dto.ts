@@ -4,8 +4,7 @@
  */
 
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, IsEnum, IsNumberString } from 'class-validator';
-import { Role } from '@prisma/client';
+import { IsOptional, IsString, IsNumberString } from 'class-validator';
 
 export class QueryUserDto {
   @ApiProperty({
@@ -18,14 +17,11 @@ export class QueryUserDto {
   search?: string;
 
   @ApiProperty({
-    description: '角色筛选',
-    enum: Role,
+    description: '角色代码筛选(如 ADMIN, USER, MODERATOR)',
     required: false,
-    example: Role.USER,
   })
   @IsOptional()
-  @IsEnum(Role)
-  role?: Role;
+  role?: string;
 
   @ApiProperty({
     description: '页码',

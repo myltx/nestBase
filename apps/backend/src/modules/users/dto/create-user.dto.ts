@@ -4,8 +4,7 @@
  */
 
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, MinLength, MaxLength, IsOptional, IsEnum, IsArray, IsUrl } from 'class-validator';
-import { Role } from '@prisma/client';
+import { IsEmail, IsString, MinLength, MaxLength, IsOptional, IsArray, IsUrl, IsUUID } from 'class-validator';
 
 export class CreateUserDto {
   @ApiProperty({
@@ -60,14 +59,13 @@ export class CreateUserDto {
   avatar?: string;
 
   @ApiProperty({
-    description: '用户角色数组（支持多角色）',
-    enum: Role,
-    isArray: true,
-    example: [Role.USER],
+    description: '角色 ID 数组(支持多角色)',
+    type: [String],
+    example: ['uuid1', 'uuid2'],
     required: false,
   })
   @IsOptional()
   @IsArray()
-  @IsEnum(Role, { each: true, message: '角色必须是 USER、ADMIN 或 MODERATOR' })
-  roles?: Role[];
+  @IsUUID('4', { each: true, message: '每个角色 ID 必须是有效的 UUID' })
+  roleIds?: string[];
 }

@@ -36,6 +36,7 @@ export enum BusinessCode {
   INTERNAL_SERVER_ERROR = 2000,
   DATABASE_ERROR = 2001,
   EXTERNAL_SERVICE_ERROR = 2002,
+  SYSTEM_ERROR = 2003,
 }
 
 /**
@@ -76,4 +77,5 @@ export const BUSINESS_CODE_MESSAGES: Record<BusinessCode, string> = {
   [BusinessCode.INTERNAL_SERVER_ERROR]: '服务器内部错误',
   [BusinessCode.DATABASE_ERROR]: '数据库错误',
   [BusinessCode.EXTERNAL_SERVICE_ERROR]: '外部服务错误',
+  [BusinessCode.SYSTEM_ERROR]: '系统错误',
 };
