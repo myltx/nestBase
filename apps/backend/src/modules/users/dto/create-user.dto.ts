@@ -4,7 +4,7 @@
  */
 
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, MinLength, MaxLength, IsOptional, IsEnum } from 'class-validator';
+import { IsEmail, IsString, MinLength, MaxLength, IsOptional, IsEnum, IsArray, IsUrl } from 'class-validator';
 import { Role } from '@prisma/client';
 
 export class CreateUserDto {
@@ -51,12 +51,23 @@ export class CreateUserDto {
   lastName?: string;
 
   @ApiProperty({
-    description: '用户角色',
-    enum: Role,
-    example: Role.USER,
+    description: '用户头像 URL',
+    example: 'https://avatar.example.com/user.jpg',
     required: false,
   })
   @IsOptional()
-  @IsEnum(Role, { message: '角色必须是 USER、ADMIN 或 MODERATOR' })
-  role?: Role;
+  @IsUrl({}, { message: '头像必须是有效的 URL' })
+  avatar?: string;
+
+  @ApiProperty({
+    description: '用户角色数组（支持多角色）',
+    enum: Role,
+    isArray: true,
+    example: [Role.USER],
+    required: false,
+  })
+  @IsOptional()
+  @IsArray()
+  @IsEnum(Role, { each: true, message: '角色必须是 USER、ADMIN 或 MODERATOR' })
+  roles?: Role[];
 }

@@ -32,7 +32,7 @@ export class AuthService {
    * 管理员账户只能通过数据库迁移或管理员手动创建
    */
   async register(registerDto: RegisterDto) {
-    const { email, username, password, firstName, lastName } = registerDto;
+    const { email, username, password, firstName, lastName, avatar } = registerDto;
 
     // 检查邮箱是否已存在
     const existingUserByEmail = await this.prisma.user.findUnique({
@@ -61,8 +61,8 @@ export class AuthService {
     // 加密密码
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 创建用户（仅创建普通用户，role 默认为 USER）
-    // 注意：此处不接受任何 role 参数，防止用户尝试注册管理员账户
+    // 创建用户（仅创建普通用户，roles 默认为 [USER]）
+    // 注意：此处不接受任何 roles 参数，防止用户尝试注册管理员账户
     const user = await this.prisma.user.create({
       data: {
         email,
@@ -70,7 +70,8 @@ export class AuthService {
         password: hashedPassword,
         firstName,
         lastName,
-        // role 字段不设置，使用 Prisma schema 中的默认值 USER
+        avatar,
+        // roles 字段不设置，使用 Prisma schema 中的默认值 [USER]
       },
       select: {
         id: true,
@@ -78,7 +79,9 @@ export class AuthService {
         username: true,
         firstName: true,
         lastName: true,
-        role: true,
+        avatar: true,
+        roles: true,
+        isActive: true,
         createdAt: true,
       },
     });
@@ -140,7 +143,10 @@ export class AuthService {
         username: user.username,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role,
+        avatar: user.avatar,
+        roles: user.roles,
+        isActive: user.isActive,
+        createdAt: user.createdAt,
       },
       token,
     };
@@ -154,7 +160,7 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       username: user.username,
-      role: user.role,
+      roles: user.roles, // 使用 roles 数组
     };
 
     return {
@@ -175,7 +181,10 @@ export class AuthService {
           id: true,
           email: true,
           username: true,
-          role: true,
+          firstName: true,
+          lastName: true,
+          avatar: true,
+          roles: true,
           isActive: true,
         },
       });

@@ -20,10 +20,26 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   /**
+   * 用户字段选择器（排除密码）
+   */
+  private readonly userSelect = {
+    id: true,
+    email: true,
+    username: true,
+    firstName: true,
+    lastName: true,
+    avatar: true,
+    roles: true,
+    isActive: true,
+    createdAt: true,
+    updatedAt: true,
+  };
+
+  /**
    * 创建用户
    */
   async create(createUserDto: CreateUserDto) {
-    const { email, username, password, firstName, lastName, role } = createUserDto;
+    const { email, username, password, firstName, lastName, avatar, roles } = createUserDto;
 
     // 检查邮箱是否已存在
     const existingUserByEmail = await this.prisma.user.findUnique({
@@ -60,19 +76,10 @@ export class UsersService {
         password: hashedPassword,
         firstName,
         lastName,
-        role,
+        avatar,
+        roles,
       },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-        isActive: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: this.userSelect,
     });
 
     return user;
@@ -108,27 +115,20 @@ export class UsersService {
       ];
     }
 
+    // 支持按角色筛选（角色数组中包含指定角色）
     if (role) {
-      where.role = role;
+      where.roles = {
+        has: role,
+      };
     }
 
-    // 查询用户
+    // 查询用户（排除密码字段）
     const [users, total] = await Promise.all([
       this.prisma.user.findMany({
         where,
         skip,
         take: limitNum,
-        select: {
-          id: true,
-          email: true,
-          username: true,
-          firstName: true,
-          lastName: true,
-          role: true,
-          isActive: true,
-          createdAt: true,
-          updatedAt: true,
-        },
+        select: this.userSelect,
         orderBy: {
           createdAt: 'desc',
         },
@@ -148,22 +148,12 @@ export class UsersService {
   }
 
   /**
-   * 根据 ID 查询用户
+   * 根据 ID 查询用户（排除密码）
    */
   async findOne(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-        isActive: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: this.userSelect,
     });
 
     if (!user) {
@@ -203,8 +193,12 @@ export class UsersService {
       updateData.lastName = updateUserDto.lastName;
     }
 
-    if (updateUserDto.role !== undefined) {
-      updateData.role = updateUserDto.role;
+    if (updateUserDto.avatar !== undefined) {
+      updateData.avatar = updateUserDto.avatar;
+    }
+
+    if (updateUserDto.roles !== undefined) {
+      updateData.roles = updateUserDto.roles;
     }
 
     if (updateUserDto.isActive !== undefined) {
@@ -216,21 +210,11 @@ export class UsersService {
       updateData.password = await bcrypt.hash(updateUserDto.password, 10);
     }
 
-    // 更新用户
+    // 更新用户（排除密码字段）
     const user = await this.prisma.user.update({
       where: { id },
       data: updateData,
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-        isActive: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: this.userSelect,
     });
 
     return user;

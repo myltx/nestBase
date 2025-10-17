@@ -226,10 +226,13 @@ pnpm dev
 
 数据库种子脚本已创建以下测试账户：
 
-| 角色         | 用户名   | 邮箱              | 密码     |
-| ------------ | -------- | ----------------- | -------- |
-| **管理员**   | admin    | admin@example.com | admin123 |
-| **普通用户** | testuser | user@example.com  | user123  |
+| 角色               | 用户名    | 邮箱                  | 密码          |
+| ------------------ | --------- | --------------------- | ------------- |
+| **管理员+协调员**  | admin     | admin@example.com     | admin123      |
+| **普通用户**       | testuser  | user@example.com      | user123       |
+| **协调员**         | moderator | moderator@example.com | moderator123  |
+
+**说明**：管理员账户同时拥有 ADMIN 和 MODERATOR 两个角色，展示了多角色功能。
 
 ### 主要接口
 
@@ -263,9 +266,13 @@ curl -X POST http://localhost:3000/api/auth/register \
     "username": "newuser",
     "password": "Password123!",
     "firstName": "New",
-    "lastName": "User"
+    "lastName": "User",
+    "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=newuser"
   }'
 ```
+
+**新增字段**：
+- `avatar`（可选）：用户头像 URL
 
 #### 用户登录
 
@@ -289,7 +296,12 @@ curl -X POST http://localhost:3000/api/auth/login \
       "id": "uuid",
       "email": "admin@example.com",
       "username": "admin",
-      "role": "ADMIN"
+      "firstName": "Admin",
+      "lastName": "User",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=admin",
+      "roles": ["ADMIN", "MODERATOR"],
+      "isActive": true,
+      "createdAt": "2025-01-15T10:00:00.000Z"
     },
     "token": {
       "accessToken": "eyJhbGciOiJIUzI1NiIs...",
@@ -300,6 +312,11 @@ curl -X POST http://localhost:3000/api/auth/login \
   "timestamp": "2025-01-15T10:00:00.000Z"
 }
 ```
+
+**注意**：
+- `roles` 现在是数组格式，支持多角色
+- `avatar` 字段包含用户头像 URL
+- `password` 字段已自动排除
 
 #### 使用 JWT Token 访问受保护接口
 
@@ -409,12 +426,15 @@ model User {
   email     String   @unique
   password  String
   username  String   @unique
-  firstName String?
-  lastName  String?
-  role      Role     @default(USER)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  firstName String?  @map("first_name")
+  lastName  String?  @map("last_name")
+  avatar    String?  // 用户头像 URL
+  roles     Role[]   @default([USER]) // 用户角色数组，支持多角色
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
 }
 
 enum Role {
@@ -423,6 +443,11 @@ enum Role {
   MODERATOR
 }
 ```
+
+**重要更新（v1.2.0）**：
+- ✅ **多角色支持**：用户现在可以拥有多个角色（`roles` 数组）
+- ✅ **用户头像**：新增 `avatar` 字段用于存储用户头像 URL
+- ✅ **密码保护**：所有 API 响应自动排除 `password` 字段
 
 ---
 
@@ -480,6 +505,11 @@ async deleteUser(@Param('id') id: string) {
   return this.usersService.remove(id);
 }
 ```
+
+**多角色支持**（v1.2.0 新增）：
+- 用户可以同时拥有多个角色（例如：`[ADMIN, MODERATOR]`）
+- `@Roles()` 装饰器支持"OR"逻辑：用户只需拥有任一所需角色即可访问
+- 示例：`@Roles(Role.ADMIN, Role.MODERATOR)` - 拥有 ADMIN 或 MODERATOR 任一角色即可访问
 
 ### 公共路由
 

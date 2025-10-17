@@ -4,7 +4,7 @@
  */
 
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, MinLength, MaxLength, IsOptional } from 'class-validator';
+import { IsEmail, IsString, MinLength, MaxLength, IsOptional, IsUrl } from 'class-validator';
 
 export class RegisterDto {
   @ApiProperty({
@@ -48,4 +48,13 @@ export class RegisterDto {
   @IsOptional()
   @IsString()
   lastName?: string;
+
+  @ApiProperty({
+    description: '用户头像 URL',
+    example: 'https://avatar.example.com/user.jpg',
+    required: false,
+  })
+  @IsOptional()
+  @IsUrl({}, { message: '头像必须是有效的 URL' })
+  avatar?: string;
 }

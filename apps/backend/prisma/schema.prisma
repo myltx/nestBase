@@ -16,7 +16,8 @@ model User {
   username  String   @unique
   firstName String?  @map("first_name")
   lastName  String?  @map("last_name")
-  role      Role     @default(USER)
+  avatar    String?  // 用户头像 URL
+  roles     Role[]   @default([USER]) // 用户角色数组，支持多角色
   isActive  Boolean  @default(true) @map("is_active")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
