@@ -12,9 +12,8 @@ import {
   IsObject,
   IsUUID,
   Min,
-  IsEnum,
+  Max,
 } from 'class-validator';
-import { MenuStatus } from '@prisma/client';
 
 export class CreateMenuDto {
   @ApiProperty({
@@ -137,13 +136,14 @@ export class CreateMenuDto {
   fixedIndexInTab?: number;
 
   @ApiPropertyOptional({
-    description: '菜单状态',
-    enum: MenuStatus,
-    example: MenuStatus.ENABLED,
+    description: '菜单状态 (1:启用 2:禁用)',
+    example: 1,
   })
   @IsOptional()
-  @IsEnum(MenuStatus, { message: '菜单状态必须是有效的枚举值' })
-  status?: MenuStatus;
+  @IsInt({ message: '菜单状态必须是整数' })
+  @Min(1, { message: '菜单状态必须是 1 或 2' })
+  @Max(2, { message: '菜单状态必须是 1 或 2' })
+  status?: number;
 
   @ApiPropertyOptional({
     description: '是否缓存',
@@ -168,12 +168,4 @@ export class CreateMenuDto {
   @IsOptional()
   @IsObject({ message: '查询参数必须是对象' })
   query?: any;
-
-  @ApiPropertyOptional({
-    description: '是否启用',
-    example: true,
-  })
-  @IsOptional()
-  @IsBoolean({ message: '是否启用必须是布尔值' })
-  isActive?: boolean;
 }

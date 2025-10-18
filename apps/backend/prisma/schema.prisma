@@ -15,7 +15,7 @@ model Role {
   name        String     @unique // 角色名称 (用户, 管理员, 协调员)
   description String?    // 角色描述
   isSystem    Boolean    @default(false) @map("is_system") // 是否系统内置角色
-  status      RoleStatus @default(ENABLED) // 角色状态
+  status      Int        @default(1) // 角色状态 (1:启用 2:禁用)
   createdAt   DateTime   @default(now()) @map("created_at")
   updatedAt   DateTime   @updatedAt @map("updated_at")
   userRoles   UserRole[]
@@ -26,19 +26,19 @@ model Role {
 
 // 用户模型
 model User {
-  id        String     @id @default(uuid())
-  email     String     @unique
+  id        String   @id @default(uuid())
+  email     String   @unique
   password  String
-  userName  String     @unique @map("username")
-  nickName  String?    @map("nickname") // 昵称
-  firstName String?    @map("first_name")
-  lastName  String?    @map("last_name")
-  phone     String?    @unique // 手机号
-  gender    Gender?    // 性别
-  avatar    String?    // 用户头像 URL
-  status    UserStatus @default(ENABLED) // 用户状态
-  createdAt DateTime   @default(now()) @map("created_at")
-  updatedAt DateTime   @updatedAt @map("updated_at")
+  userName  String   @unique @map("username")
+  nickName  String?  @map("nickname") // 昵称
+  firstName String?  @map("first_name")
+  lastName  String?  @map("last_name")
+  phone     String?  @unique // 手机号
+  gender    Gender?  // 性别
+  avatar    String?  // 用户头像 URL
+  status    Int      @default(1) // 用户状态 (1:启用 2:禁用)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
   userRoles UserRole[] // 用户角色关联
 
   @@map("users")
@@ -49,18 +49,6 @@ enum Gender {
   MALE   // 男性
   FEMALE // 女性
   OTHER  // 其他
-}
-
-// 用户状态枚举
-enum UserStatus {
-  ENABLED  // 启用
-  DISABLED // 禁用
-}
-
-// 角色状态枚举
-enum RoleStatus {
-  ENABLED  // 启用
-  DISABLED // 禁用
 }
 
 // 用户角色关联模型
@@ -112,7 +100,7 @@ model Menu {
   activeMenu     String?    @map("active_menu") // 激活的菜单 key
   multiTab       Boolean    @default(false) @map("multi_tab") // 是否支持多标签页
   fixedIndexInTab Int?      @map("fixed_index_in_tab") // 固定在标签页的索引
-  status         MenuStatus @default(ENABLED) // 菜单状态
+  status         Int        @default(1) // 菜单状态 (1:启用 2:禁用)
   keepAlive      Boolean    @default(false) @map("keep_alive") // 是否缓存
   constant       Boolean    @default(false) // 是否为常量路由（无需登录和权限验证）
   query          Json? // 查询参数 JSON
@@ -121,12 +109,6 @@ model Menu {
   roleMenus      RoleMenu[]
 
   @@map("menus")
-}
-
-// 菜单状态枚举
-enum MenuStatus {
-  ENABLED  // 启用
-  DISABLED // 禁用
 }
 
 // 角色菜单关联模型

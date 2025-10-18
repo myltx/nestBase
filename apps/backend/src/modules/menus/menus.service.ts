@@ -10,7 +10,6 @@ import {
   ConflictException,
   BadRequestException,
 } from '@nestjs/common';
-import { MenuStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMenuDto, UpdateMenuDto, QueryMenuDto } from './dto';
 import { BusinessCode } from '@common/constants/business-codes';
@@ -128,7 +127,7 @@ export class MenusService {
     }
 
     if (activeOnly) {
-      where.status = MenuStatus.ENABLED;
+      where.status = 1;
     }
 
     // 只查询顶层菜单（没有父菜单的）
@@ -154,7 +153,7 @@ export class MenusService {
       const children = await this.prisma.menu.findMany({
         where: {
           parentId,
-          ...(activeOnly ? { status: MenuStatus.ENABLED } : {}),
+          ...(activeOnly ? { status: 1 } : {}),
         },
         select: this.menuSelect,
         orderBy: { order: 'asc' },
@@ -201,14 +200,14 @@ export class MenusService {
     };
 
     if (activeOnly) {
-      where.status = MenuStatus.ENABLED;
+      where.status = 1;
     }
 
     const buildTree = async (parentId: string | null = null): Promise<any[]> => {
       const menus = await this.prisma.menu.findMany({
         where: {
           parentId,
-          ...(activeOnly ? { status: MenuStatus.ENABLED } : {}),
+          ...(activeOnly ? { status: 1 } : {}),
         },
         select: this.menuSelect,
         orderBy: { order: 'asc' },
@@ -285,7 +284,7 @@ export class MenusService {
         id: {
           in: menuIds,
         },
-        status: MenuStatus.ENABLED,
+        status: 1,
       },
       select: this.menuSelect,
       orderBy: { order: 'asc' },

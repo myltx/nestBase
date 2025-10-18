@@ -4,9 +4,8 @@
  */
 
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsBoolean, IsEnum, IsNumberString } from 'class-validator';
+import { IsOptional, IsString, IsBoolean, IsInt, IsNumberString, Min, Max } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { MenuStatus } from '@prisma/client';
 
 export class QueryMenuDto {
   @ApiPropertyOptional({
@@ -44,14 +43,15 @@ export class QueryMenuDto {
   parentId?: string;
 
   @ApiPropertyOptional({
-    description: '菜单状态',
-    enum: MenuStatus,
-    example: MenuStatus.ENABLED,
+    description: '菜单状态 (1:启用 2:禁用)',
+    example: 1,
   })
   @IsOptional()
-  @Transform(({ value }) => value === '' ? undefined : value)
-  @IsEnum(MenuStatus, { message: '菜单状态必须是有效的枚举值' })
-  status?: MenuStatus;
+  @Transform(({ value }) => value === '' ? undefined : (value ? parseInt(value, 10) : undefined))
+  @IsInt({ message: '菜单状态必须是整数' })
+  @Min(1, { message: '菜单状态必须是 1 或 2' })
+  @Max(2, { message: '菜单状态必须是 1 或 2' })
+  status?: number;
 
   @ApiPropertyOptional({
     description: '当前页码',

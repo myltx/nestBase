@@ -4,8 +4,7 @@
  */
 
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, IsBoolean, IsEnum, MinLength, MaxLength } from 'class-validator';
-import { RoleStatus } from '@prisma/client';
+import { IsString, IsOptional, IsBoolean, IsInt, Min, Max, MinLength, MaxLength } from 'class-validator';
 
 export class CreateRoleDto {
   @ApiProperty({
@@ -45,12 +44,13 @@ export class CreateRoleDto {
   isSystem?: boolean;
 
   @ApiProperty({
-    description: '角色状态',
-    enum: RoleStatus,
-    example: RoleStatus.ENABLED,
+    description: '角色状态 (1:启用 2:禁用)',
+    example: 1,
     required: false,
   })
   @IsOptional()
-  @IsEnum(RoleStatus, { message: '角色状态必须是 ENABLED 或 DISABLED' })
-  status?: RoleStatus;
+  @IsInt({ message: '角色状态必须是整数' })
+  @Min(1, { message: '角色状态必须是 1 或 2' })
+  @Max(2, { message: '角色状态必须是 1 或 2' })
+  status?: number;
 }
