@@ -4,7 +4,8 @@
  */
 
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, MinLength, MaxLength, IsOptional, IsUrl } from 'class-validator';
+import { IsEmail, IsString, MinLength, MaxLength, IsOptional, IsUrl, IsEnum } from 'class-validator';
+import { Gender } from '@prisma/client';
 
 export class RegisterDto {
   @ApiProperty({
@@ -32,6 +33,15 @@ export class RegisterDto {
   password: string;
 
   @ApiProperty({
+    description: '昵称',
+    example: '小明',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  nickName?: string;
+
+  @ApiProperty({
     description: '名字',
     example: 'John',
     required: false,
@@ -48,6 +58,25 @@ export class RegisterDto {
   @IsOptional()
   @IsString()
   lastName?: string;
+
+  @ApiProperty({
+    description: '手机号',
+    example: '13800138000',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @ApiProperty({
+    description: '性别',
+    enum: Gender,
+    example: Gender.MALE,
+    required: false,
+  })
+  @IsOptional()
+  @IsEnum(Gender, { message: '性别必须是 MALE, FEMALE 或 OTHER' })
+  gender?: Gender;
 
   @ApiProperty({
     description: '用户头像 URL',

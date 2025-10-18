@@ -30,8 +30,11 @@ model User {
   email     String     @unique
   password  String
   userName  String     @unique @map("username")
+  nickName  String?    @map("nickname") // 昵称
   firstName String?    @map("first_name")
   lastName  String?    @map("last_name")
+  phone     String?    @unique // 手机号
+  gender    Gender?    // 性别
   avatar    String?    // 用户头像 URL
   isActive  Boolean    @default(true) @map("is_active")
   createdAt DateTime   @default(now()) @map("created_at")
@@ -39,6 +42,13 @@ model User {
   userRoles UserRole[] // 用户角色关联
 
   @@map("users")
+}
+
+// 性别枚举
+enum Gender {
+  MALE   // 男性
+  FEMALE // 女性
+  OTHER  // 其他
 }
 
 // 用户角色关联模型

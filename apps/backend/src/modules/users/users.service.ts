@@ -26,8 +26,11 @@ export class UsersService {
     id: true,
     email: true,
     userName: true,
+    nickName: true,
     firstName: true,
     lastName: true,
+    phone: true,
+    gender: true,
     avatar: true,
     isActive: true,
     createdAt: true,
@@ -49,7 +52,7 @@ export class UsersService {
    * 创建用户
    */
   async create(createUserDto: CreateUserDto) {
-    const { email, userName, password, firstName, lastName, avatar, roleIds } = createUserDto;
+    const { email, userName, password, nickName, firstName, lastName, phone, gender, avatar, roleIds } = createUserDto;
 
     // 检查邮箱是否已存在
     const existingUserByEmail = await this.prisma.user.findUnique({
@@ -73,6 +76,20 @@ export class UsersService {
         message: '用户名已被使用',
         code: BusinessCode.USERNAME_ALREADY_EXISTS,
       });
+    }
+
+    // 检查手机号是否已存在(如果提供)
+    if (phone) {
+      const existingUserByPhone = await this.prisma.user.findUnique({
+        where: { phone },
+      });
+
+      if (existingUserByPhone) {
+        throw new ConflictException({
+          message: '手机号已被使用',
+          code: BusinessCode.VALIDATION_ERROR,
+        });
+      }
     }
 
     // 如果没有提供角色ID,默认分配 USER 角色
@@ -117,8 +134,11 @@ export class UsersService {
         email,
         userName,
         password: hashedPassword,
+        nickName,
         firstName,
         lastName,
+        phone,
+        gender,
         avatar,
         userRoles: {
           create: assignRoleIds.map((roleId) => ({
@@ -235,12 +255,37 @@ export class UsersService {
     // 准备更新数据
     const updateData: any = {};
 
+    if (updateUserDto.nickName !== undefined) {
+      updateData.nickName = updateUserDto.nickName;
+    }
+
     if (updateUserDto.firstName !== undefined) {
       updateData.firstName = updateUserDto.firstName;
     }
 
     if (updateUserDto.lastName !== undefined) {
       updateData.lastName = updateUserDto.lastName;
+    }
+
+    if (updateUserDto.phone !== undefined) {
+      // 检查手机号是否已被其他用户使用
+      if (updateUserDto.phone) {
+        const existingUserByPhone = await this.prisma.user.findUnique({
+          where: { phone: updateUserDto.phone },
+        });
+
+        if (existingUserByPhone && existingUserByPhone.id !== id) {
+          throw new ConflictException({
+            message: '手机号已被使用',
+            code: BusinessCode.VALIDATION_ERROR,
+          });
+        }
+      }
+      updateData.phone = updateUserDto.phone;
+    }
+
+    if (updateUserDto.gender !== undefined) {
+      updateData.gender = updateUserDto.gender;
     }
 
     if (updateUserDto.avatar !== undefined) {

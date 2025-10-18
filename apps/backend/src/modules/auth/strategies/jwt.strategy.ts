@@ -37,8 +37,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         id: true,
         email: true,
         userName: true,
+        nickName: true,
         firstName: true,
         lastName: true,
+        phone: true,
+        gender: true,
         avatar: true,
         isActive: true,
         userRoles: {
@@ -65,8 +68,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       id: user.id,
       email: user.email,
       userName: user.userName,
+      nickName: user.nickName,
       firstName: user.firstName,
       lastName: user.lastName,
+      phone: user.phone,
+      gender: user.gender,
       avatar: user.avatar,
       roles: roleCodes, // 返回角色code数组
     };

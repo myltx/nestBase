@@ -104,6 +104,19 @@ src/
 
 **Reference**: See `SUPABASE_SETUP.md` for complete configuration guide.
 
+### User Model Fields
+
+The User model includes the following fields:
+- **Required**: `email`, `userName`, `password`
+- **Optional Profile**: `nickName` (昵称), `firstName`, `lastName`
+- **Optional Contact**: `phone` (unique, 手机号)
+- **Optional Demographics**: `gender` (enum: MALE, FEMALE, OTHER)
+- **Optional**: `avatar` (URL)
+- **System**: `isActive` (boolean), `createdAt`, `updatedAt`
+- **Relations**: `userRoles` (many-to-many with Role)
+
+All camelCase fields (e.g., `userName`, `nickName`) are mapped to snake_case in the database (e.g., `username`, `nickname`) using Prisma's `@map()` directive.
+
 ---
 
 ## 🚀 Common Development Commands

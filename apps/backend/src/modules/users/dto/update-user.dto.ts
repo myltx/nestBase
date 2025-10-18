@@ -4,9 +4,19 @@
  */
 
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, IsBoolean, MinLength, IsArray, IsUrl, IsUUID } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, MinLength, IsArray, IsUrl, IsUUID, IsEnum } from 'class-validator';
+import { Gender } from '@prisma/client';
 
 export class UpdateUserDto {
+  @ApiProperty({
+    description: '昵称',
+    example: '小明',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  nickName?: string;
+
   @ApiProperty({
     description: '名字',
     example: 'John',
@@ -24,6 +34,25 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   lastName?: string;
+
+  @ApiProperty({
+    description: '手机号',
+    example: '13800138000',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @ApiProperty({
+    description: '性别',
+    enum: Gender,
+    example: Gender.MALE,
+    required: false,
+  })
+  @IsOptional()
+  @IsEnum(Gender, { message: '性别必须是 MALE, FEMALE 或 OTHER' })
+  gender?: Gender;
 
   @ApiProperty({
     description: '用户头像 URL',

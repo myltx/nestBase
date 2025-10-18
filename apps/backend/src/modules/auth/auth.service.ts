@@ -31,7 +31,7 @@ export class AuthService {
    * 管理员账户只能通过数据库迁移或管理员手动创建
    */
   async register(registerDto: RegisterDto) {
-    const { email, userName, password, firstName, lastName, avatar } = registerDto;
+    const { email, userName, password, nickName, firstName, lastName, phone, gender, avatar } = registerDto;
 
     // 检查邮箱是否已存在
     const existingUserByEmail = await this.prisma.user.findUnique({
@@ -57,6 +57,20 @@ export class AuthService {
       });
     }
 
+    // 检查手机号是否已存在(如果提供)
+    if (phone) {
+      const existingUserByPhone = await this.prisma.user.findUnique({
+        where: { phone },
+      });
+
+      if (existingUserByPhone) {
+        throw new ConflictException({
+          message: '手机号已被使用',
+          code: BusinessCode.VALIDATION_ERROR,
+        });
+      }
+    }
+
     // 加密密码
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -78,8 +92,11 @@ export class AuthService {
         email,
         userName,
         password: hashedPassword,
+        nickName,
         firstName,
         lastName,
+        phone,
+        gender,
         avatar,
         userRoles: {
           create: {
@@ -91,8 +108,11 @@ export class AuthService {
         id: true,
         email: true,
         userName: true,
+        nickName: true,
         firstName: true,
         lastName: true,
+        phone: true,
+        gender: true,
         avatar: true,
         isActive: true,
         createdAt: true,
@@ -120,8 +140,11 @@ export class AuthService {
         id: user.id,
         email: user.email,
         userName: user.userName,
+        nickName: user.nickName,
         firstName: user.firstName,
         lastName: user.lastName,
+        phone: user.phone,
+        gender: user.gender,
         avatar: user.avatar,
         isActive: user.isActive,
         createdAt: user.createdAt,
@@ -192,8 +215,11 @@ export class AuthService {
         id: user.id,
         email: user.email,
         userName: user.userName,
+        nickName: user.nickName,
         firstName: user.firstName,
         lastName: user.lastName,
+        phone: user.phone,
+        gender: user.gender,
         avatar: user.avatar,
         isActive: user.isActive,
         createdAt: user.createdAt,
