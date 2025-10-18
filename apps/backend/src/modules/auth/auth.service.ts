@@ -13,6 +13,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
+import { UserStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto, LoginDto } from './dto';
 import { BusinessCode } from '@common/constants/business-codes';
@@ -114,7 +115,7 @@ export class AuthService {
         phone: true,
         gender: true,
         avatar: true,
-        isActive: true,
+        status: true,
         createdAt: true,
         userRoles: {
           include: {
@@ -146,7 +147,7 @@ export class AuthService {
         phone: user.phone,
         gender: user.gender,
         avatar: user.avatar,
-        isActive: user.isActive,
+        status: user.status,
         createdAt: user.createdAt,
         roles,
       },
@@ -196,8 +197,8 @@ export class AuthService {
       });
     }
 
-    // 检查用户是否激活
-    if (!user.isActive) {
+    // 检查用户状态
+    if (user.status !== UserStatus.ENABLED) {
       throw new UnauthorizedException({
         message: '账户已被禁用',
         code: BusinessCode.FORBIDDEN,
@@ -221,7 +222,7 @@ export class AuthService {
         phone: user.phone,
         gender: user.gender,
         avatar: user.avatar,
-        isActive: user.isActive,
+        status: user.status,
         createdAt: user.createdAt,
         roles,
       },
@@ -261,7 +262,7 @@ export class AuthService {
           firstName: true,
           lastName: true,
           avatar: true,
-          isActive: true,
+          status: true,
           userRoles: {
             include: {
               role: {
@@ -275,7 +276,7 @@ export class AuthService {
         },
       });
 
-      if (!user || !user.isActive) {
+      if (!user || user.status !== UserStatus.ENABLED) {
         throw new UnauthorizedException({
           message: '无效的 Token',
           code: BusinessCode.TOKEN_INVALID,

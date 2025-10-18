@@ -25,7 +25,7 @@ async function main() {
       name: '管理员',
       description: '拥有系统所有权限',
       isSystem: true,
-      isActive: true,
+      status: 'ENABLED',
     },
   });
   console.log('  ✅ 创建角色: 管理员 (ADMIN)');
@@ -36,7 +36,7 @@ async function main() {
       name: '协调员',
       description: '拥有部分管理权限',
       isSystem: true,
-      isActive: true,
+      status: 'ENABLED',
     },
   });
   console.log('  ✅ 创建角色: 协调员 (MODERATOR)');
@@ -47,7 +47,7 @@ async function main() {
       name: '普通用户',
       description: '基础用户权限',
       isSystem: true,
-      isActive: true,
+      status: 'ENABLED',
     },
   });
   console.log('  ✅ 创建角色: 普通用户 (USER)');
@@ -75,7 +75,7 @@ async function main() {
         phone: '13800000001',
         gender: 'MALE',
         avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin',
-        isActive: true,
+        status: 'ENABLED',
       },
     });
     console.log('  ✅ 创建管理员用户: Admin');
@@ -119,7 +119,7 @@ async function main() {
         phone: '13800000002',
         gender: 'FEMALE',
         avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=test',
-        isActive: true,
+        status: 'ENABLED',
       },
     });
     console.log('  ✅ 创建普通用户: test');

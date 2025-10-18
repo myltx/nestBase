@@ -32,7 +32,7 @@ export class UsersService {
     phone: true,
     gender: true,
     avatar: true,
-    isActive: true,
+    status: true,
     createdAt: true,
     updatedAt: true,
     userRoles: {
@@ -292,8 +292,8 @@ export class UsersService {
       updateData.avatar = updateUserDto.avatar;
     }
 
-    if (updateUserDto.isActive !== undefined) {
-      updateData.isActive = updateUserDto.isActive;
+    if (updateUserDto.status !== undefined) {
+      updateData.status = updateUserDto.status;
     }
 
     // 如果更新密码,需要加密

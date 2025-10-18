@@ -8,6 +8,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
+import { UserStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 
 export interface JwtPayload {
@@ -43,7 +44,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         phone: true,
         gender: true,
         avatar: true,
-        isActive: true,
+        status: true,
         userRoles: {
           include: {
             role: {
@@ -57,7 +58,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       },
     });
 
-    if (!user || !user.isActive) {
+    if (!user || user.status !== UserStatus.ENABLED) {
       throw new UnauthorizedException('用户不存在或已被禁用');
     }
 

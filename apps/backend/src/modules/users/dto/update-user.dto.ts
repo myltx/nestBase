@@ -4,8 +4,8 @@
  */
 
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, IsBoolean, MinLength, IsArray, IsUrl, IsUUID, IsEnum } from 'class-validator';
-import { Gender } from '@prisma/client';
+import { IsString, IsOptional, IsArray, IsUrl, IsUUID, IsEnum, MinLength } from 'class-validator';
+import { Gender, UserStatus } from '@prisma/client';
 
 export class UpdateUserDto {
   @ApiProperty({
@@ -85,11 +85,12 @@ export class UpdateUserDto {
   roleIds?: string[];
 
   @ApiProperty({
-    description: '账户是否激活',
-    example: true,
+    description: '用户状态',
+    enum: UserStatus,
+    example: UserStatus.ENABLED,
     required: false,
   })
   @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
+  @IsEnum(UserStatus, { message: '用户状态必须是 ENABLED 或 DISABLED' })
+  status?: UserStatus;
 }

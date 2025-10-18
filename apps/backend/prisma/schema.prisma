@@ -15,7 +15,7 @@ model Role {
   name        String     @unique // 角色名称 (用户, 管理员, 协调员)
   description String?    // 角色描述
   isSystem    Boolean    @default(false) @map("is_system") // 是否系统内置角色
-  isActive    Boolean    @default(true) @map("is_active") // 是否启用
+  status      RoleStatus @default(ENABLED) // 角色状态
   createdAt   DateTime   @default(now()) @map("created_at")
   updatedAt   DateTime   @updatedAt @map("updated_at")
   userRoles   UserRole[]
@@ -36,7 +36,7 @@ model User {
   phone     String?    @unique // 手机号
   gender    Gender?    // 性别
   avatar    String?    // 用户头像 URL
-  isActive  Boolean    @default(true) @map("is_active")
+  status    UserStatus @default(ENABLED) // 用户状态
   createdAt DateTime   @default(now()) @map("created_at")
   updatedAt DateTime   @updatedAt @map("updated_at")
   userRoles UserRole[] // 用户角色关联
@@ -49,6 +49,18 @@ enum Gender {
   MALE   // 男性
   FEMALE // 女性
   OTHER  // 其他
+}
+
+// 用户状态枚举
+enum UserStatus {
+  ENABLED  // 启用
+  DISABLED // 禁用
+}
+
+// 角色状态枚举
+enum RoleStatus {
+  ENABLED  // 启用
+  DISABLED // 禁用
 }
 
 // 用户角色关联模型
@@ -104,7 +116,6 @@ model Menu {
   keepAlive      Boolean    @default(false) @map("keep_alive") // 是否缓存
   constant       Boolean    @default(false) // 是否为常量路由（无需登录和权限验证）
   query          Json? // 查询参数 JSON
-  isActive       Boolean    @default(true) @map("is_active") // 是否启用
   createdAt      DateTime   @default(now()) @map("created_at")
   updatedAt      DateTime   @updatedAt @map("updated_at")
   roleMenus      RoleMenu[]

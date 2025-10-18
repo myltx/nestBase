@@ -10,6 +10,7 @@ import {
   NotFoundException,
   ConflictException,
 } from '@nestjs/common';
+import { RoleStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AssignMenusDto, CreateRoleDto, UpdateRoleDto } from './dto';
 import { BusinessCode } from '@common/constants/business-codes';
@@ -23,7 +24,7 @@ export class RolesService {
    */
   async findAll(includeInactive = false) {
     return this.prisma.role.findMany({
-      where: includeInactive ? {} : { isActive: true },
+      where: includeInactive ? {} : { status: RoleStatus.ENABLED },
       include: {
         _count: {
           select: {
@@ -290,7 +291,6 @@ export class RolesService {
             keepAlive: true,
             constant: true,
             query: true,
-            isActive: true,
             createdAt: true,
             updatedAt: true,
           },
