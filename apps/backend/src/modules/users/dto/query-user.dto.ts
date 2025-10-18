@@ -24,13 +24,13 @@ export class QueryUserDto {
   role?: string;
 
   @ApiProperty({
-    description: '页码',
+    description: '当前页码',
     required: false,
     example: 1,
   })
   @IsOptional()
   @IsNumberString()
-  page?: string;
+  current?: string;
 
   @ApiProperty({
     description: '每页数量',
@@ -39,5 +39,5 @@ export class QueryUserDto {
   })
   @IsOptional()
   @IsNumberString()
-  limit?: string;
+  size?: string;
 }

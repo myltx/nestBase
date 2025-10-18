@@ -42,8 +42,8 @@ export class ProjectsService {
    */
   async findAll(queryDto: QueryProjectDto) {
     const {
-      page = 1,
-      limit = 10,
+      current = 1,
+      size = 10,
       search,
       featured,
       tech,
@@ -75,14 +75,14 @@ export class ProjectsService {
     }
 
     // 计算分页
-    const skip = (page - 1) * limit;
+    const skip = (current - 1) * size;
 
     // 查询数据和总数
     const [projects, total] = await Promise.all([
       this.prisma.project.findMany({
         where,
         skip,
-        take: limit,
+        take: size,
         orderBy: {
           [sortBy]: sortOrder,
         },
@@ -92,13 +92,11 @@ export class ProjectsService {
 
     // 返回分页数据
     return {
-      data: projects,
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
+      records: projects,
+      current,
+      size,
+      total,
+      totalPages: Math.ceil(total / size),
     };
   }
 

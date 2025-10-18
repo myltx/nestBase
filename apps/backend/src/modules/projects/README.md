@@ -88,8 +88,8 @@ curl -X POST http://localhost:3001/api/projects \
 **GET** `/api/projects`
 
 **查询参数**:
-- `page` (可选): 页码，默认 1
-- `limit` (可选): 每页数量，默认 10
+- `current` (可选): 当前页码，默认 1
+- `size` (可选): 每页数量，默认 10
 - `search` (可选): 搜索关键词（搜索标题和描述）
 - `featured` (可选): 是否只显示精选项目 (true/false)
 - `tech` (可选): 按技术栈筛选
@@ -98,7 +98,7 @@ curl -X POST http://localhost:3001/api/projects \
 
 **请求示例**:
 ```
-GET /api/projects?page=1&limit=10&featured=true&sortBy=createdAt&sortOrder=desc
+GET /api/projects?current=1&size=10&featured=true&sortBy=createdAt&sortOrder=desc
 ```
 
 **响应** (200 OK):
@@ -106,7 +106,7 @@ GET /api/projects?page=1&limit=10&featured=true&sortBy=createdAt&sortOrder=desc
 {
   "success": true,
   "data": {
-    "data": [
+    "records": [
       {
         "id": "550e8400-e29b-41d4-a716-446655440000",
         "title": "极客博客系统",
@@ -120,12 +120,10 @@ GET /api/projects?page=1&limit=10&featured=true&sortBy=createdAt&sortOrder=desc
         "updatedAt": "2025-10-16T03:30:00.000Z"
       }
     ],
-    "meta": {
-      "page": 1,
-      "limit": 10,
-      "total": 5,
-      "totalPages": 1
-    }
+    "current": 1,
+    "size": 10,
+    "total": 5,
+    "totalPages": 1
   }
 }
 ```
@@ -145,7 +143,7 @@ curl http://localhost:3001/api/projects?search=博客
 curl http://localhost:3001/api/projects?tech=TypeScript
 
 # 分页查询
-curl http://localhost:3001/api/projects?page=2&limit=5
+curl http://localhost:3001/api/projects?current=2&size=5
 ```
 
 ---
@@ -438,8 +436,8 @@ npx ts-node prisma/seed-projects.ts
 ```typescript
 // 获取项目列表
 async function getProjects(params?: {
-  page?: number;
-  limit?: number;
+  current?: number;
+  size?: number;
   search?: string;
   featured?: boolean;
   tech?: string;

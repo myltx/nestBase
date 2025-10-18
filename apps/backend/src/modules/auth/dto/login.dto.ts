@@ -12,7 +12,7 @@ export class LoginDto {
     example: 'testuser',
   })
   @IsString()
-  username: string;
+  userName: string;
 
   @ApiProperty({
     description: '密码',

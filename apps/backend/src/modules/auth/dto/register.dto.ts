@@ -21,7 +21,7 @@ export class RegisterDto {
   @IsString()
   @MinLength(3, { message: '用户名至少 3 个字符' })
   @MaxLength(20, { message: '用户名最多 20 个字符' })
-  username: string;
+  userName: string;
 
   @ApiProperty({
     description: '密码',

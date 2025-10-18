@@ -13,7 +13,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 export interface JwtPayload {
   sub: string;
   email: string;
-  username: string;
+  userName: string;
   roles: string[]; // 角色code数组
 }
 
@@ -36,7 +36,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       select: {
         id: true,
         email: true,
-        username: true,
+        userName: true,
         firstName: true,
         lastName: true,
         avatar: true,
@@ -64,7 +64,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     return {
       id: user.id,
       email: user.email,
-      username: user.username,
+      userName: user.userName,
       firstName: user.firstName,
       lastName: user.lastName,
       avatar: user.avatar,

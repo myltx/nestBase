@@ -302,14 +302,14 @@ Base URL: `http://localhost:3000/api`
 
 **Users** (`/api/users`):
 - `POST /users` - Create user (admin only)
-- `GET /users` - List users with pagination & search (authenticated)
+- `GET /users?current=1&size=10` - List users with pagination & search (authenticated)
 - `GET /users/:id` - Get user by ID (authenticated)
 - `PATCH /users/:id` - Update user (admin only)
 - `DELETE /users/:id` - Delete user (admin only)
 
 **Projects** (`/api/projects`):
 - `POST /projects` - Create project (admin only)
-- `GET /projects` - List projects with pagination & filters (public)
+- `GET /projects?current=1&size=10` - List projects with pagination & filters (public)
 - `GET /projects/featured` - Get all featured projects (public)
 - `GET /projects/tech-stack` - Get all tech stack (public)
 - `GET /projects/:id` - Get project by ID (public)

@@ -31,7 +31,7 @@ export class AuthService {
    * 管理员账户只能通过数据库迁移或管理员手动创建
    */
   async register(registerDto: RegisterDto) {
-    const { email, username, password, firstName, lastName, avatar } = registerDto;
+    const { email, userName, password, firstName, lastName, avatar } = registerDto;
 
     // 检查邮箱是否已存在
     const existingUserByEmail = await this.prisma.user.findUnique({
@@ -47,7 +47,7 @@ export class AuthService {
 
     // 检查用户名是否已存在
     const existingUserByUsername = await this.prisma.user.findUnique({
-      where: { username },
+      where: { userName },
     });
 
     if (existingUserByUsername) {
@@ -76,7 +76,7 @@ export class AuthService {
     const user = await this.prisma.user.create({
       data: {
         email,
-        username,
+        userName,
         password: hashedPassword,
         firstName,
         lastName,
@@ -90,7 +90,7 @@ export class AuthService {
       select: {
         id: true,
         email: true,
-        username: true,
+        userName: true,
         firstName: true,
         lastName: true,
         avatar: true,
@@ -119,7 +119,7 @@ export class AuthService {
       user: {
         id: user.id,
         email: user.email,
-        username: user.username,
+        userName: user.userName,
         firstName: user.firstName,
         lastName: user.lastName,
         avatar: user.avatar,
@@ -135,12 +135,12 @@ export class AuthService {
    * 用户登录
    */
   async login(loginDto: LoginDto) {
-    const { username, password } = loginDto;
+    const { userName, password } = loginDto;
 
     // 查找用户(支持邮箱或用户名登录)
     const user = await this.prisma.user.findFirst({
       where: {
-        OR: [{ username }, { email: username }],
+        OR: [{ userName }, { email: userName }],
       },
       include: {
         userRoles: {
@@ -191,7 +191,7 @@ export class AuthService {
       user: {
         id: user.id,
         email: user.email,
-        username: user.username,
+        userName: user.userName,
         firstName: user.firstName,
         lastName: user.lastName,
         avatar: user.avatar,
@@ -210,7 +210,7 @@ export class AuthService {
     const payload = {
       sub: user.id,
       email: user.email,
-      username: user.username,
+      userName: user.userName,
       roles: user.roles, // 使用 roles 数组(角色code字符串数组)
     };
 
@@ -231,7 +231,7 @@ export class AuthService {
         select: {
           id: true,
           email: true,
-          username: true,
+          userName: true,
           firstName: true,
           lastName: true,
           avatar: true,

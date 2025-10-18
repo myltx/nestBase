@@ -31,7 +31,7 @@ export enum ProjectSortField {
  */
 export class QueryProjectDto {
   @ApiPropertyOptional({
-    description: '页码',
+    description: '当前页码',
     minimum: 1,
     default: 1,
     example: 1,
@@ -40,7 +40,7 @@ export class QueryProjectDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  page?: number = 1;
+  current?: number = 1;
 
   @ApiPropertyOptional({
     description: '每页数量',
@@ -52,7 +52,7 @@ export class QueryProjectDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  limit?: number = 10;
+  size?: number = 10;
 
   @ApiPropertyOptional({
     description: '搜索关键词（标题、描述）',

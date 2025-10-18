@@ -25,7 +25,7 @@ export class UsersService {
   private readonly userSelect = {
     id: true,
     email: true,
-    username: true,
+    userName: true,
     firstName: true,
     lastName: true,
     avatar: true,
@@ -49,7 +49,7 @@ export class UsersService {
    * 创建用户
    */
   async create(createUserDto: CreateUserDto) {
-    const { email, username, password, firstName, lastName, avatar, roleIds } = createUserDto;
+    const { email, userName, password, firstName, lastName, avatar, roleIds } = createUserDto;
 
     // 检查邮箱是否已存在
     const existingUserByEmail = await this.prisma.user.findUnique({
@@ -65,7 +65,7 @@ export class UsersService {
 
     // 检查用户名是否已存在
     const existingUserByUsername = await this.prisma.user.findUnique({
-      where: { username },
+      where: { userName },
     });
 
     if (existingUserByUsername) {
@@ -115,7 +115,7 @@ export class UsersService {
     const user = await this.prisma.user.create({
       data: {
         email,
-        username,
+        userName,
         password: hashedPassword,
         firstName,
         lastName,
@@ -137,10 +137,10 @@ export class UsersService {
    * 查询所有用户(支持分页和搜索)
    */
   async findAll(queryDto: QueryUserDto) {
-    const { search, role, page = '1', limit = '10' } = queryDto;
+    const { search, role, current = '1', size = '10' } = queryDto;
 
-    const pageNum = parseInt(page, 10);
-    const limitNum = parseInt(limit, 10);
+    const pageNum = parseInt(current, 10);
+    const limitNum = parseInt(size, 10);
 
     if (pageNum < 1 || limitNum < 1) {
       throw new BadRequestException({
@@ -156,7 +156,7 @@ export class UsersService {
 
     if (search) {
       where.OR = [
-        { username: { contains: search, mode: 'insensitive' } },
+        { userName: { contains: search, mode: 'insensitive' } },
         { email: { contains: search, mode: 'insensitive' } },
         { firstName: { contains: search, mode: 'insensitive' } },
         { lastName: { contains: search, mode: 'insensitive' } },
@@ -189,13 +189,11 @@ export class UsersService {
     ]);
 
     return {
-      data: users.map((user) => this.formatUser(user)),
-      meta: {
-        total,
-        page: pageNum,
-        limit: limitNum,
-        totalPages: Math.ceil(total / limitNum),
-      },
+      records: users.map((user) => this.formatUser(user)),
+      current: pageNum,
+      size: limitNum,
+      total,
+      totalPages: Math.ceil(total / limitNum),
     };
   }
 

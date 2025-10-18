@@ -60,14 +60,14 @@ async function main() {
 
   // 检查管理员是否存在
   let admin = await prisma.user.findUnique({
-    where: { username: 'Admin' },
+    where: { userName: 'Admin' },
   });
 
   if (!admin) {
     admin = await prisma.user.create({
       data: {
         email: 'admin@example.com',
-        username: 'Admin',
+        userName: 'Admin',
         password: adminHashedPassword,
         firstName: 'Admin',
         lastName: 'User',
@@ -101,14 +101,14 @@ async function main() {
   const testHashedPassword = await bcrypt.hash('123456A', 10);
 
   let testUser = await prisma.user.findUnique({
-    where: { username: 'test' },
+    where: { userName: 'test' },
   });
 
   if (!testUser) {
     testUser = await prisma.user.create({
       data: {
         email: 'test@example.com',
-        username: 'test',
+        userName: 'test',
         password: testHashedPassword,
         firstName: 'Test',
         lastName: 'User',
