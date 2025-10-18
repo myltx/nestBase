@@ -4,7 +4,7 @@
  */
 
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsBoolean, IsEnum } from 'class-validator';
+import { IsOptional, IsString, IsBoolean, IsEnum, IsNumberString } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { MenuStatus } from '@prisma/client';
 
@@ -51,4 +51,20 @@ export class QueryMenuDto {
   @IsOptional()
   @IsEnum(MenuStatus, { message: '菜单状态必须是有效的枚举值' })
   status?: MenuStatus;
+
+  @ApiPropertyOptional({
+    description: '当前页码',
+    example: 1,
+  })
+  @IsOptional()
+  @IsNumberString()
+  current?: string;
+
+  @ApiPropertyOptional({
+    description: '每页数量',
+    example: 10,
+  })
+  @IsOptional()
+  @IsNumberString()
+  size?: string;
 }

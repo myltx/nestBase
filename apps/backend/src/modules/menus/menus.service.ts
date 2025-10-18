@@ -91,10 +91,22 @@ export class MenusService {
   }
 
   /**
-   * 查询所有菜单（支持树形结构）
+   * 查询所有菜单（支持分页和树形结构）
    */
   async findAll(queryDto: QueryMenuDto) {
-    const { search, rootOnly, activeOnly, parentId } = queryDto;
+    const { search, rootOnly, activeOnly, parentId, current = '1', size = '10' } = queryDto;
+
+    const pageNum = parseInt(current, 10);
+    const limitNum = parseInt(size, 10);
+
+    if (pageNum < 1 || limitNum < 1) {
+      throw new BadRequestException({
+        message: '页码和每页数量必须大于 0',
+        code: BusinessCode.VALIDATION_ERROR,
+      });
+    }
+
+    const skip = (pageNum - 1) * limitNum;
 
     // 构建查询条件
     const where: any = {};
@@ -118,20 +130,65 @@ export class MenusService {
       where.isActive = true;
     }
 
-    // 查询菜单
-    const menus = await this.prisma.menu.findMany({
-      where,
-      select: {
-        ...this.menuSelect,
-        children: {
-          select: this.menuSelect,
-          orderBy: { order: 'asc' },
-        },
-      },
-      orderBy: { order: 'asc' },
-    });
+    // 只查询顶层菜单（没有父菜单的）
+    const topLevelWhere = {
+      ...where,
+      parentId: null,
+    };
 
-    return menus;
+    // 查询顶层菜单及总数
+    const [topLevelMenus, total] = await Promise.all([
+      this.prisma.menu.findMany({
+        where: topLevelWhere,
+        skip,
+        take: limitNum,
+        select: this.menuSelect,
+        orderBy: { order: 'asc' },
+      }),
+      this.prisma.menu.count({ where: topLevelWhere }),
+    ]);
+
+    // 递归加载每个顶层菜单的子菜单
+    const buildChildren = async (parentId: string): Promise<any[]> => {
+      const children = await this.prisma.menu.findMany({
+        where: {
+          parentId,
+          ...(activeOnly ? { isActive: true } : {}),
+        },
+        select: this.menuSelect,
+        orderBy: { order: 'asc' },
+      });
+
+      const result = [];
+      for (const child of children) {
+        const subChildren = await buildChildren(child.id);
+        result.push({
+          ...child,
+          children: subChildren.length > 0 ? subChildren : [],
+        });
+      }
+
+      return result;
+    };
+
+    // 为每个顶层菜单添加子菜单
+    const menusWithChildren = await Promise.all(
+      topLevelMenus.map(async (menu) => {
+        const children = await buildChildren(menu.id);
+        return {
+          ...menu,
+          children,
+        };
+      }),
+    );
+
+    return {
+      records: menusWithChildren,
+      current: pageNum,
+      size: limitNum,
+      total,
+      totalPages: Math.ceil(total / limitNum),
+    };
   }
 
   /**
