@@ -49,6 +49,7 @@ export class QueryMenuDto {
     example: MenuStatus.ENABLED,
   })
   @IsOptional()
+  @Transform(({ value }) => value === '' ? undefined : value)
   @IsEnum(MenuStatus, { message: '菜单状态必须是有效的枚举值' })
   status?: MenuStatus;
 
