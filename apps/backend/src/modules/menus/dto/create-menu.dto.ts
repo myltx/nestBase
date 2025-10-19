@@ -87,6 +87,16 @@ export class CreateMenuDto {
   parentId?: string;
 
   @ApiPropertyOptional({
+    description: '菜单类型 (1:目录 2:菜单)',
+    example: 2,
+  })
+  @IsOptional()
+  @IsInt({ message: '菜单类型必须是整数' })
+  @Min(1, { message: '菜单类型必须是 1 或 2' })
+  @Max(2, { message: '菜单类型必须是 1 或 2' })
+  menuType?: number;
+
+  @ApiPropertyOptional({
     description: '页面组件路径',
     example: 'views/home/index',
   })

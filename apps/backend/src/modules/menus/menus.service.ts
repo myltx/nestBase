@@ -32,6 +32,8 @@ export class MenusService {
     iconFontSize: true,
     order: true,
     parentId: true,
+    menuType: true,
+    component: true,
     href: true,
     hideInMenu: true,
     activeMenu: true,

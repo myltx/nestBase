@@ -160,6 +160,7 @@ async function main() {
       i18nKey: 'route.home',
       icon: 'mdi:home',
       order: 1,
+      menuType: 2, // 菜单
       constant: false,
     },
   });
@@ -174,6 +175,7 @@ async function main() {
       i18nKey: 'route.user-management',
       icon: 'mdi:account-group',
       order: 2,
+      menuType: 1, // 目录
       constant: false,
     },
   });
@@ -189,6 +191,7 @@ async function main() {
       icon: 'mdi:account-multiple',
       order: 1,
       parentId: userManagementMenu.id,
+      menuType: 2, // 菜单
       constant: false,
     },
   });
@@ -204,6 +207,7 @@ async function main() {
       icon: 'mdi:shield-account',
       order: 2,
       parentId: userManagementMenu.id,
+      menuType: 2, // 菜单
       constant: false,
     },
   });
@@ -218,6 +222,7 @@ async function main() {
       i18nKey: 'route.system',
       icon: 'mdi:cog',
       order: 3,
+      menuType: 1, // 目录
       constant: false,
     },
   });
@@ -233,6 +238,7 @@ async function main() {
       icon: 'mdi:menu',
       order: 1,
       parentId: systemMenu.id,
+      menuType: 2, // 菜单
       constant: false,
     },
   });
@@ -248,6 +254,7 @@ async function main() {
       icon: 'mdi:cog-outline',
       order: 2,
       parentId: systemMenu.id,
+      menuType: 2, // 菜单
       constant: false,
     },
   });
@@ -262,6 +269,7 @@ async function main() {
       i18nKey: 'route.projects',
       icon: 'mdi:folder-multiple',
       order: 4,
+      menuType: 2, // 菜单
       constant: false,
     },
   });
