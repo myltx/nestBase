@@ -1,8 +1,7 @@
 // prisma/seed.ts
-// 数据库种子文件 - 用于初始化测试数据
+// 数据库种子文件 - 用于初始化角色和菜单数据（不会清空用户数据）
 
 import { PrismaClient } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
@@ -12,9 +11,8 @@ async function main() {
   // ========== 创建角色数据 ==========
   console.log('👥 开始创建角色数据...');
 
-  // 清空现有角色数据
+  // 清空现有角色关联数据（不清空用户数据）
   console.log('🧹 清空现有角色关联数据...');
-  await prisma.userRole.deleteMany({});
   await prisma.roleMenu.deleteMany({});
   await prisma.role.deleteMany({});
 
@@ -51,98 +49,6 @@ async function main() {
     },
   });
   console.log('  ✅ 创建角色: 普通用户 (USER)');
-
-  // ========== 创建或更新用户数据 ==========
-  console.log('👤 开始创建/更新用户数据...');
-
-  // 创建管理员用户 Admin / ll666888
-  const adminHashedPassword = await bcrypt.hash('ll666888', 10);
-
-  // 检查管理员是否存在
-  let admin = await prisma.user.findUnique({
-    where: { userName: 'Admin' },
-  });
-
-  if (!admin) {
-    admin = await prisma.user.create({
-      data: {
-        email: 'admin@example.com',
-        userName: 'Admin',
-        password: adminHashedPassword,
-        nickName: '管理员',
-        firstName: 'Admin',
-        lastName: 'User',
-        phone: '13800000001',
-        gender: 'MALE',
-        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin',
-        status: 1,
-      },
-    });
-    console.log('  ✅ 创建管理员用户: Admin');
-  } else {
-    // 更新密码
-    await prisma.user.update({
-      where: { id: admin.id },
-      data: { password: adminHashedPassword },
-    });
-    console.log('  ✅ 更新管理员用户密码: Admin');
-  }
-
-  // 为 Admin 分配 ADMIN 和 MODERATOR 角色
-  await prisma.userRole.deleteMany({
-    where: { userId: admin.id },
-  });
-  await prisma.userRole.createMany({
-    data: [
-      { userId: admin.id, roleId: adminRole.id },
-      { userId: admin.id, roleId: moderatorRole.id },
-    ],
-  });
-  console.log('  ✅ 为 Admin 分配角色: ADMIN, MODERATOR');
-
-  // 创建普通用户 test / 123456A
-  const testHashedPassword = await bcrypt.hash('123456A', 10);
-
-  let testUser = await prisma.user.findUnique({
-    where: { userName: 'test' },
-  });
-
-  if (!testUser) {
-    testUser = await prisma.user.create({
-      data: {
-        email: 'test@example.com',
-        userName: 'test',
-        password: testHashedPassword,
-        nickName: '测试用户',
-        firstName: 'Test',
-        lastName: 'User',
-        phone: '13800000002',
-        gender: 'FEMALE',
-        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=test',
-        status: 1,
-      },
-    });
-    console.log('  ✅ 创建普通用户: test');
-  } else {
-    // 更新密码
-    await prisma.user.update({
-      where: { id: testUser.id },
-      data: { password: testHashedPassword },
-    });
-    console.log('  ✅ 更新普通用户密码: test');
-  }
-
-  // 为 test 分配 USER 角色
-  await prisma.userRole.deleteMany({
-    where: { userId: testUser.id },
-  });
-  await prisma.userRole.create({
-    data: {
-      userId: testUser.id,
-      roleId: userRole.id,
-    },
-  });
-  console.log('  ✅ 为 test 分配角色: USER');
 
   // 清空现有菜单数据
   console.log('🧹 清空现有菜单数据...');
@@ -315,9 +221,12 @@ async function main() {
 
   console.log('🎉 数据库种子操作完成!');
   console.log('');
-  console.log('📋 测试账号信息:');
-  console.log('  管理员: Admin / ll666888 (ADMIN + MODERATOR)');
-  console.log('  普通用户: test / 123456A (USER)');
+  console.log('📋 已初始化:');
+  console.log('  ✅ 3个系统角色 (ADMIN, MODERATOR, USER)');
+  console.log('  ✅ 8个系统菜单');
+  console.log('  ✅ 角色菜单权限配置');
+  console.log('');
+  console.log('💡 提示: 用户数据已保留，不会被清空');
 }
 
 main()
