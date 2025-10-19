@@ -9,16 +9,22 @@ async function main() {
   console.log('🌱 开始数据库种子操作...');
 
   // ========== 创建角色数据 ==========
-  console.log('👥 开始创建角色数据...');
+  console.log('👥 开始创建/更新角色数据...');
 
-  // 清空现有角色关联数据（不清空用户数据）
-  console.log('🧹 清空现有角色关联数据...');
+  // 只清空角色菜单关联，不删除角色本身（避免级联删除 user_roles）
+  console.log('🧹 清空现有角色菜单关联...');
   await prisma.roleMenu.deleteMany({});
-  await prisma.role.deleteMany({});
 
-  // 创建系统内置角色
-  const adminRole = await prisma.role.create({
-    data: {
+  // 使用 upsert 创建或更新系统内置角色
+  const adminRole = await prisma.role.upsert({
+    where: { code: 'ADMIN' },
+    update: {
+      name: '管理员',
+      description: '拥有系统所有权限',
+      isSystem: true,
+      status: 1,
+    },
+    create: {
       code: 'ADMIN',
       name: '管理员',
       description: '拥有系统所有权限',
@@ -26,10 +32,17 @@ async function main() {
       status: 1,
     },
   });
-  console.log('  ✅ 创建角色: 管理员 (ADMIN)');
+  console.log('  ✅ 创建/更新角色: 管理员 (ADMIN)');
 
-  const moderatorRole = await prisma.role.create({
-    data: {
+  const moderatorRole = await prisma.role.upsert({
+    where: { code: 'MODERATOR' },
+    update: {
+      name: '协调员',
+      description: '拥有部分管理权限',
+      isSystem: true,
+      status: 1,
+    },
+    create: {
       code: 'MODERATOR',
       name: '协调员',
       description: '拥有部分管理权限',
@@ -37,10 +50,17 @@ async function main() {
       status: 1,
     },
   });
-  console.log('  ✅ 创建角色: 协调员 (MODERATOR)');
+  console.log('  ✅ 创建/更新角色: 协调员 (MODERATOR)');
 
-  const userRole = await prisma.role.create({
-    data: {
+  const userRole = await prisma.role.upsert({
+    where: { code: 'USER' },
+    update: {
+      name: '普通用户',
+      description: '基础用户权限',
+      isSystem: true,
+      status: 1,
+    },
+    create: {
       code: 'USER',
       name: '普通用户',
       description: '基础用户权限',
@@ -48,7 +68,7 @@ async function main() {
       status: 1,
     },
   });
-  console.log('  ✅ 创建角色: 普通用户 (USER)');
+  console.log('  ✅ 创建/更新角色: 普通用户 (USER)');
 
   // 清空现有菜单数据
   console.log('🧹 清空现有菜单数据...');
@@ -226,7 +246,7 @@ async function main() {
   console.log('  ✅ 8个系统菜单');
   console.log('  ✅ 角色菜单权限配置');
   console.log('');
-  console.log('💡 提示: 用户数据已保留，不会被清空');
+  console.log('💡 提示: 用户数据和用户角色关联已保留，不会被清空');
 }
 
 main()
