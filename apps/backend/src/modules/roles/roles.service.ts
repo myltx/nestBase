@@ -11,7 +11,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { AssignMenusDto, CreateRoleDto, UpdateRoleDto } from './dto';
+import { AssignMenusDto, CreateRoleDto, UpdateRoleDto, QueryRoleDto } from './dto';
 import { BusinessCode } from '@common/constants/business-codes';
 
 @Injectable()
@@ -37,6 +37,76 @@ export class RolesService {
         { createdAt: 'asc' },
       ],
     });
+  }
+
+  /**
+   * 分页查询角色列表
+   */
+  async findPage(queryDto: QueryRoleDto) {
+    const { search, isSystem, status, current = '1', size = '10' } = queryDto;
+
+    const pageNum = parseInt(current, 10);
+    const limitNum = parseInt(size, 10);
+
+    if (pageNum < 1 || limitNum < 1) {
+      throw new BadRequestException({
+        message: '页码和每页数量必须大于 0',
+        code: BusinessCode.VALIDATION_ERROR,
+      });
+    }
+
+    const skip = (pageNum - 1) * limitNum;
+
+    // 构建查询条件
+    const where: any = {};
+
+    // 搜索关键词（角色代码或名称）
+    if (search) {
+      where.OR = [
+        { code: { contains: search, mode: 'insensitive' } },
+        { name: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    // 是否为系统角色
+    if (isSystem !== undefined) {
+      where.isSystem = isSystem;
+    }
+
+    // 角色状态
+    if (status !== undefined) {
+      where.status = status;
+    }
+
+    // 查询角色列表和总数
+    const [roles, total] = await Promise.all([
+      this.prisma.role.findMany({
+        where,
+        skip,
+        take: limitNum,
+        include: {
+          _count: {
+            select: {
+              userRoles: true,
+              roleMenus: true,
+            },
+          },
+        },
+        orderBy: [
+          { isSystem: 'desc' }, // 系统角色优先
+          { createdAt: 'asc' },
+        ],
+      }),
+      this.prisma.role.count({ where }),
+    ]);
+
+    return {
+      records: roles,
+      current: pageNum,
+      size: limitNum,
+      total,
+      totalPages: Math.ceil(total / limitNum),
+    };
   }
 
   /**

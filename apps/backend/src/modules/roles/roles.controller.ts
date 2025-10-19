@@ -12,10 +12,11 @@ import {
   Patch,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { RolesService } from './roles.service';
-import { AssignMenusDto, CreateRoleDto, UpdateRoleDto } from './dto';
+import { AssignMenusDto, CreateRoleDto, UpdateRoleDto, QueryRoleDto } from './dto';
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { RolesGuard } from '@common/guards/roles.guard';
 import { Roles } from '@common/decorators/roles.decorator';
@@ -32,6 +33,13 @@ export class RolesController {
   @ApiOperation({ summary: '获取所有角色列表' })
   findAll() {
     return this.rolesService.findAll();
+  }
+
+  @Get('page')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: '分页查询角色列表' })
+  findPage(@Query() queryDto: QueryRoleDto) {
+    return this.rolesService.findPage(queryDto);
   }
 
   @Get(':id')
