@@ -46,9 +46,9 @@ model User {
 
 // 性别枚举
 enum Gender {
-  MALE   // 男性
-  FEMALE // 女性
-  OTHER  // 其他
+  MALE    // 男性
+  FEMALE  // 女性
+  UNKNOWN // 未知
 }
 
 // 用户角色关联模型

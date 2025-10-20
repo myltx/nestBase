@@ -25,12 +25,14 @@ export class CreateUserDto {
   userName: string;
 
   @ApiProperty({
-    description: '密码',
+    description: '密码（可选，不提供则自动生成）',
     example: 'Password123!',
+    required: false,
   })
+  @IsOptional()
   @IsString()
   @MinLength(6, { message: '密码至少 6 个字符' })
-  password: string;
+  password?: string;
 
   @ApiProperty({
     description: '昵称',

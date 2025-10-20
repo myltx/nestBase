@@ -12,12 +12,42 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateUserDto, UpdateUserDto, QueryUserDto } from './dto';
+import { CreateUserDto, UpdateUserDto, QueryUserDto, ResetPasswordDto } from './dto';
 import { BusinessCode } from '@common/constants/business-codes';
 
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
+
+  /**
+   * 生成随机密码
+   * 包含大小写字母、数字和特殊字符
+   */
+  private generateRandomPassword(length = 12): string {
+    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+    const numbers = '0123456789';
+    const special = '!@#$%^&*';
+    const allChars = uppercase + lowercase + numbers + special;
+
+    let password = '';
+    // 确保包含至少一个大写字母、小写字母、数字和特殊字符
+    password += uppercase[Math.floor(Math.random() * uppercase.length)];
+    password += lowercase[Math.floor(Math.random() * lowercase.length)];
+    password += numbers[Math.floor(Math.random() * numbers.length)];
+    password += special[Math.floor(Math.random() * special.length)];
+
+    // 填充剩余长度
+    for (let i = password.length; i < length; i++) {
+      password += allChars[Math.floor(Math.random() * allChars.length)];
+    }
+
+    // 打乱字符顺序
+    return password
+      .split('')
+      .sort(() => Math.random() - 0.5)
+      .join('');
+  }
 
   /**
    * 用户字段选择器(排除密码)
@@ -125,8 +155,9 @@ export class UsersService {
       }
     }
 
-    // 加密密码
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // 如果未提供密码，生成随机密码
+    const plainPassword = password || this.generateRandomPassword();
+    const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
     // 创建用户并分配角色
     const user = await this.prisma.user.create({
@@ -149,8 +180,15 @@ export class UsersService {
       select: this.userSelect,
     });
 
-    // 格式化返回数据
-    return this.formatUser(user);
+    // 格式化返回数据,并附加生成的密码（仅当自动生成时）
+    const result = this.formatUser(user);
+    if (!password) {
+      return {
+        ...result,
+        generatedPassword: plainPassword,
+      };
+    }
+    return result;
   }
 
   /**
@@ -381,6 +419,38 @@ export class UsersService {
     });
 
     return { message: '用户删除成功' };
+  }
+
+  /**
+   * 重置用户密码
+   */
+  async resetPassword(id: string, resetPasswordDto: ResetPasswordDto) {
+    // 检查用户是否存在
+    const existingUser = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!existingUser) {
+      throw new NotFoundException({
+        message: `用户 ID ${id} 不存在`,
+        code: BusinessCode.USER_NOT_FOUND,
+      });
+    }
+
+    // 如果未提供密码，生成随机密码
+    const plainPassword = resetPasswordDto.newPassword || this.generateRandomPassword();
+    const hashedPassword = await bcrypt.hash(plainPassword, 10);
+
+    // 更新密码
+    await this.prisma.user.update({
+      where: { id },
+      data: { password: hashedPassword },
+    });
+
+    return {
+      message: '密码重置成功',
+      newPassword: plainPassword,
+    };
   }
 
   /**
