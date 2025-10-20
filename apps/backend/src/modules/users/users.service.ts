@@ -195,7 +195,7 @@ export class UsersService {
    * 查询所有用户(支持分页和搜索)
    */
   async findAll(queryDto: QueryUserDto) {
-    const { search, role, current = '1', size = '10' } = queryDto;
+    const { search, nickName, gender, phone, status, role, current = '1', size = '10' } = queryDto;
 
     const pageNum = parseInt(current, 10);
     const limitNum = parseInt(size, 10);
@@ -212,6 +212,7 @@ export class UsersService {
     // 构建查询条件
     const where: any = {};
 
+    // 关键词搜索（用户名、邮箱、名字、姓氏）
     if (search) {
       where.OR = [
         { userName: { contains: search, mode: 'insensitive' } },
@@ -219,6 +220,26 @@ export class UsersService {
         { firstName: { contains: search, mode: 'insensitive' } },
         { lastName: { contains: search, mode: 'insensitive' } },
       ];
+    }
+
+    // 昵称筛选（模糊匹配）
+    if (nickName) {
+      where.nickName = { contains: nickName, mode: 'insensitive' };
+    }
+
+    // 性别筛选
+    if (gender) {
+      where.gender = gender;
+    }
+
+    // 手机号筛选（精确匹配）
+    if (phone) {
+      where.phone = phone;
+    }
+
+    // 用户状态筛选
+    if (status !== undefined) {
+      where.status = status;
     }
 
     // 支持按角色code筛选
