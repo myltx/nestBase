@@ -25,6 +25,7 @@ export class MenusService {
     id: true,
     routeKey: true,
     routePath: true,
+    menuName: true,
     title: true,
     i18nKey: true,
     icon: true,

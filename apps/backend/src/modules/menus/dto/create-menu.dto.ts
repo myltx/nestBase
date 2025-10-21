@@ -31,6 +31,13 @@ export class CreateMenuDto {
   routePath: string;
 
   @ApiProperty({
+    description: '菜单名称',
+    example: '首页菜单',
+  })
+  @IsString({ message: '菜单名称必须是字符串' })
+  menuName: string;
+
+  @ApiProperty({
     description: '菜单标题',
     example: '首页',
   })

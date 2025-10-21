@@ -85,6 +85,7 @@ model Menu {
   id             String     @id @default(uuid())
   routeKey       String     @unique @map("route_key") // 路由唯一标识
   routePath      String     @map("route_path") // 路由路径
+  menuName       String     @default("") @map("menu_name") // 菜单名称
   title          String // 菜单标题
   i18nKey        String?    @map("i18n_key") // 国际化 key
   icon           String? // Iconify 图标

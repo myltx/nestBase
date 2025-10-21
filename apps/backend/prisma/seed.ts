@@ -81,6 +81,7 @@ async function main() {
     where: { routeKey: 'home' },
     update: {
       routePath: '/home',
+      menuName: '首页',
       title: '首页',
       i18nKey: 'route.home',
       icon: 'mdi:home',
@@ -91,6 +92,7 @@ async function main() {
     create: {
       routeKey: 'home',
       routePath: '/home',
+      menuName: '首页',
       title: '首页',
       i18nKey: 'route.home',
       icon: 'mdi:home',
@@ -106,6 +108,7 @@ async function main() {
     where: { routeKey: 'user-management' },
     update: {
       routePath: '/user-management',
+      menuName: '用户管理',
       title: '用户管理',
       i18nKey: 'route.user-management',
       icon: 'mdi:account-group',
@@ -116,6 +119,7 @@ async function main() {
     create: {
       routeKey: 'user-management',
       routePath: '/user-management',
+      menuName: '用户管理',
       title: '用户管理',
       i18nKey: 'route.user-management',
       icon: 'mdi:account-group',
@@ -131,6 +135,7 @@ async function main() {
     where: { routeKey: 'user-list' },
     update: {
       routePath: '/user-management/list',
+      menuName: '用户列表',
       title: '用户列表',
       i18nKey: 'route.user-list',
       icon: 'mdi:account-multiple',
@@ -142,6 +147,7 @@ async function main() {
     create: {
       routeKey: 'user-list',
       routePath: '/user-management/list',
+      menuName: '用户列表',
       title: '用户列表',
       i18nKey: 'route.user-list',
       icon: 'mdi:account-multiple',
@@ -158,6 +164,7 @@ async function main() {
     where: { routeKey: 'role-management' },
     update: {
       routePath: '/user-management/roles',
+      menuName: '角色管理',
       title: '角色管理',
       i18nKey: 'route.role-management',
       icon: 'mdi:shield-account',
@@ -169,6 +176,7 @@ async function main() {
     create: {
       routeKey: 'role-management',
       routePath: '/user-management/roles',
+      menuName: '角色管理',
       title: '角色管理',
       i18nKey: 'route.role-management',
       icon: 'mdi:shield-account',
@@ -185,6 +193,7 @@ async function main() {
     where: { routeKey: 'system' },
     update: {
       routePath: '/system',
+      menuName: '系统管理',
       title: '系统管理',
       i18nKey: 'route.system',
       icon: 'mdi:cog',
@@ -195,6 +204,7 @@ async function main() {
     create: {
       routeKey: 'system',
       routePath: '/system',
+      menuName: '系统管理',
       title: '系统管理',
       i18nKey: 'route.system',
       icon: 'mdi:cog',
@@ -210,6 +220,7 @@ async function main() {
     where: { routeKey: 'menu-management' },
     update: {
       routePath: '/system/menus',
+      menuName: '菜单管理',
       title: '菜单管理',
       i18nKey: 'route.menu-management',
       icon: 'mdi:menu',
@@ -221,6 +232,7 @@ async function main() {
     create: {
       routeKey: 'menu-management',
       routePath: '/system/menus',
+      menuName: '菜单管理',
       title: '菜单管理',
       i18nKey: 'route.menu-management',
       icon: 'mdi:menu',
@@ -237,6 +249,7 @@ async function main() {
     where: { routeKey: 'system-settings' },
     update: {
       routePath: '/system/settings',
+      menuName: '系统设置',
       title: '系统设置',
       i18nKey: 'route.system-settings',
       icon: 'mdi:cog-outline',
@@ -248,6 +261,7 @@ async function main() {
     create: {
       routeKey: 'system-settings',
       routePath: '/system/settings',
+      menuName: '系统设置',
       title: '系统设置',
       i18nKey: 'route.system-settings',
       icon: 'mdi:cog-outline',
@@ -264,6 +278,7 @@ async function main() {
     where: { routeKey: 'projects' },
     update: {
       routePath: '/projects',
+      menuName: '项目管理',
       title: '项目管理',
       i18nKey: 'route.projects',
       icon: 'mdi:folder-multiple',
@@ -274,6 +289,7 @@ async function main() {
     create: {
       routeKey: 'projects',
       routePath: '/projects',
+      menuName: '项目管理',
       title: '项目管理',
       i18nKey: 'route.projects',
       icon: 'mdi:folder-multiple',
