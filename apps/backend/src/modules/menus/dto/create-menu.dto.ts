@@ -21,7 +21,7 @@ export class CreateMenuDto {
     example: 'home',
   })
   @IsString({ message: '路由标识必须是字符串' })
-  routeKey: string;
+  routeName: string;
 
   @ApiProperty({
     description: '路由路径',

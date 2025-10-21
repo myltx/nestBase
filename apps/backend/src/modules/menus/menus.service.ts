@@ -23,7 +23,7 @@ export class MenusService {
    */
   private readonly menuSelect = {
     id: true,
-    routeKey: true,
+    routeName: true,
     routePath: true,
     menuName: true,
     title: true,
@@ -52,16 +52,16 @@ export class MenusService {
    * 创建菜单
    */
   async create(createMenuDto: CreateMenuDto) {
-    const { routeKey, parentId, ...rest } = createMenuDto;
+    const { routeName, parentId, ...rest } = createMenuDto;
 
     // 检查路由标识是否已存在
     const existingMenu = await this.prisma.menu.findUnique({
-      where: { routeKey },
+      where: { routeName },
     });
 
     if (existingMenu) {
       throw new ConflictException({
-        message: `路由标识 ${routeKey} 已存在`,
+        message: `路由标识 ${routeName} 已存在`,
         code: BusinessCode.CONFLICT,
       });
     }
@@ -83,7 +83,7 @@ export class MenusService {
     // 创建菜单
     const menu = await this.prisma.menu.create({
       data: {
-        routeKey,
+        routeName,
         parentId,
         ...rest,
       },
@@ -117,7 +117,7 @@ export class MenusService {
     if (search) {
       where.OR = [
         { title: { contains: search, mode: 'insensitive' } },
-        { routeKey: { contains: search, mode: 'insensitive' } },
+        { routeName: { contains: search, mode: 'insensitive' } },
       ];
     }
 
@@ -327,17 +327,17 @@ export class MenusService {
       });
     }
 
-    const { routeKey, parentId, ...rest } = updateMenuDto;
+    const { routeName, parentId, ...rest } = updateMenuDto;
 
     // 如果更新路由标识，检查是否与其他菜单冲突
-    if (routeKey && routeKey !== existingMenu.routeKey) {
+    if (routeName && routeName !== existingMenu.routeName) {
       const conflictMenu = await this.prisma.menu.findUnique({
-        where: { routeKey },
+        where: { routeName },
       });
 
       if (conflictMenu) {
         throw new ConflictException({
-          message: `路由标识 ${routeKey} 已存在`,
+          message: `路由标识 ${routeName} 已存在`,
           code: BusinessCode.CONFLICT,
         });
       }
@@ -370,7 +370,7 @@ export class MenusService {
     const menu = await this.prisma.menu.update({
       where: { id },
       data: {
-        ...(routeKey && { routeKey }),
+        ...(routeName && { routeName }),
         ...(parentId !== undefined && { parentId }),
         ...rest,
       },

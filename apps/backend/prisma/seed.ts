@@ -78,7 +78,7 @@ async function main() {
 
   // 1. 首页菜单
   const homeMenu = await prisma.menu.upsert({
-    where: { routeKey: 'home' },
+    where: { routeName: 'home' },
     update: {
       routePath: '/home',
       menuName: '首页',
@@ -90,7 +90,7 @@ async function main() {
       constant: false,
     },
     create: {
-      routeKey: 'home',
+      routeName: 'home',
       routePath: '/home',
       menuName: '首页',
       title: '首页',
@@ -105,7 +105,7 @@ async function main() {
 
   // 2. 用户管理（目录）
   const userManagementMenu = await prisma.menu.upsert({
-    where: { routeKey: 'user-management' },
+    where: { routeName: 'user-management' },
     update: {
       routePath: '/user-management',
       menuName: '用户管理',
@@ -117,7 +117,7 @@ async function main() {
       constant: false,
     },
     create: {
-      routeKey: 'user-management',
+      routeName: 'user-management',
       routePath: '/user-management',
       menuName: '用户管理',
       title: '用户管理',
@@ -132,7 +132,7 @@ async function main() {
 
   // 2.1 用户列表
   const userListMenu = await prisma.menu.upsert({
-    where: { routeKey: 'user-list' },
+    where: { routeName: 'user-list' },
     update: {
       routePath: '/user-management/list',
       menuName: '用户列表',
@@ -145,7 +145,7 @@ async function main() {
       constant: false,
     },
     create: {
-      routeKey: 'user-list',
+      routeName: 'user-list',
       routePath: '/user-management/list',
       menuName: '用户列表',
       title: '用户列表',
@@ -161,7 +161,7 @@ async function main() {
 
   // 2.2 角色管理
   const roleManagementMenu = await prisma.menu.upsert({
-    where: { routeKey: 'role-management' },
+    where: { routeName: 'role-management' },
     update: {
       routePath: '/user-management/roles',
       menuName: '角色管理',
@@ -174,7 +174,7 @@ async function main() {
       constant: false,
     },
     create: {
-      routeKey: 'role-management',
+      routeName: 'role-management',
       routePath: '/user-management/roles',
       menuName: '角色管理',
       title: '角色管理',
@@ -190,7 +190,7 @@ async function main() {
 
   // 3. 系统管理（目录）
   const systemMenu = await prisma.menu.upsert({
-    where: { routeKey: 'system' },
+    where: { routeName: 'system' },
     update: {
       routePath: '/system',
       menuName: '系统管理',
@@ -202,7 +202,7 @@ async function main() {
       constant: false,
     },
     create: {
-      routeKey: 'system',
+      routeName: 'system',
       routePath: '/system',
       menuName: '系统管理',
       title: '系统管理',
@@ -217,7 +217,7 @@ async function main() {
 
   // 3.1 菜单管理
   const menuManagementMenu = await prisma.menu.upsert({
-    where: { routeKey: 'menu-management' },
+    where: { routeName: 'menu-management' },
     update: {
       routePath: '/system/menus',
       menuName: '菜单管理',
@@ -230,7 +230,7 @@ async function main() {
       constant: false,
     },
     create: {
-      routeKey: 'menu-management',
+      routeName: 'menu-management',
       routePath: '/system/menus',
       menuName: '菜单管理',
       title: '菜单管理',
@@ -246,7 +246,7 @@ async function main() {
 
   // 3.2 系统设置
   const systemSettingsMenu = await prisma.menu.upsert({
-    where: { routeKey: 'system-settings' },
+    where: { routeName: 'system-settings' },
     update: {
       routePath: '/system/settings',
       menuName: '系统设置',
@@ -259,7 +259,7 @@ async function main() {
       constant: false,
     },
     create: {
-      routeKey: 'system-settings',
+      routeName: 'system-settings',
       routePath: '/system/settings',
       menuName: '系统设置',
       title: '系统设置',
@@ -275,7 +275,7 @@ async function main() {
 
   // 4. 项目管理
   const projectMenu = await prisma.menu.upsert({
-    where: { routeKey: 'projects' },
+    where: { routeName: 'projects' },
     update: {
       routePath: '/projects',
       menuName: '项目管理',
@@ -287,7 +287,7 @@ async function main() {
       constant: false,
     },
     create: {
-      routeKey: 'projects',
+      routeName: 'projects',
       routePath: '/projects',
       menuName: '项目管理',
       title: '项目管理',
