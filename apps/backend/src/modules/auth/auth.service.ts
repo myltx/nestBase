@@ -296,4 +296,49 @@ export class AuthService {
       });
     }
   }
+
+  /**
+   * 获取当前用户的所有权限
+   * @param userId 用户ID
+   * @returns 权限代码数组
+   */
+  async getUserPermissions(userId: string): Promise<string[]> {
+    // 1. 获取用户的所有角色ID
+    const userRoles = await this.prisma.userRole.findMany({
+      where: { userId },
+      select: { roleId: true },
+    });
+
+    const roleIds = userRoles.map((ur) => ur.roleId);
+
+    if (roleIds.length === 0) {
+      return [];
+    }
+
+    // 2. 获取这些角色的所有权限
+    const rolePermissions = await this.prisma.rolePermission.findMany({
+      where: {
+        roleId: { in: roleIds },
+      },
+      include: {
+        permission: {
+          select: {
+            code: true,
+            status: true,
+          },
+        },
+      },
+    });
+
+    // 3. 提取权限代码（去重 + 只取启用的权限）
+    const permissionCodes = [
+      ...new Set(
+        rolePermissions
+          .filter((rp) => rp.permission.status === 1)
+          .map((rp) => rp.permission.code)
+      ),
+    ];
+
+    return permissionCodes;
+  }
 }

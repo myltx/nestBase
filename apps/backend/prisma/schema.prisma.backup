@@ -1,0 +1,158 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// 角色模型
+model Role {
+  id              String           @id @default(uuid())
+  code            String           @unique // 角色代码 (USER, ADMIN, MODERATOR)
+  name            String           @unique // 角色名称 (用户, 管理员, 协调员)
+  description     String?          // 角色描述
+  isSystem        Boolean          @default(false) @map("is_system") // 是否系统内置角色
+  status          Int              @default(1) // 角色状态 (1:启用 2:禁用)
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  userRoles       UserRole[]
+  roleMenus       RoleMenu[]
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+// 用户模型
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  userName  String   @unique @map("username")
+  nickName  String?  @map("nickname") // 昵称
+  firstName String?  @map("first_name")
+  lastName  String?  @map("last_name")
+  phone     String?  @unique // 手机号
+  gender    Gender?  // 性别
+  avatar    String?  // 用户头像 URL
+  status    Int      @default(1) // 用户状态 (1:启用 2:禁用)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  userRoles UserRole[] // 用户角色关联
+
+  @@map("users")
+}
+
+// 性别枚举
+enum Gender {
+  MALE    // 男性
+  FEMALE  // 女性
+  UNKNOWN // 未知
+}
+
+// 用户角色关联模型
+model UserRole {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  roleId    String   @map("role_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, roleId])
+  @@map("user_roles")
+}
+
+// 项目模型
+model Project {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  url         String?
+  tech        String[] // 技术栈数组
+  github      String?
+  demo        String?
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("projects")
+}
+
+// 菜单模型
+model Menu {
+  id             String     @id @default(uuid())
+  routeName      String     @unique @map("route_name") // 路由唯一标识
+  routePath      String     @map("route_path") // 路由路径
+  menuName       String     @default("") @map("menu_name") // 菜单名称
+  title          String // 菜单标题
+  i18nKey        String?    @map("i18n_key") // 国际化 key
+  icon           String? // Iconify 图标
+  localIcon      String?    @map("local_icon") // 本地图标
+  iconFontSize   Int?       @map("icon_font_size") // 图标大小
+  order          Int?       @default(0) // 排序
+  parentId       String?    @map("parent_id") // 父菜单 ID
+  parent         Menu?      @relation("MenuHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children       Menu[]     @relation("MenuHierarchy")
+  menuType       Int        @default(2) @map("menu_type") // 菜单类型 (1:目录 2:菜单)
+  component      String? // 页面组件路径
+  href           String? // 外链地址
+  hideInMenu     Boolean    @default(false) @map("hide_in_menu") // 是否在菜单中隐藏
+  activeMenu     String?    @map("active_menu") // 激活的菜单 key
+  multiTab       Boolean    @default(false) @map("multi_tab") // 是否支持多标签页
+  fixedIndexInTab Int?      @map("fixed_index_in_tab") // 固定在标签页的索引
+  status         Int        @default(1) // 菜单状态 (1:启用 2:禁用)
+  keepAlive      Boolean    @default(false) @map("keep_alive") // 是否缓存
+  constant       Boolean    @default(false) // 是否为常量路由（无需登录和权限验证）
+  query          Json? // 查询参数 JSON
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+  roleMenus      RoleMenu[]
+
+  @@map("menus")
+}
+
+// 角色菜单关联模型
+model RoleMenu {
+  id        String   @id @default(uuid())
+  roleId    String   @map("role_id") // 角色 ID
+  menuId    String   @map("menu_id") // 菜单 ID
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  menu      Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([roleId, menuId])
+  @@map("role_menus")
+}
+
+// 权限模型
+model Permission {
+  id              String           @id @default(uuid())
+  code            String           @unique // 权限代码 (user.create, user.read, user.update, user.delete)
+  name            String           @unique // 权限名称 (创建用户, 查看用户, 更新用户, 删除用户)
+  description     String?          // 权限描述
+  resource        String           // 资源名称 (user, role, menu, permission, project)
+  action          String           // 操作类型 (create, read, update, delete, manage)
+  isSystem        Boolean          @default(false) @map("is_system") // 是否系统内置权限
+  status          Int              @default(1) // 权限状态 (1:启用 2:禁用)
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+// 角色权限关联模型
+model RolePermission {
+  id           String     @id @default(uuid())
+  roleId       String     @map("role_id") // 角色 ID
+  permissionId String     @map("permission_id") // 权限 ID
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+}

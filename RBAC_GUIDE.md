@@ -10,12 +10,13 @@
 2. [核心概念](#核心概念)
 3. [数据模型](#数据模型)
 4. [快速开始](#快速开始)
-5. [权限管理](#权限管理)
-6. [角色管理](#角色管理)
-7. [在代码中使用权限](#在代码中使用权限)
-8. [最佳实践](#最佳实践)
-9. [常见问题](#常见问题)
-10. [API 参考](#api-参考)
+5. [前端权限控制](#前端权限控制)
+6. [权限管理](#权限管理)
+7. [角色管理](#角色管理)
+8. [在代码中使用权限](#在代码中使用权限)
+9. [最佳实践](#最佳实践)
+10. [常见问题](#常见问题)
+11. [API 参考](#api-参考)
 
 ---
 
@@ -277,6 +278,658 @@ curl -X POST http://localhost:3000/api/permissions \
     "action": "create"
   }'
 ```
+
+---
+
+## 前端权限控制
+
+NestBase 提供了完整的前端权限控制方案，支持**页面/路由权限**和**按钮/操作权限**两种粒度的控制。
+
+### 权限控制流程
+
+```
+用户登录
+  ↓
+获取用户菜单（控制页面显示）
+  ↓
+获取用户权限（控制按钮显示）
+  ↓
+前端渲染（根据权限动态显示/隐藏）
+```
+
+### 获取用户权限
+
+#### 1. 获取用户可访问的菜单（页面权限）
+
+```typescript
+// API: GET /api/menus/user-routes
+// 返回用户基于角色可以访问的菜单树结构
+
+// 请求示例
+const response = await fetch('/api/menus/user-routes', {
+  headers: {
+    'Authorization': `Bearer ${token}`
+  }
+});
+
+const menus = await response.json();
+```
+
+**响应示例**：
+```json
+{
+  "code": 0,
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "routeName": "home",
+      "routePath": "/home",
+      "menuName": "首页",
+      "title": "首页",
+      "icon": "mdi:home",
+      "menuType": 2,
+      "component": "layout.base$view.home",
+      "children": []
+    },
+    {
+      "id": "uuid",
+      "routeName": "manage",
+      "routePath": "/manage",
+      "menuName": "系统管理",
+      "title": "系统管理",
+      "icon": "carbon:cloud-service-management",
+      "menuType": 1,
+      "children": [
+        {
+          "routeName": "manage_user",
+          "routePath": "/manage/user",
+          "menuName": "用户管理",
+          "title": "用户管理"
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### 2. 获取用户操作权限（按钮权限）
+
+```typescript
+// API: GET /api/auth/permissions
+// 返回用户拥有的所有权限代码数组
+
+// 请求示例
+const response = await fetch('/api/auth/permissions', {
+  headers: {
+    'Authorization': `Bearer ${token}`
+  }
+});
+
+const { permissions } = await response.json();
+```
+
+**响应示例**：
+```json
+{
+  "code": 0,
+  "success": true,
+  "data": {
+    "permissions": [
+      "user.create",
+      "user.read",
+      "user.update",
+      "user.delete",
+      "role.read",
+      "menu.read",
+      "project.read",
+      "project.update"
+    ]
+  }
+}
+```
+
+### 前端实现示例
+
+#### Vue 3 + TypeScript 实现
+
+##### 1. 创建权限存储（Pinia）
+
+```typescript
+// stores/permission.ts
+import { defineStore } from 'pinia';
+import { ref } from 'vue';
+
+export const usePermissionStore = defineStore('permission', () => {
+  // 用户权限列表
+  const permissions = ref<string[]>([]);
+
+  // 用户菜单列表
+  const menus = ref<any[]>([]);
+
+  // 获取用户权限
+  async function fetchPermissions() {
+    const response = await fetch('/api/auth/permissions', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    const data = await response.json();
+    permissions.value = data.data.permissions;
+  }
+
+  // 获取用户菜单
+  async function fetchMenus() {
+    const response = await fetch('/api/menus/user-routes', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    const data = await response.json();
+    menus.value = data.data;
+  }
+
+  // 检查是否拥有权限
+  function hasPermission(permission: string): boolean {
+    return permissions.value.includes(permission);
+  }
+
+  // 检查是否拥有任意权限（OR 逻辑）
+  function hasAnyPermission(...perms: string[]): boolean {
+    return perms.some(p => permissions.value.includes(p));
+  }
+
+  // 检查是否拥有所有权限（AND 逻辑）
+  function hasAllPermissions(...perms: string[]): boolean {
+    return perms.every(p => permissions.value.includes(p));
+  }
+
+  return {
+    permissions,
+    menus,
+    fetchPermissions,
+    fetchMenus,
+    hasPermission,
+    hasAnyPermission,
+    hasAllPermissions
+  };
+});
+```
+
+##### 2. 创建权限指令
+
+```typescript
+// directives/permission.ts
+import { Directive } from 'vue';
+import { usePermissionStore } from '@/stores/permission';
+
+/**
+ * 权限指令
+ * 用法: v-permission="'user.delete'" 或 v-permission="['user.delete', 'user.update']"
+ */
+export const vPermission: Directive = {
+  mounted(el, binding) {
+    const permissionStore = usePermissionStore();
+    const { value } = binding;
+
+    if (!value) return;
+
+    let hasPermission = false;
+
+    if (typeof value === 'string') {
+      // 单个权限
+      hasPermission = permissionStore.hasPermission(value);
+    } else if (Array.isArray(value)) {
+      // 多个权限（OR 逻辑）
+      hasPermission = permissionStore.hasAnyPermission(...value);
+    }
+
+    // 没有权限则隐藏元素
+    if (!hasPermission) {
+      el.style.display = 'none';
+      // 或者直接移除元素
+      // el.parentNode?.removeChild(el);
+    }
+  }
+};
+
+/**
+ * 权限指令（AND 逻辑）
+ * 用法: v-permission-all="['user.delete', 'user.update']"
+ */
+export const vPermissionAll: Directive = {
+  mounted(el, binding) {
+    const permissionStore = usePermissionStore();
+    const { value } = binding;
+
+    if (!value || !Array.isArray(value)) return;
+
+    const hasPermission = permissionStore.hasAllPermissions(...value);
+
+    if (!hasPermission) {
+      el.style.display = 'none';
+    }
+  }
+};
+```
+
+##### 3. 注册指令
+
+```typescript
+// main.ts
+import { createApp } from 'vue';
+import App from './App.vue';
+import { vPermission, vPermissionAll } from './directives/permission';
+
+const app = createApp(App);
+
+// 注册权限指令
+app.directive('permission', vPermission);
+app.directive('permission-all', vPermissionAll);
+
+app.mount('#app');
+```
+
+##### 4. 在组件中使用
+
+```vue
+<template>
+  <div>
+    <h1>用户管理</h1>
+
+    <!-- 方式1: 使用指令控制按钮显示 -->
+    <button
+      v-permission="'user.create'"
+      @click="handleCreate"
+    >
+      创建用户
+    </button>
+
+    <button
+      v-permission="'user.delete'"
+      @click="handleDelete"
+    >
+      删除用户
+    </button>
+
+    <!-- 方式2: 使用函数判断 -->
+    <button
+      v-if="hasPermission('user.update')"
+      @click="handleUpdate"
+    >
+      更新用户
+    </button>
+
+    <!-- 方式3: 多个权限（OR 逻辑） -->
+    <button
+      v-permission="['user.update', 'user.create']"
+      @click="handleEdit"
+    >
+      编辑（需要 update 或 create 权限）
+    </button>
+
+    <!-- 方式4: 多个权限（AND 逻辑） -->
+    <button
+      v-permission-all="['user.delete', 'role.delete']"
+      @click="handleBatchDelete"
+    >
+      批量删除（需要同时拥有两个权限）
+    </button>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { usePermissionStore } from '@/stores/permission';
+
+const permissionStore = usePermissionStore();
+const { hasPermission } = permissionStore;
+
+function handleCreate() {
+  console.log('创建用户');
+}
+
+function handleDelete() {
+  console.log('删除用户');
+}
+
+function handleUpdate() {
+  console.log('更新用户');
+}
+</script>
+```
+
+#### React + TypeScript 实现
+
+##### 1. 创建权限 Context
+
+```typescript
+// contexts/PermissionContext.tsx
+import React, { createContext, useContext, useEffect, useState } from 'react';
+
+interface PermissionContextType {
+  permissions: string[];
+  menus: any[];
+  hasPermission: (permission: string) => boolean;
+  hasAnyPermission: (...permissions: string[]) => boolean;
+  hasAllPermissions: (...permissions: string[]) => boolean;
+}
+
+const PermissionContext = createContext<PermissionContextType | undefined>(undefined);
+
+export function PermissionProvider({ children }: { children: React.ReactNode }) {
+  const [permissions, setPermissions] = useState<string[]>([]);
+  const [menus, setMenus] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchPermissions();
+    fetchMenus();
+  }, []);
+
+  async function fetchPermissions() {
+    const response = await fetch('/api/auth/permissions', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    const data = await response.json();
+    setPermissions(data.data.permissions);
+  }
+
+  async function fetchMenus() {
+    const response = await fetch('/api/menus/user-routes', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    const data = await response.json();
+    setMenus(data.data);
+  }
+
+  const hasPermission = (permission: string) => {
+    return permissions.includes(permission);
+  };
+
+  const hasAnyPermission = (...perms: string[]) => {
+    return perms.some(p => permissions.includes(p));
+  };
+
+  const hasAllPermissions = (...perms: string[]) => {
+    return perms.every(p => permissions.includes(p));
+  };
+
+  return (
+    <PermissionContext.Provider value={{
+      permissions,
+      menus,
+      hasPermission,
+      hasAnyPermission,
+      hasAllPermissions
+    }}>
+      {children}
+    </PermissionContext.Provider>
+  );
+}
+
+export function usePermission() {
+  const context = useContext(PermissionContext);
+  if (!context) {
+    throw new Error('usePermission must be used within PermissionProvider');
+  }
+  return context;
+}
+```
+
+##### 2. 创建权限组件
+
+```typescript
+// components/Permission.tsx
+import React from 'react';
+import { usePermission } from '@/contexts/PermissionContext';
+
+interface PermissionProps {
+  permission?: string | string[];
+  requireAll?: boolean;
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+}
+
+export function Permission({
+  permission,
+  requireAll = false,
+  children,
+  fallback = null
+}: PermissionProps) {
+  const { hasPermission, hasAnyPermission, hasAllPermissions } = usePermission();
+
+  if (!permission) return <>{children}</>;
+
+  let hasAccess = false;
+
+  if (typeof permission === 'string') {
+    hasAccess = hasPermission(permission);
+  } else if (Array.isArray(permission)) {
+    hasAccess = requireAll
+      ? hasAllPermissions(...permission)
+      : hasAnyPermission(...permission);
+  }
+
+  return hasAccess ? <>{children}</> : <>{fallback}</>;
+}
+```
+
+##### 3. 在组件中使用
+
+```typescript
+// pages/UserManagement.tsx
+import React from 'react';
+import { Permission } from '@/components/Permission';
+import { usePermission } from '@/contexts/PermissionContext';
+
+export function UserManagement() {
+  const { hasPermission } = usePermission();
+
+  return (
+    <div>
+      <h1>用户管理</h1>
+
+      {/* 方式1: 使用 Permission 组件 */}
+      <Permission permission="user.create">
+        <button onClick={handleCreate}>创建用户</button>
+      </Permission>
+
+      <Permission permission="user.delete">
+        <button onClick={handleDelete}>删除用户</button>
+      </Permission>
+
+      {/* 方式2: 使用 Hook 判断 */}
+      {hasPermission('user.update') && (
+        <button onClick={handleUpdate}>更新用户</button>
+      )}
+
+      {/* 方式3: 多个权限（OR 逻辑） */}
+      <Permission permission={['user.update', 'user.create']}>
+        <button onClick={handleEdit}>编辑</button>
+      </Permission>
+
+      {/* 方式4: 多个权限（AND 逻辑） */}
+      <Permission
+        permission={['user.delete', 'role.delete']}
+        requireAll
+      >
+        <button onClick={handleBatchDelete}>批量删除</button>
+      </Permission>
+
+      {/* 方式5: 带 fallback */}
+      <Permission
+        permission="user.create"
+        fallback={<span>您没有创建权限</span>}
+      >
+        <button onClick={handleCreate}>创建用户</button>
+      </Permission>
+    </div>
+  );
+}
+```
+
+### 路由守卫实现
+
+#### Vue Router 路由守卫
+
+```typescript
+// router/guards/permission.ts
+import { Router } from 'vue-router';
+import { usePermissionStore } from '@/stores/permission';
+
+export function setupPermissionGuard(router: Router) {
+  router.beforeEach(async (to, from, next) => {
+    const permissionStore = usePermissionStore();
+
+    // 如果还没有加载菜单，先加载
+    if (permissionStore.menus.length === 0) {
+      await permissionStore.fetchMenus();
+    }
+
+    // 检查路由是否在用户可访问的菜单中
+    const hasRoute = permissionStore.menus.some(
+      menu => menu.routeName === to.name
+    );
+
+    if (hasRoute || to.meta.public) {
+      next();
+    } else {
+      // 无权访问，跳转到 403 页面
+      next({ name: '403' });
+    }
+  });
+}
+```
+
+#### React Router 路由守卫
+
+```typescript
+// components/PermissionRoute.tsx
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+import { usePermission } from '@/contexts/PermissionContext';
+
+interface PermissionRouteProps {
+  requiredPermission?: string;
+  children: React.ReactNode;
+}
+
+export function PermissionRoute({
+  requiredPermission,
+  children
+}: PermissionRouteProps) {
+  const { hasPermission, menus } = usePermission();
+
+  // 检查菜单权限
+  if (requiredPermission && !hasPermission(requiredPermission)) {
+    return <Navigate to="/403" replace />;
+  }
+
+  return <>{children}</>;
+}
+```
+
+### 最佳实践
+
+#### 1. 登录后立即获取权限
+
+```typescript
+// 登录成功后
+async function handleLogin(credentials) {
+  const response = await login(credentials);
+  const { token } = response.data;
+
+  // 保存 token
+  localStorage.setItem('token', token);
+
+  // 立即获取用户权限和菜单
+  const permissionStore = usePermissionStore();
+  await Promise.all([
+    permissionStore.fetchPermissions(),
+    permissionStore.fetchMenus()
+  ]);
+
+  // 跳转到首页
+  router.push('/');
+}
+```
+
+#### 2. Token 过期后刷新权限
+
+```typescript
+// axios 拦截器
+axios.interceptors.response.use(
+  response => response,
+  async error => {
+    if (error.response?.status === 401) {
+      // Token 过期，清空权限
+      const permissionStore = usePermissionStore();
+      permissionStore.$reset();
+
+      // 跳转到登录页
+      router.push('/login');
+    }
+    return Promise.reject(error);
+  }
+);
+```
+
+#### 3. 权限缓存策略
+
+```typescript
+// 将权限缓存到 localStorage
+const permissionStore = usePermissionStore();
+
+// 保存到本地
+localStorage.setItem('permissions', JSON.stringify(permissionStore.permissions));
+localStorage.setItem('menus', JSON.stringify(permissionStore.menus));
+
+// 页面刷新时从本地恢复
+const cachedPermissions = localStorage.getItem('permissions');
+const cachedMenus = localStorage.getItem('menus');
+
+if (cachedPermissions) {
+  permissionStore.permissions = JSON.parse(cachedPermissions);
+}
+if (cachedMenus) {
+  permissionStore.menus = JSON.parse(cachedMenus);
+}
+```
+
+#### 4. 动态菜单生成
+
+```typescript
+// 根据用户菜单动态生成路由
+function generateRoutes(menus: any[]) {
+  return menus.map(menu => ({
+    path: menu.routePath,
+    name: menu.routeName,
+    component: () => import(`@/views/${menu.component}.vue`),
+    meta: {
+      title: menu.title,
+      icon: menu.icon
+    },
+    children: menu.children ? generateRoutes(menu.children) : []
+  }));
+}
+
+// 添加到路由
+const dynamicRoutes = generateRoutes(permissionStore.menus);
+dynamicRoutes.forEach(route => router.addRoute(route));
+```
+
+### 注意事项
+
+⚠️ **安全提示**：
+
+1. **前端权限控制只是 UI 层面的控制**，不能替代后端权限验证
+2. **后端必须使用 `@Roles()` 或 `@RequirePermissions()` 守卫**保护所有敏感 API
+3. **前端权限主要用于提升用户体验**，隐藏用户无权访问的功能
+4. **不要在前端代码中硬编码敏感权限逻辑**，始终从后端获取
+5. **定期刷新权限数据**，避免权限变更后前端显示不同步
 
 ---
 

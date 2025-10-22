@@ -17,7 +17,7 @@ export class PermissionsGuard implements CanActivate {
     private prisma: PrismaService,
   ) {}
 
-  async canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     // 获取路由所需权限
     const requiredPermissions = this.reflector.getAllAndOverride<string[]>(PERMISSIONS_KEY, [
       context.getHandler(),

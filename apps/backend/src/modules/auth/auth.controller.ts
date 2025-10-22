@@ -44,4 +44,28 @@ export class AuthController {
   async getProfile(@CurrentUser() user: any) {
     return user;
   }
+
+  @Get('permissions')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '获取当前用户的权限列表' })
+  @ApiResponse({
+    status: 200,
+    description: '获取成功',
+    schema: {
+      type: 'object',
+      properties: {
+        permissions: {
+          type: 'array',
+          items: { type: 'string' },
+          example: ['user.create', 'user.read', 'user.update', 'user.delete']
+        }
+      }
+    }
+  })
+  @ApiResponse({ status: 401, description: '未授权' })
+  async getUserPermissions(@CurrentUser() user: any) {
+    const permissions = await this.authService.getUserPermissions(user.id);
+    return { permissions };
+  }
 }
