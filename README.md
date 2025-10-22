@@ -24,6 +24,9 @@
 - ✅ JWT Token 认证机制
 - ✅ 用户注册、登录、登出
 - ✅ 基于角色的访问控制（RBAC）
+- ✅ 细粒度权限系统 (v1.4.0 新增)
+- ✅ 动态菜单权限控制
+- ✅ API 操作级权限控制
 - ✅ Passport.js 策略集成
 
 ### 📦 数据管理
@@ -274,6 +277,33 @@ GET    /api/menus/role/:role       # 获取角色的菜单（仅管理员）
 - ✅ 与前端路由定义完全兼容
 - ✅ 支持国际化、图标、排序等丰富配置
 - ✅ 动态路由生成
+
+#### 🔐 权限模块（v1.4.0 新增）
+
+```http
+GET    /api/permissions                # 查询所有权限（分页）
+GET    /api/permissions/by-resource    # 按资源分组查询权限
+GET    /api/permissions/:id            # 根据 ID 查询权限
+POST   /api/permissions                # 创建权限（仅管理员）
+PATCH  /api/permissions/:id            # 更新权限（仅管理员）
+DELETE /api/permissions/:id            # 删除权限（仅管理员）
+```
+
+#### 👥 角色模块（v1.4.0 扩展）
+
+```http
+GET    /api/roles                      # 查询所有角色
+GET    /api/roles/page                 # 分页查询角色
+GET    /api/roles/:id                  # 查询角色详情
+POST   /api/roles                      # 创建角色（仅管理员）
+PATCH  /api/roles/:id                  # 更新角色（仅管理员）
+DELETE /api/roles/:id                  # 删除角色（仅管理员）
+POST   /api/roles/:id/menus            # 为角色分配菜单（仅管理员）
+GET    /api/roles/:id/menus            # 获取角色的菜单列表
+POST   /api/roles/:id/permissions      # 为角色分配权限（仅管理员）
+GET    /api/roles/:id/permissions      # 获取角色的权限列表
+GET    /api/roles/:id/stats            # 获取角色统计信息
+```
 
 ### 使用示例
 
@@ -543,6 +573,107 @@ async login(@Body() loginDto: LoginDto) {
   return this.authService.login(loginDto);
 }
 ```
+
+### 细粒度权限控制（v1.4.0 新增）
+
+#### 权限系统架构
+
+本项目实现了完整的 RBAC 权限系统，支持从菜单级别到 API 操作级别的细粒度权限控制：
+
+```
+用户 → 角色 → 权限 → 资源.操作
+```
+
+#### 权限格式
+
+权限采用 `resource.action` 格式：
+
+- `resource`: 资源名称（如 user, role, menu, permission, project）
+- `action`: 操作类型（如 create, read, update, delete）
+
+**系统内置权限示例**：
+- `user.create` - 创建用户
+- `user.read` - 查看用户
+- `user.update` - 更新用户
+- `user.delete` - 删除用户
+- `role.manage` - 管理角色
+- `menu.read` - 查看菜单
+
+#### 使用权限守卫
+
+使用 `@RequirePermissions()` 装饰器进行细粒度权限控制：
+
+```typescript
+import { RequirePermissions } from '@common/decorators/permissions.decorator';
+
+@Controller('users')
+export class UsersController {
+  // 需要 user.create 权限
+  @RequirePermissions('user.create')
+  @Post()
+  createUser(@Body() dto: CreateUserDto) {
+    return this.usersService.create(dto);
+  }
+
+  // 需要 user.read 权限
+  @RequirePermissions('user.read')
+  @Get()
+  getUsers() {
+    return this.usersService.findAll();
+  }
+
+  // 需要 user.update 和 user.read 两个权限
+  @RequirePermissions('user.update', 'user.read')
+  @Patch(':id')
+  updateUser(@Param('id') id: string, @Body() dto: UpdateUserDto) {
+    return this.usersService.update(id, dto);
+  }
+}
+```
+
+#### 权限检查流程
+
+1. 用户登录获取 JWT Token
+2. 请求携带 Token 访问受保护的 API
+3. `JwtAuthGuard` 验证 Token 并提取用户信息
+4. `PermissionsGuard` 检查用户角色是否拥有所需权限
+5. 权限验证通过，执行业务逻辑
+
+#### 为角色分配权限
+
+```bash
+# 为角色分配权限
+curl -X POST http://localhost:3000/api/roles/{roleId}/permissions \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "permissionIds": ["perm-uuid-1", "perm-uuid-2"]
+  }'
+```
+
+#### 查询角色权限
+
+```bash
+# 获取角色的所有权限
+curl -X GET http://localhost:3000/api/roles/{roleId}/permissions \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+#### 权限与角色的区别
+
+| 特性 | 角色（Role） | 权限（Permission） |
+|------|-------------|-------------------|
+| 粒度 | 粗粒度 | 细粒度 |
+| 用途 | 菜单访问控制 | API 操作控制 |
+| 示例 | ADMIN, USER | user.create, user.delete |
+| 检查方式 | `@Roles()` | `@RequirePermissions()` |
+| 最佳实践 | 用于前端路由和菜单显示 | 用于后端 API 权限验证 |
+
+**推荐实践**：
+- ✅ 使用角色控制菜单和页面访问（前端）
+- ✅ 使用权限控制具体操作权限（后端 API）
+- ✅ 一个用户可以有多个角色
+- ✅ 一个角色可以有多个权限
 
 ---
 
