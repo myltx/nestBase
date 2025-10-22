@@ -352,6 +352,120 @@ async function main() {
   console.log(`  ✅ 创建了 ${createdCount} 个新的角色菜单关联`);
   console.log(`  ℹ️  跳过了 ${skippedCount} 个已存在的关联`);
 
+  // ========== 创建权限数据（使用 upsert，不删除）==========
+  console.log('');
+  console.log('🔐 开始处理权限数据...');
+
+  // 定义系统权限
+  const permissions = [
+    // 用户权限
+    { code: 'user.create', name: '创建用户', resource: 'user', action: 'create', description: '允许创建新用户' },
+    { code: 'user.read', name: '查看用户', resource: 'user', action: 'read', description: '允许查看用户信息' },
+    { code: 'user.update', name: '更新用户', resource: 'user', action: 'update', description: '允许更新用户信息' },
+    { code: 'user.delete', name: '删除用户', resource: 'user', action: 'delete', description: '允许删除用户' },
+
+    // 角色权限
+    { code: 'role.create', name: '创建角色', resource: 'role', action: 'create', description: '允许创建新角色' },
+    { code: 'role.read', name: '查看角色', resource: 'role', action: 'read', description: '允许查看角色信息' },
+    { code: 'role.update', name: '更新角色', resource: 'role', action: 'update', description: '允许更新角色信息' },
+    { code: 'role.delete', name: '删除角色', resource: 'role', action: 'delete', description: '允许删除角色' },
+
+    // 菜单权限
+    { code: 'menu.create', name: '创建菜单', resource: 'menu', action: 'create', description: '允许创建新菜单' },
+    { code: 'menu.read', name: '查看菜单', resource: 'menu', action: 'read', description: '允许查看菜单信息' },
+    { code: 'menu.update', name: '更新菜单', resource: 'menu', action: 'update', description: '允许更新菜单信息' },
+    { code: 'menu.delete', name: '删除菜单', resource: 'menu', action: 'delete', description: '允许删除菜单' },
+
+    // 权限管理
+    { code: 'permission.create', name: '创建权限', resource: 'permission', action: 'create', description: '允许创建新权限' },
+    { code: 'permission.read', name: '查看权限', resource: 'permission', action: 'read', description: '允许查看权限信息' },
+    { code: 'permission.update', name: '更新权限', resource: 'permission', action: 'update', description: '允许更新权限信息' },
+    { code: 'permission.delete', name: '删除权限', resource: 'permission', action: 'delete', description: '允许删除权限' },
+
+    // 项目权限
+    { code: 'project.create', name: '创建项目', resource: 'project', action: 'create', description: '允许创建新项目' },
+    { code: 'project.read', name: '查看项目', resource: 'project', action: 'read', description: '允许查看项目信息' },
+    { code: 'project.update', name: '更新项目', resource: 'project', action: 'update', description: '允许更新项目信息' },
+    { code: 'project.delete', name: '删除项目', resource: 'project', action: 'delete', description: '允许删除项目' },
+  ];
+
+  // 创建权限
+  const createdPermissions: Record<string, any> = {};
+  for (const perm of permissions) {
+    const permission = await prisma.permission.upsert({
+      where: { code: perm.code },
+      update: {
+        name: perm.name,
+        description: perm.description,
+        resource: perm.resource,
+        action: perm.action,
+        isSystem: true,
+        status: 1,
+      },
+      create: {
+        code: perm.code,
+        name: perm.name,
+        description: perm.description,
+        resource: perm.resource,
+        action: perm.action,
+        isSystem: true,
+        status: 1,
+      },
+    });
+    createdPermissions[perm.code] = permission;
+    console.log(`  ✅ 权限: ${perm.name} (${perm.code})`);
+  }
+
+  // ========== 同步角色权限关联 ==========
+  console.log('');
+  console.log('🔗 开始同步角色权限...');
+
+  // 定义角色权限映射
+  const rolePermissionMappings = [
+    // ADMIN 拥有所有权限
+    ...Object.values(createdPermissions).map((perm: any) => ({
+      roleId: adminRole.id,
+      permissionId: perm.id,
+    })),
+    // MODERATOR 拥有部分权限（read和update）
+    { roleId: moderatorRole.id, permissionId: createdPermissions['user.read'].id },
+    { roleId: moderatorRole.id, permissionId: createdPermissions['user.update'].id },
+    { roleId: moderatorRole.id, permissionId: createdPermissions['role.read'].id },
+    { roleId: moderatorRole.id, permissionId: createdPermissions['menu.read'].id },
+    { roleId: moderatorRole.id, permissionId: createdPermissions['permission.read'].id },
+    { roleId: moderatorRole.id, permissionId: createdPermissions['project.read'].id },
+    { roleId: moderatorRole.id, permissionId: createdPermissions['project.update'].id },
+    // USER 拥有基础权限（仅read）
+    { roleId: userRole.id, permissionId: createdPermissions['project.read'].id },
+  ];
+
+  // 只创建不存在的角色权限关联
+  let permCreatedCount = 0;
+  let permSkippedCount = 0;
+
+  for (const mapping of rolePermissionMappings) {
+    const existing = await prisma.rolePermission.findUnique({
+      where: {
+        roleId_permissionId: {
+          roleId: mapping.roleId,
+          permissionId: mapping.permissionId,
+        },
+      },
+    });
+
+    if (!existing) {
+      await prisma.rolePermission.create({
+        data: mapping,
+      });
+      permCreatedCount++;
+    } else {
+      permSkippedCount++;
+    }
+  }
+
+  console.log(`  ✅ 创建了 ${permCreatedCount} 个新的角色权限关联`);
+  console.log(`  ℹ️  跳过了 ${permSkippedCount} 个已存在的关联`);
+
   console.log('');
   console.log('🎉 数据库种子操作完成!');
   console.log('');
@@ -359,10 +473,12 @@ async function main() {
   console.log('  ✅ 3个系统角色 (已创建/更新)');
   console.log('  ✅ 8个系统菜单 (已创建/更新)');
   console.log(`  ✅ 角色菜单权限 (新增 ${createdCount} 个)`);
+  console.log(`  ✅ ${permissions.length}个系统权限 (已创建/更新)`);
+  console.log(`  ✅ 角色权限关联 (新增 ${permCreatedCount} 个)`);
   console.log('');
   console.log('💡 提示:');
   console.log('   - 所有现有数据均已保留');
-  console.log('   - 仅更新了系统内置的角色和菜单');
+  console.log('   - 仅更新了系统内置的角色、菜单和权限');
   console.log('   - 您的业务数据不会受到影响');
   console.log('   - 可以安全地重复运行此脚本');
 }

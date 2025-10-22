@@ -10,16 +10,17 @@ datasource db {
 
 // 角色模型
 model Role {
-  id          String     @id @default(uuid())
-  code        String     @unique // 角色代码 (USER, ADMIN, MODERATOR)
-  name        String     @unique // 角色名称 (用户, 管理员, 协调员)
-  description String?    // 角色描述
-  isSystem    Boolean    @default(false) @map("is_system") // 是否系统内置角色
-  status      Int        @default(1) // 角色状态 (1:启用 2:禁用)
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime   @updatedAt @map("updated_at")
-  userRoles   UserRole[]
-  roleMenus   RoleMenu[]
+  id              String           @id @default(uuid())
+  code            String           @unique // 角色代码 (USER, ADMIN, MODERATOR)
+  name            String           @unique // 角色名称 (用户, 管理员, 协调员)
+  description     String?          // 角色描述
+  isSystem        Boolean          @default(false) @map("is_system") // 是否系统内置角色
+  status          Int              @default(1) // 角色状态 (1:启用 2:禁用)
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  userRoles       UserRole[]
+  roleMenus       RoleMenu[]
+  rolePermissions RolePermission[]
 
   @@map("roles")
 }
@@ -124,4 +125,34 @@ model RoleMenu {
 
   @@unique([roleId, menuId])
   @@map("role_menus")
+}
+
+// 权限模型
+model Permission {
+  id              String           @id @default(uuid())
+  code            String           @unique // 权限代码 (user.create, user.read, user.update, user.delete)
+  name            String           @unique // 权限名称 (创建用户, 查看用户, 更新用户, 删除用户)
+  description     String?          // 权限描述
+  resource        String           // 资源名称 (user, role, menu, permission, project)
+  action          String           // 操作类型 (create, read, update, delete, manage)
+  isSystem        Boolean          @default(false) @map("is_system") // 是否系统内置权限
+  status          Int              @default(1) // 权限状态 (1:启用 2:禁用)
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+// 角色权限关联模型
+model RolePermission {
+  id           String     @id @default(uuid())
+  roleId       String     @map("role_id") // 角色 ID
+  permissionId String     @map("permission_id") // 权限 ID
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
 }

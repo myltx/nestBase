@@ -16,7 +16,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { RolesService } from './roles.service';
-import { AssignMenusDto, CreateRoleDto, UpdateRoleDto, QueryRoleDto } from './dto';
+import { AssignMenusDto, AssignPermissionsDto, CreateRoleDto, UpdateRoleDto, QueryRoleDto } from './dto';
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { RolesGuard } from '@common/guards/roles.guard';
 import { Roles } from '@common/decorators/roles.decorator';
@@ -103,5 +103,26 @@ export class RolesController {
   @ApiOperation({ summary: '获取角色关联的菜单数量' })
   getRoleMenuCount(@Param('id') id: string) {
     return this.rolesService.getRoleMenuCount(id);
+  }
+
+  @Post(':id/permissions')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: '为角色分配权限' })
+  assignPermissions(@Param('id') id: string, @Body() assignDto: AssignPermissionsDto) {
+    return this.rolesService.assignPermissions(id, assignDto.permissionIds);
+  }
+
+  @Get(':id/permissions')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: '获取角色的权限列表' })
+  getRolePermissions(@Param('id') id: string) {
+    return this.rolesService.getRolePermissions(id);
+  }
+
+  @Get(':id/permissions/count')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: '获取角色关联的权限数量' })
+  getRolePermissionCount(@Param('id') id: string) {
+    return this.rolesService.getRolePermissionCount(id);
   }
 }

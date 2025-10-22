@@ -341,8 +341,9 @@ export class RolesService {
         menu: {
           select: {
             id: true,
-            routeKey: true,
+            routeName: true,
             routePath: true,
+            menuName: true,
             title: true,
             i18nKey: true,
             icon: true,
@@ -350,6 +351,7 @@ export class RolesService {
             iconFontSize: true,
             order: true,
             parentId: true,
+            menuType: true,
             component: true,
             href: true,
             hideInMenu: true,
@@ -409,11 +411,14 @@ export class RolesService {
   async getRoleStats(roleId: string) {
     const role = await this.findOne(roleId);
 
-    const [userCount, menuCount] = await Promise.all([
+    const [userCount, menuCount, permissionCount] = await Promise.all([
       this.prisma.userRole.count({
         where: { roleId },
       }),
       this.prisma.roleMenu.count({
+        where: { roleId },
+      }),
+      this.prisma.rolePermission.count({
         where: { roleId },
       }),
     ]);
@@ -422,6 +427,112 @@ export class RolesService {
       ...role,
       userCount,
       menuCount,
+      permissionCount,
     };
+  }
+
+  /**
+   * 为角色分配权限
+   */
+  async assignPermissions(roleId: string, permissionIds: string[]) {
+    // 验证角色是否存在
+    await this.findOne(roleId);
+
+    // 验证所有权限 ID 是否存在
+    if (permissionIds.length > 0) {
+      const permissions = await this.prisma.permission.findMany({
+        where: {
+          id: {
+            in: permissionIds,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (permissions.length !== permissionIds.length) {
+        throw new BadRequestException({
+          message: '部分权限 ID 不存在',
+          code: BusinessCode.NOT_FOUND,
+        });
+      }
+    }
+
+    // 删除该角色现有的所有权限关联
+    await this.prisma.rolePermission.deleteMany({
+      where: { roleId },
+    });
+
+    // 创建新的权限关联
+    if (permissionIds.length > 0) {
+      await this.prisma.rolePermission.createMany({
+        data: permissionIds.map((permissionId) => ({
+          roleId,
+          permissionId,
+        })),
+      });
+    }
+
+    return {
+      message: '角色权限分配成功',
+      permissionCount: permissionIds.length,
+    };
+  }
+
+  /**
+   * 获取角色的权限列表
+   */
+  async getRolePermissions(roleId: string) {
+    // 验证角色是否存在
+    await this.findOne(roleId);
+
+    const rolePermissions = await this.prisma.rolePermission.findMany({
+      where: { roleId },
+      include: {
+        permission: {
+          select: {
+            id: true,
+            code: true,
+            name: true,
+            description: true,
+            resource: true,
+            action: true,
+            isSystem: true,
+            status: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+      },
+      orderBy: [
+        {
+          permission: {
+            resource: 'asc',
+          },
+        },
+        {
+          permission: {
+            action: 'asc',
+          },
+        },
+      ],
+    });
+
+    return rolePermissions.map((rp) => rp.permission);
+  }
+
+  /**
+   * 获取角色关联的权限数量
+   */
+  async getRolePermissionCount(roleId: string) {
+    // 验证角色是否存在
+    await this.findOne(roleId);
+
+    const count = await this.prisma.rolePermission.count({
+      where: { roleId },
+    });
+
+    return { permissionCount: count };
   }
 }
