@@ -4,12 +4,13 @@
  */
 
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsBoolean } from 'class-validator';
+import { IsOptional, IsString, IsBoolean, IsEnum, IsUUID } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { PermissionType } from '@prisma/client';
 
 export class QueryPermissionDto {
   @ApiPropertyOptional({
-    description: '搜索关键字（权限代码、名称、资源）',
+    description: '搜索关键字（权限代码、名称）',
     example: 'user',
   })
   @IsOptional()
@@ -17,20 +18,21 @@ export class QueryPermissionDto {
   search?: string;
 
   @ApiPropertyOptional({
-    description: '资源名称筛选',
-    example: 'user',
+    description: '权限类型筛选',
+    enum: PermissionType,
+    example: PermissionType.BUTTON,
   })
   @IsOptional()
-  @IsString()
-  resource?: string;
+  @IsEnum(PermissionType)
+  type?: PermissionType;
 
   @ApiPropertyOptional({
-    description: '操作类型筛选',
-    example: 'create',
+    description: '所属菜单 ID 筛选',
+    example: 'uuid',
   })
   @IsOptional()
-  @IsString()
-  action?: string;
+  @IsUUID('4')
+  menuId?: string;
 
   @ApiPropertyOptional({
     description: '是否只查询启用的权限',
