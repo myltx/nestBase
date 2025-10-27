@@ -25,10 +25,9 @@ export class PermissionsService {
     id: true,
     code: true,
     name: true,
+    type: true,
+    menuId: true,
     description: true,
-    resource: true,
-    action: true,
-    isSystem: true,
     status: true,
     createdAt: true,
     updatedAt: true,
@@ -38,7 +37,7 @@ export class PermissionsService {
    * 创建权限
    */
   async create(createPermissionDto: CreatePermissionDto) {
-    const { code, name, ...rest } = createPermissionDto;
+    const { code, name, type, menuId, ...rest } = createPermissionDto;
 
     // 检查权限代码是否已存在
     const existingByCode = await this.prisma.permission.findUnique({
@@ -52,16 +51,26 @@ export class PermissionsService {
       });
     }
 
-    // 检查权限名称是否已存在
-    const existingByName = await this.prisma.permission.findUnique({
-      where: { name },
-    });
-
-    if (existingByName) {
-      throw new ConflictException({
-        message: `权限名称 ${name} 已存在`,
-        code: BusinessCode.CONFLICT,
+    // 如果是按钮权限或 API 权限，必须指定菜单 ID
+    if ((type === 'BUTTON' || type === 'API') && !menuId) {
+      throw new BadRequestException({
+        message: `${type === 'BUTTON' ? '按钮' : '接口'}权限必须指定所属菜单`,
+        code: BusinessCode.VALIDATION_ERROR,
       });
+    }
+
+    // 如果指定了菜单 ID，检查菜单是否存在
+    if (menuId) {
+      const menu = await this.prisma.menu.findUnique({
+        where: { id: menuId },
+      });
+
+      if (!menu) {
+        throw new NotFoundException({
+          message: `菜单 ID ${menuId} 不存在`,
+          code: BusinessCode.NOT_FOUND,
+        });
+      }
     }
 
     // 创建权限
@@ -69,6 +78,8 @@ export class PermissionsService {
       data: {
         code,
         name,
+        type,
+        menuId,
         ...rest,
       },
       select: this.permissionSelect,
@@ -83,8 +94,8 @@ export class PermissionsService {
   async findAll(queryDto: QueryPermissionDto) {
     const {
       search,
-      resource,
-      action,
+      type,
+      menuId,
       activeOnly,
       current = '1',
       size = '10',
@@ -109,16 +120,15 @@ export class PermissionsService {
       where.OR = [
         { code: { contains: search, mode: 'insensitive' } },
         { name: { contains: search, mode: 'insensitive' } },
-        { resource: { contains: search, mode: 'insensitive' } },
       ];
     }
 
-    if (resource) {
-      where.resource = resource;
+    if (type) {
+      where.type = type;
     }
 
-    if (action) {
-      where.action = action;
+    if (menuId !== undefined) {
+      where.menuId = menuId;
     }
 
     if (activeOnly) {
@@ -131,8 +141,18 @@ export class PermissionsService {
         where,
         skip,
         take: limitNum,
-        select: this.permissionSelect,
-        orderBy: [{ resource: 'asc' }, { action: 'asc' }],
+        select: {
+          ...this.permissionSelect,
+          menu: {
+            select: {
+              id: true,
+              routeName: true,
+              menuName: true,
+              title: true,
+            },
+          },
+        },
+        orderBy: [{ type: 'asc' }, { code: 'asc' }],
       }),
       this.prisma.permission.count({ where }),
     ]);
@@ -202,31 +222,58 @@ export class PermissionsService {
   }
 
   /**
-   * 根据资源分组查询权限
+   * 根据菜单 ID 查询权限
    */
-  async findByResource() {
+  async findByMenuId(menuId: string) {
+    // 检查菜单是否存在
+    const menu = await this.prisma.menu.findUnique({
+      where: { id: menuId },
+    });
+
+    if (!menu) {
+      throw new NotFoundException({
+        message: `菜单 ID ${menuId} 不存在`,
+        code: BusinessCode.NOT_FOUND,
+      });
+    }
+
+    // 查询该菜单的所有权限
     const permissions = await this.prisma.permission.findMany({
       where: {
+        menuId,
         status: 1,
       },
       select: this.permissionSelect,
-      orderBy: [{ resource: 'asc' }, { action: 'asc' }],
+      orderBy: [{ type: 'asc' }, { code: 'asc' }],
     });
 
-    // 按资源分组
-    const grouped = permissions.reduce(
-      (acc, permission) => {
-        const { resource } = permission;
-        if (!acc[resource]) {
-          acc[resource] = [];
-        }
-        acc[resource].push(permission);
-        return acc;
-      },
-      {} as Record<string, any[]>,
-    );
+    return permissions;
+  }
 
-    return grouped;
+  /**
+   * 根据权限类型查询权限
+   */
+  async findByType(type: 'MENU' | 'BUTTON' | 'API') {
+    const permissions = await this.prisma.permission.findMany({
+      where: {
+        type,
+        status: 1,
+      },
+      select: {
+        ...this.permissionSelect,
+        menu: {
+          select: {
+            id: true,
+            routeName: true,
+            menuName: true,
+            title: true,
+          },
+        },
+      },
+      orderBy: [{ code: 'asc' }],
+    });
+
+    return permissions;
   }
 
   /**
@@ -261,19 +308,8 @@ export class PermissionsService {
       }
     }
 
-    // 如果更新权限名称，检查是否与其他权限冲突
-    if (name && name !== existingPermission.name) {
-      const conflictByName = await this.prisma.permission.findUnique({
-        where: { name },
-      });
-
-      if (conflictByName) {
-        throw new ConflictException({
-          message: `权限名称 ${name} 已存在`,
-          code: BusinessCode.CONFLICT,
-        });
-      }
-    }
+    // 如果更新权限名称，检查是否与其他权限冲突（移除名称唯一性检查）
+    // 权限名称不再要求唯一
 
     // 更新权限
     const permission = await this.prisma.permission.update({
@@ -302,14 +338,6 @@ export class PermissionsService {
       throw new NotFoundException({
         message: `权限 ID ${id} 不存在`,
         code: BusinessCode.NOT_FOUND,
-      });
-    }
-
-    // 检查是否为系统内置权限
-    if (existingPermission.isSystem) {
-      throw new BadRequestException({
-        message: '系统内置权限不能删除',
-        code: BusinessCode.VALIDATION_ERROR,
       });
     }
 

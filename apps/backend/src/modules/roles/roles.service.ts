@@ -495,10 +495,9 @@ export class RolesService {
             id: true,
             code: true,
             name: true,
+            type: true,
+            menuId: true,
             description: true,
-            resource: true,
-            action: true,
-            isSystem: true,
             status: true,
             createdAt: true,
             updatedAt: true,
@@ -508,12 +507,12 @@ export class RolesService {
       orderBy: [
         {
           permission: {
-            resource: 'asc',
+            type: 'asc',
           },
         },
         {
           permission: {
-            action: 'asc',
+            code: 'asc',
           },
         },
       ],

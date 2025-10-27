@@ -41,10 +41,16 @@ export class PermissionsController {
     return this.permissionsService.findAll(queryDto);
   }
 
-  @Get('by-resource')
-  @ApiOperation({ summary: '按资源分组查询权限' })
-  findByResource() {
-    return this.permissionsService.findByResource();
+  @Get('by-type/:type')
+  @ApiOperation({ summary: '按权限类型查询权限' })
+  findByType(@Param('type') type: 'MENU' | 'BUTTON' | 'API') {
+    return this.permissionsService.findByType(type);
+  }
+
+  @Get('menu/:menuId')
+  @ApiOperation({ summary: '查询菜单的所有权限' })
+  findByMenuId(@Param('menuId') menuId: string) {
+    return this.permissionsService.findByMenuId(menuId);
   }
 
   @Get(':id')
