@@ -164,16 +164,3 @@ model RolePermission {
   @@unique([roleId, permissionId])
   @@map("role_permissions")
 }
-
-// 菜单权限关联模型
-model MenuPermission {
-  id           String     @id @default(uuid())
-  menuId       String     @map("menu_id") // 菜单 ID
-  permissionId String     @map("permission_id") // 权限 ID
-  menu         Menu       @relation(fields: [menuId], references: [id], onDelete: Cascade)
-  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-  createdAt    DateTime   @default(now()) @map("created_at")
-
-  @@unique([menuId, permissionId])
-  @@map("menu_permissions")
-}
