@@ -11,9 +11,13 @@ import {
   IsInt,
   IsObject,
   IsUUID,
+  IsArray,
   Min,
   Max,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+import { CreateMenuPermissionDto } from './create-menu-permission.dto';
 
 export class CreateMenuDto {
   @ApiProperty({
@@ -185,4 +189,33 @@ export class CreateMenuDto {
   @IsOptional()
   @IsObject({ message: '查询参数必须是对象' })
   query?: any;
+
+  @ApiPropertyOptional({
+    description: '关联的已有权限 ID 数组',
+    example: ['uuid-1', 'uuid-2'],
+    type: [String],
+  })
+  @IsOptional()
+  @IsArray({ message: '权限 ID 必须是数组' })
+  @IsUUID('4', { each: true, message: '权限 ID 必须是有效的 UUID' })
+  permissionIds?: string[];
+
+  @ApiPropertyOptional({
+    description: '同时创建的新权限数组',
+    example: [
+      {
+        code: 'user.create',
+        name: '创建用户',
+        description: '允许创建新用户',
+        resource: 'user',
+        action: 'create',
+      },
+    ],
+    type: [CreateMenuPermissionDto],
+  })
+  @IsOptional()
+  @IsArray({ message: '新权限必须是数组' })
+  @ValidateNested({ each: true })
+  @Type(() => CreateMenuPermissionDto)
+  newPermissions?: CreateMenuPermissionDto[];
 }

@@ -11,7 +11,12 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateMenuDto, UpdateMenuDto, QueryMenuDto } from './dto';
+import {
+  CreateMenuDto,
+  UpdateMenuDto,
+  QueryMenuDto,
+  AssignMenuPermissionsDto,
+} from './dto';
 import { BusinessCode } from '@common/constants/business-codes';
 
 @Injectable()
@@ -52,7 +57,8 @@ export class MenusService {
    * 创建菜单
    */
   async create(createMenuDto: CreateMenuDto) {
-    const { routeName, parentId, ...rest } = createMenuDto;
+    const { routeName, parentId, permissionIds, newPermissions, ...rest } =
+      createMenuDto;
 
     // 检查路由标识是否已存在
     const existingMenu = await this.prisma.menu.findUnique({
@@ -80,17 +86,105 @@ export class MenusService {
       }
     }
 
+    // 验证已有权限 ID 是否存在
+    if (permissionIds && permissionIds.length > 0) {
+      const permissions = await this.prisma.permission.findMany({
+        where: { id: { in: permissionIds } },
+      });
+
+      if (permissions.length !== permissionIds.length) {
+        throw new NotFoundException({
+          message: '部分权限 ID 不存在',
+          code: BusinessCode.NOT_FOUND,
+        });
+      }
+    }
+
+    // 验证新权限的 code 是否已存在
+    if (newPermissions && newPermissions.length > 0) {
+      const codes = newPermissions.map((p) => p.code);
+      const existingPermissions = await this.prisma.permission.findMany({
+        where: { code: { in: codes } },
+      });
+
+      if (existingPermissions.length > 0) {
+        const existingCodes = existingPermissions.map((p) => p.code).join(', ');
+        throw new ConflictException({
+          message: `权限代码已存在: ${existingCodes}`,
+          code: BusinessCode.CONFLICT,
+        });
+      }
+    }
+
+    // 准备权限关联数据
+    const menuPermissionsData = [];
+
+    // 添加已有权限的关联
+    if (permissionIds && permissionIds.length > 0) {
+      menuPermissionsData.push(
+        ...permissionIds.map((permissionId) => ({
+          permissionId,
+        })),
+      );
+    }
+
+    // 添加新权限的创建和关联
+    if (newPermissions && newPermissions.length > 0) {
+      menuPermissionsData.push(
+        ...newPermissions.map((permissionData) => ({
+          permission: {
+            create: {
+              code: permissionData.code,
+              name: permissionData.name,
+              description: permissionData.description,
+              resource: permissionData.resource,
+              action: permissionData.action,
+              status: permissionData.status ?? 1,
+              isSystem: false,
+            },
+          },
+        })),
+      );
+    }
+
     // 创建菜单
     const menu = await this.prisma.menu.create({
       data: {
         routeName,
         parentId,
         ...rest,
+        ...(menuPermissionsData.length > 0 && {
+          menuPermissions: {
+            create: menuPermissionsData,
+          },
+        }),
       },
-      select: this.menuSelect,
+      select: {
+        ...this.menuSelect,
+        menuPermissions: {
+          select: {
+            permission: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+                description: true,
+                resource: true,
+                action: true,
+                status: true,
+              },
+            },
+          },
+        },
+      },
     });
 
-    return menu;
+    // 格式化返回数据
+    const { menuPermissions: menuPerms, ...menuData } = menu;
+    return {
+      ...menuData,
+      permissions: menuPerms.map((mp) => mp.permission),
+    };
   }
 
   /**
@@ -407,11 +501,99 @@ export class MenusService {
       });
     }
 
-    // 删除菜单（会级联删除角色菜单关联）
+    // 删除菜单（会级联删除角色菜单关联和菜单权限关联）
     await this.prisma.menu.delete({
       where: { id },
     });
 
     return { message: '菜单删除成功' };
+  }
+
+  /**
+   * 为菜单分配权限
+   */
+  async assignPermissions(id: string, assignDto: AssignMenuPermissionsDto) {
+    const { permissionIds } = assignDto;
+
+    // 检查菜单是否存在
+    const menu = await this.prisma.menu.findUnique({
+      where: { id },
+    });
+
+    if (!menu) {
+      throw new NotFoundException({
+        message: `菜单 ID ${id} 不存在`,
+        code: BusinessCode.NOT_FOUND,
+      });
+    }
+
+    // 检查权限是否存在
+    const permissions = await this.prisma.permission.findMany({
+      where: {
+        id: { in: permissionIds },
+      },
+    });
+
+    if (permissions.length !== permissionIds.length) {
+      throw new NotFoundException({
+        message: '部分权限 ID 不存在',
+        code: BusinessCode.NOT_FOUND,
+      });
+    }
+
+    // 删除现有的菜单权限关联
+    await this.prisma.menuPermission.deleteMany({
+      where: { menuId: id },
+    });
+
+    // 创建新的菜单权限关联
+    await this.prisma.menuPermission.createMany({
+      data: permissionIds.map((permissionId) => ({
+        menuId: id,
+        permissionId,
+      })),
+    });
+
+    return {
+      message: '菜单权限分配成功',
+      assignedCount: permissionIds.length,
+    };
+  }
+
+  /**
+   * 获取菜单的权限列表
+   */
+  async getMenuPermissions(id: string) {
+    // 检查菜单是否存在
+    const menu = await this.prisma.menu.findUnique({
+      where: { id },
+    });
+
+    if (!menu) {
+      throw new NotFoundException({
+        message: `菜单 ID ${id} 不存在`,
+        code: BusinessCode.NOT_FOUND,
+      });
+    }
+
+    // 查询菜单的权限
+    const menuPermissions = await this.prisma.menuPermission.findMany({
+      where: { menuId: id },
+      select: {
+        permission: {
+          select: {
+            id: true,
+            code: true,
+            name: true,
+            description: true,
+            resource: true,
+            action: true,
+            status: true,
+          },
+        },
+      },
+    });
+
+    return menuPermissions.map((mp) => mp.permission);
   }
 }
