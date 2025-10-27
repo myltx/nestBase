@@ -16,12 +16,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { MenusService } from './menus.service';
-import {
-  CreateMenuDto,
-  UpdateMenuDto,
-  QueryMenuDto,
-  AssignMenuPermissionsDto,
-} from './dto';
+import { CreateMenuDto, UpdateMenuDto, QueryMenuDto } from './dto';
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { RolesGuard } from '@common/guards/roles.guard';
 import { Roles } from '@common/decorators/roles.decorator';
@@ -80,22 +75,5 @@ export class MenusController {
   @ApiOperation({ summary: '删除菜单' })
   remove(@Param('id') id: string) {
     return this.menusService.remove(id);
-  }
-
-  @Post(':id/permissions')
-  @Roles('ADMIN')
-  @ApiOperation({ summary: '为菜单分配权限' })
-  assignPermissions(
-    @Param('id') id: string,
-    @Body() assignDto: AssignMenuPermissionsDto,
-  ) {
-    return this.menusService.assignPermissions(id, assignDto);
-  }
-
-  @Get(':id/permissions')
-  @Roles('ADMIN')
-  @ApiOperation({ summary: '获取菜单的权限列表' })
-  getMenuPermissions(@Param('id') id: string) {
-    return this.menusService.getMenuPermissions(id);
   }
 }
