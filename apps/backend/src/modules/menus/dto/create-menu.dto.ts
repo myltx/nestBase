@@ -11,9 +11,11 @@ import {
   IsInt,
   IsObject,
   IsUUID,
+  ValidateIf,
   Min,
   Max,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateMenuDto {
   @ApiProperty({
@@ -37,13 +39,6 @@ export class CreateMenuDto {
   @IsString({ message: '菜单名称必须是字符串' })
   menuName: string;
 
-  @ApiProperty({
-    description: '菜单标题',
-    example: '首页',
-  })
-  @IsString({ message: '菜单标题必须是字符串' })
-  title: string;
-
   @ApiPropertyOptional({
     description: '国际化 key',
     example: 'route.home',
@@ -51,6 +46,16 @@ export class CreateMenuDto {
   @IsOptional()
   @IsString({ message: '国际化 key 必须是字符串' })
   i18nKey?: string;
+
+  @ApiPropertyOptional({
+    description: '图标类型 (1:iconify图标 2:本地图标)',
+    example: 1,
+  })
+  @IsOptional()
+  @IsInt({ message: '图标类型必须是整数' })
+  @Min(1, { message: '图标类型必须是 1 或 2' })
+  @Max(2, { message: '图标类型必须是 1 或 2' })
+  iconType?: number;
 
   @ApiPropertyOptional({
     description: 'Iconify 图标',
@@ -90,6 +95,14 @@ export class CreateMenuDto {
     example: 'uuid',
   })
   @IsOptional()
+  @Transform(({ value }) => {
+    // 将 0, '0', '' 转换为 null
+    if (value === 0 || value === '0' || value === '') {
+      return null;
+    }
+    return value;
+  })
+  @ValidateIf((o) => o.parentId !== null && o.parentId !== '' && o.parentId !== undefined)
   @IsUUID('4', { message: '父菜单 ID 必须是有效的 UUID' })
   parentId?: string;
 
@@ -179,10 +192,9 @@ export class CreateMenuDto {
   constant?: boolean;
 
   @ApiPropertyOptional({
-    description: '查询参数 JSON',
+    description: '查询参数 JSON (对象或数组)',
     example: [{ key: 'id', value: '1' }],
   })
   @IsOptional()
-  @IsObject({ message: '查询参数必须是对象' })
   query?: any;
 }

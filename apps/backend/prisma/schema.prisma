@@ -87,8 +87,8 @@ model Menu {
   routeName       String       @unique @map("route_name") // 路由唯一标识
   routePath       String       @map("route_path") // 路由路径
   menuName        String       @default("") @map("menu_name") // 菜单名称
-  title           String // 菜单标题
   i18nKey         String?      @map("i18n_key") // 国际化 key
+  iconType        Int?         @default(1) @map("icon_type") // 图标类型 (1:iconify图标 2:本地图标)
   icon            String? // Iconify 图标
   localIcon       String?      @map("local_icon") // 本地图标
   iconFontSize    Int?         @map("icon_font_size") // 图标大小
@@ -133,7 +133,7 @@ model Permission {
   id              String           @id @default(uuid())
   name            String // 权限名称，如 "新增用户"、"用户管理页"
   code            String           @unique // 权限编码，如 "user:create"、"user:view"
-  type            PermissionType // 权限类型：menu(菜单权限) / button(按钮权限) / api(接口权限)
+  type            PermissionType   @default(BUTTON) // 权限类型：menu(菜单权限) / button(按钮权限) / api(接口权限)
   menuId          String?          @map("menu_id") // 若为 button/api，则隶属于哪个菜单
   menu            Menu?            @relation(fields: [menuId], references: [id], onDelete: Cascade)
   description     String? // 权限描述

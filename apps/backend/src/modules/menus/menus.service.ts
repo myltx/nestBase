@@ -26,8 +26,8 @@ export class MenusService {
     routeName: true,
     routePath: true,
     menuName: true,
-    title: true,
     i18nKey: true,
+    iconType: true,
     icon: true,
     localIcon: true,
     iconFontSize: true,
@@ -52,7 +52,15 @@ export class MenusService {
    * 创建菜单
    */
   async create(createMenuDto: CreateMenuDto) {
-    const { routeName, parentId, ...rest } = createMenuDto;
+    const { routeName, parentId, menuType, ...rest } = createMenuDto;
+
+    // 验证：目录类型（menuType=1）不能有父菜单
+    if (menuType === 1 && parentId) {
+      throw new BadRequestException({
+        message: '目录类型菜单不能设置父菜单',
+        code: BusinessCode.VALIDATION_ERROR,
+      });
+    }
 
     // 检查路由标识是否已存在
     const existingMenu = await this.prisma.menu.findUnique({
@@ -85,6 +93,7 @@ export class MenusService {
       data: {
         routeName,
         parentId,
+        menuType,
         ...rest,
       },
       select: this.menuSelect,
@@ -116,7 +125,7 @@ export class MenusService {
 
     if (search) {
       where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
+        { menuName: { contains: search, mode: 'insensitive' } },
         { routeName: { contains: search, mode: 'insensitive' } },
       ];
     }
@@ -327,7 +336,18 @@ export class MenusService {
       });
     }
 
-    const { routeName, parentId, ...rest } = updateMenuDto;
+    const { routeName, parentId, menuType, ...rest } = updateMenuDto;
+
+    // 验证：目录类型（menuType=1）不能有父菜单
+    const finalMenuType = menuType !== undefined ? menuType : existingMenu.menuType;
+    const finalParentId = parentId !== undefined ? parentId : existingMenu.parentId;
+
+    if (finalMenuType === 1 && finalParentId) {
+      throw new BadRequestException({
+        message: '目录类型菜单不能设置父菜单',
+        code: BusinessCode.VALIDATION_ERROR,
+      });
+    }
 
     // 如果更新路由标识，检查是否与其他菜单冲突
     if (routeName && routeName !== existingMenu.routeName) {
@@ -372,6 +392,7 @@ export class MenusService {
       data: {
         ...(routeName && { routeName }),
         ...(parentId !== undefined && { parentId }),
+        ...(menuType !== undefined && { menuType }),
         ...rest,
       },
       select: this.menuSelect,
