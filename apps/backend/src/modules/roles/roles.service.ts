@@ -157,7 +157,15 @@ export class RolesService {
    * 创建新角色
    */
   async create(createDto: CreateRoleDto) {
-    const { code, name } = createDto;
+    const { code, name, ...rest } = createDto;
+
+    // 不允许通过 API 创建系统角色
+    if ((rest as any).isSystem === true) {
+      throw new BadRequestException({
+        message: '不允许通过 API 创建系统角色',
+        code: BusinessCode.FORBIDDEN,
+      });
+    }
 
     // 检查角色代码是否已存在
     const existingByCode = await this.prisma.role.findUnique({
@@ -183,8 +191,14 @@ export class RolesService {
       });
     }
 
+    // 确保 isSystem 字段不被设置
     return this.prisma.role.create({
-      data: createDto,
+      data: {
+        code,
+        name,
+        ...rest,
+        isSystem: false, // 强制设置为 false
+      },
     });
   }
 
@@ -194,45 +208,30 @@ export class RolesService {
   async update(id: string, updateDto: UpdateRoleDto) {
     const role = await this.findOne(id);
 
-    // 如果是系统角色,不允许修改 code 和 isSystem 字段
+    // 系统角色不允许修改任何字段
     if (role.isSystem) {
-      if (updateDto.code && updateDto.code !== role.code) {
-        throw new BadRequestException({
-          message: '不能修改系统角色的代码',
-          code: BusinessCode.FORBIDDEN,
-        });
-      }
-      if (updateDto.isSystem === false) {
-        throw new BadRequestException({
-          message: '不能将系统角色改为非系统角色',
-          code: BusinessCode.FORBIDDEN,
-        });
-      }
-    }
-
-    // 检查 code 是否重复
-    if (updateDto.code && updateDto.code !== role.code) {
-      const existingByCode = await this.prisma.role.findUnique({
-        where: { code: updateDto.code },
+      throw new BadRequestException({
+        message: '系统角色不允许修改',
+        code: BusinessCode.FORBIDDEN,
       });
-
-      if (existingByCode) {
-        throw new ConflictException({
-          message: `角色代码 ${updateDto.code} 已存在`,
-          code: BusinessCode.CONFLICT,
-        });
-      }
     }
+
+    // 从 DTO 中提取 code 字段,但不会用于更新
+    // code 字段在创建后不可修改(即使传入也会被忽略)
+    const { code, ...rest } = updateDto;
+
+    // 所有角色都不允许修改 code 字段(即使传入也会被忽略)
+    // isSystem 字段也不允许通过 API 修改(即使传入也会被忽略)
 
     // 检查 name 是否重复
-    if (updateDto.name && updateDto.name !== role.name) {
+    if (rest.name && rest.name !== role.name) {
       const existingByName = await this.prisma.role.findUnique({
-        where: { name: updateDto.name },
+        where: { name: rest.name },
       });
 
       if (existingByName) {
         throw new ConflictException({
-          message: `角色名称 ${updateDto.name} 已存在`,
+          message: `角色名称 ${rest.name} 已存在`,
           code: BusinessCode.CONFLICT,
         });
       }
@@ -240,7 +239,7 @@ export class RolesService {
 
     return this.prisma.role.update({
       where: { id },
-      data: updateDto,
+      data: rest, // code 不包含在更新数据中
     });
   }
 

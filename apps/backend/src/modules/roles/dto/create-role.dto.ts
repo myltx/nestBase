@@ -34,14 +34,16 @@ export class CreateRoleDto {
   @IsString()
   description?: string;
 
-  @ApiProperty({
-    description: '是否为系统内置角色(系统角色不可删除)',
-    example: false,
-    required: false,
-  })
-  @IsOptional()
-  @IsBoolean()
-  isSystem?: boolean;
+  // isSystem 字段不允许通过 API 设置，只能在数据库层面或系统初始化时设置
+  // 系统角色只能通过数据库迁移或种子数据创建
+  // @ApiProperty({
+  //   description: '是否为系统内置角色(系统角色不可删除)',
+  //   example: false,
+  //   required: false,
+  // })
+  // @IsOptional()
+  // @IsBoolean()
+  // isSystem?: boolean;
 
   @ApiProperty({
     description: '角色状态 (1:启用 2:禁用)',
