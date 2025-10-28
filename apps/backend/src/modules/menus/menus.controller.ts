@@ -56,6 +56,13 @@ export class MenusController {
     return this.menusService.findByRoles(user.roles);
   }
 
+  @Get('route-names')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: '获取所有菜单的路由名称列表' })
+  getAllRouteNames() {
+    return this.menusService.getAllRouteNames();
+  }
+
   @Get(':id')
   @Roles('ADMIN')
   @ApiOperation({ summary: '根据 ID 查询菜单' })

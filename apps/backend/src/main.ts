@@ -30,8 +30,8 @@ async function bootstrap() {
   // 启用全局验证管道
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
+      whitelist: true, // 自动剥离未在 DTO 中定义的属性
+      forbidNonWhitelisted: false, // 不报错，只是忽略额外的字段
       transform: true,
       transformOptions: {
         enableImplicitConversion: true,

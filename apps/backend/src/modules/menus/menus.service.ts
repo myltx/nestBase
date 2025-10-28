@@ -338,9 +338,11 @@ export class MenusService {
 
     const { routeName, parentId, menuType, ...rest } = updateMenuDto;
 
+    // 注意：parentId 创建后不能修改，即使传入也会被忽略
+
     // 验证：目录类型（menuType=1）不能有父菜单
     const finalMenuType = menuType !== undefined ? menuType : existingMenu.menuType;
-    const finalParentId = parentId !== undefined ? parentId : existingMenu.parentId;
+    const finalParentId = existingMenu.parentId; // 始终使用现有的 parentId，不允许修改
 
     if (finalMenuType === 1 && finalParentId) {
       throw new BadRequestException({
@@ -363,35 +365,12 @@ export class MenusService {
       }
     }
 
-    // 如果更新父菜单，检查是否存在且不能设置为自己
-    if (parentId !== undefined) {
-      if (parentId === id) {
-        throw new BadRequestException({
-          message: '不能将菜单设置为自己的子菜单',
-          code: BusinessCode.VALIDATION_ERROR,
-        });
-      }
-
-      if (parentId) {
-        const parentMenu = await this.prisma.menu.findUnique({
-          where: { id: parentId },
-        });
-
-        if (!parentMenu) {
-          throw new NotFoundException({
-            message: `父菜单 ID ${parentId} 不存在`,
-            code: BusinessCode.NOT_FOUND,
-          });
-        }
-      }
-    }
-
-    // 更新菜单
+    // 更新菜单（parentId 不可修改）
     const menu = await this.prisma.menu.update({
       where: { id },
       data: {
         ...(routeName && { routeName }),
-        ...(parentId !== undefined && { parentId }),
+        // parentId 不可修改，即使传入也会被忽略
         ...(menuType !== undefined && { menuType }),
         ...rest,
       },
@@ -434,5 +413,21 @@ export class MenusService {
     });
 
     return { message: '菜单删除成功' };
+  }
+
+  /**
+   * 获取所有菜单的路由名称列表
+   */
+  async getAllRouteNames() {
+    const menus = await this.prisma.menu.findMany({
+      select: {
+        routeName: true,
+      },
+      orderBy: {
+        order: 'asc',
+      },
+    });
+
+    return menus.map((menu) => menu.routeName);
   }
 }
