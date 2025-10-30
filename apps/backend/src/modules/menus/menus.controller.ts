@@ -21,6 +21,7 @@ import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { RolesGuard } from '@common/guards/roles.guard';
 import { Roles } from '@common/decorators/roles.decorator';
 import { GetUser } from '@common/decorators/get-user.decorator';
+import { Public } from '@common/decorators/public.decorator';
 
 @ApiTags('菜单管理')
 @Controller('menus')
@@ -46,8 +47,25 @@ export class MenusController {
   @Get('tree')
   @Roles('ADMIN')
   @ApiOperation({ summary: '获取树形菜单结构' })
-  findTree(@Query('activeOnly') activeOnly?: string) {
-    return this.menusService.findTree(activeOnly === 'true');
+  findTree(
+    @Query('activeOnly') activeOnly?: string,
+    @Query('constantOnly') constantOnly?: string,
+  ) {
+    // 解析 constantOnly 参数：'true' -> true, 'false' -> false, undefined -> undefined
+    let constantOnlyBool: boolean | undefined;
+    if (constantOnly === 'true') {
+      constantOnlyBool = true;
+    } else if (constantOnly === 'false') {
+      constantOnlyBool = false;
+    }
+
+    return this.menusService.findTree(activeOnly === 'true', constantOnlyBool);
+  }
+
+  @Get('constant-routes')
+  @ApiOperation({ summary: '获取常量菜单路由' })
+  getConstantRoutes() {
+    return this.menusService.findConstantMenus();
   }
 
   @Get('user-routes')

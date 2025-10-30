@@ -160,39 +160,46 @@ export class MenusService {
       this.prisma.menu.count({ where: topLevelWhere }),
     ]);
 
-    // 递归加载每个顶层菜单的子菜单
-    const buildChildren = async (parentId: string): Promise<any[]> => {
-      const children = await this.prisma.menu.findMany({
-        where: {
-          parentId,
-          ...(activeOnly ? { status: 1 } : {}),
-        },
-        select: this.menuSelect,
-        orderBy: { order: 'asc' },
-      });
+    // 如果没有顶层菜单，直接返回空结果
+    if (topLevelMenus.length === 0) {
+      return {
+        records: [],
+        current: pageNum,
+        size: limitNum,
+        total,
+        totalPages: Math.ceil(total / limitNum),
+      };
+    }
 
-      const result = [];
-      for (const child of children) {
-        const subChildren = await buildChildren(child.id);
-        result.push({
-          ...child,
-          children: subChildren.length > 0 ? subChildren : [],
-        });
-      }
+    // 获取所有顶层菜单的ID
+    const topLevelIds = topLevelMenus.map((menu) => menu.id);
 
-      return result;
+    // 一次性查询所有相关的子菜单（优化：避免N+1查询）
+    const allChildMenus = await this.prisma.menu.findMany({
+      where: {
+        ...(activeOnly ? { status: 1 } : {}),
+      },
+      select: this.menuSelect,
+      orderBy: { order: 'asc' },
+    });
+
+    // 构建菜单映射，方便快速查找
+    const menuMap = new Map(allChildMenus.map((menu) => [menu.id, menu]));
+
+    // 在内存中构建树形结构（递归函数）
+    const buildChildren = (parentId: string): any[] => {
+      const children = allChildMenus.filter((menu) => menu.parentId === parentId);
+      return children.map((child) => ({
+        ...child,
+        children: buildChildren(child.id),
+      }));
     };
 
     // 为每个顶层菜单添加子菜单
-    const menusWithChildren = await Promise.all(
-      topLevelMenus.map(async (menu) => {
-        const children = await buildChildren(menu.id);
-        return {
-          ...menu,
-          children,
-        };
-      }),
-    );
+    const menusWithChildren = topLevelMenus.map((menu) => ({
+      ...menu,
+      children: buildChildren(menu.id),
+    }));
 
     return {
       records: menusWithChildren,
@@ -205,36 +212,71 @@ export class MenusService {
 
   /**
    * 获取树形菜单结构
+   * @param activeOnly 是否只返回启用的菜单
+   * @param constantOnly 是否只返回常量菜单
    */
-  async findTree(activeOnly: boolean = false) {
-    const where: any = {
-      parentId: null,
-    };
+  async findTree(activeOnly: boolean = false, constantOnly?: boolean) {
+    // 构建查询条件
+    const where: any = {};
 
     if (activeOnly) {
       where.status = 1;
     }
 
-    const buildTree = async (parentId: string | null = null): Promise<any[]> => {
-      const menus = await this.prisma.menu.findMany({
-        where: {
-          parentId,
-          ...(activeOnly ? { status: 1 } : {}),
-        },
-        select: this.menuSelect,
-        orderBy: { order: 'asc' },
-      });
+    // 根据 constantOnly 参数过滤常量/非常量菜单
+    if (constantOnly === true) {
+      where.constant = true;
+    } else if (constantOnly === false) {
+      where.constant = false;
+    }
 
-      const result = [];
-      for (const menu of menus) {
-        const children = await buildTree(menu.id);
-        result.push({
+    // 一次性查询所有符合条件的菜单（优化：避免N+1查询）
+    const allMenus = await this.prisma.menu.findMany({
+      where,
+      select: this.menuSelect,
+      orderBy: { order: 'asc' },
+    });
+
+    // 在内存中构建树形结构（递归函数）
+    const buildTree = (parentId: string | null = null): any[] => {
+      const children = allMenus.filter((menu) => menu.parentId === parentId);
+      return children.map((menu) => ({
+        ...menu,
+        children: buildTree(menu.id).length > 0 ? buildTree(menu.id) : undefined,
+      }));
+    };
+
+    return buildTree();
+  }
+
+  /**
+   * 获取常量菜单（无需登录和权限验证的菜单）
+   * 返回树形结构，过滤掉隐藏菜单
+   */
+  async findConstantMenus() {
+    // 查询所有常量菜单（启用状态）
+    const menus = await this.prisma.menu.findMany({
+      where: {
+        constant: true,
+        status: 1,
+      },
+      select: this.menuSelect,
+      orderBy: { order: 'asc' },
+    });
+
+    // 构建树形结构
+    const buildTree = (parentId: string | null = null): any[] => {
+      return menus
+        .filter((menu) => menu.parentId === parentId)
+        .map((menu) => ({
           ...menu,
-          children: children.length > 0 ? children : undefined,
+          children: buildTree(menu.id),
+        }))
+        .filter((menu) => {
+          // 如果有子菜单，保留；如果没有子菜单且自身不隐藏，保留
+          if (menu.children && menu.children.length > 0) return true;
+          return !menu.hideInMenu;
         });
-      }
-
-      return result;
     };
 
     return buildTree();
@@ -272,11 +314,29 @@ export class MenusService {
    * 根据角色查询菜单（前端路由使用）
    */
   async findByRoles(roleCodes: string[]) {
+    // 先通过角色 code 查询角色 ID
+    const roles = await this.prisma.role.findMany({
+      where: {
+        code: {
+          in: roleCodes,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    const roleIds = roles.map((role) => role.id);
+
+    if (roleIds.length === 0) {
+      return [];
+    }
+
     // 查询角色拥有的菜单 ID
     const roleMenus = await this.prisma.roleMenu.findMany({
       where: {
         roleId: {
-          in: roleCodes,
+          in: roleIds,
         },
       },
       select: {
