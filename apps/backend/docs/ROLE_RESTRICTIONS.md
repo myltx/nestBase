@@ -370,8 +370,11 @@ curl -X DELETE http://localhost:9423/api/roles/admin-role-id \
 | `code` | ✅ 可设置 | ❌ 不可修改（忽略） | ❌ 不可修改 |
 | `name` | ✅ 可设置 | ✅ 可修改 | ❌ 不可修改 |
 | `description` | ✅ 可设置 | ✅ 可修改 | ❌ 不可修改 |
+| `home` | ✅ 可设置 | ✅ 可修改 | ❌ 不可修改 |
 | `isSystem` | ❌ 强制为 false | ❌ 不可修改（忽略） | ❌ 不可修改 |
 | `status` | ✅ 可设置 | ✅ 可修改（可禁用） | ❌ 不可修改（不可禁用） |
+
+> **说明**: `home` 字段用于配置角色的默认首页路由，详见 [角色首页配置文档](./ROLE_HOME_PAGE.md)
 
 ---
 

@@ -23,6 +23,7 @@ async function main() {
     update: {
       name: '管理员',
       description: '拥有系统所有权限',
+      // home 字段不在 update 中,避免覆盖已有配置
       isSystem: true,
       status: 1,
     },
@@ -30,6 +31,7 @@ async function main() {
       code: 'ADMIN',
       name: '管理员',
       description: '拥有系统所有权限',
+      home: 'home',
       isSystem: true,
       status: 1,
     },
@@ -41,6 +43,7 @@ async function main() {
     update: {
       name: '协调员',
       description: '拥有部分管理权限',
+      // home 字段不在 update 中,避免覆盖已有配置
       isSystem: true,
       status: 1,
     },
@@ -48,6 +51,7 @@ async function main() {
       code: 'MODERATOR',
       name: '协调员',
       description: '拥有部分管理权限',
+      home: 'home',
       isSystem: true,
       status: 1,
     },
@@ -59,6 +63,7 @@ async function main() {
     update: {
       name: '普通用户',
       description: '基础用户权限',
+      // home 字段不在 update 中,避免覆盖已有配置
       isSystem: true,
       status: 1,
     },
@@ -66,6 +71,7 @@ async function main() {
       code: 'USER',
       name: '普通用户',
       description: '基础用户权限',
+      home: 'home',
       isSystem: true,
       status: 1,
     },

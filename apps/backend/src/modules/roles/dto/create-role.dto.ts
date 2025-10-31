@@ -34,6 +34,17 @@ export class CreateRoleDto {
   @IsString()
   description?: string;
 
+  @ApiProperty({
+    description: '角色默认首页路由(不需要前导斜杠)',
+    example: 'home',
+    required: false,
+    default: 'home',
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(1, { message: '首页路由不能为空' })
+  home?: string;
+
   // isSystem 字段不允许通过 API 设置，只能在数据库层面或系统初始化时设置
   // 系统角色只能通过数据库迁移或种子数据创建
   // @ApiProperty({

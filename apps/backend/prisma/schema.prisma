@@ -14,6 +14,7 @@ model Role {
   code            String           @unique // 角色代码 (USER, ADMIN, MODERATOR)
   name            String           @unique // 角色名称 (用户, 管理员, 协调员)
   description     String? // 角色描述
+  home            String           @default("home") // 角色默认首页路由(不含/)
   isSystem        Boolean          @default(false) @map("is_system") // 是否系统内置角色
   status          Int              @default(1) // 角色状态 (1:启用 2:禁用)
   createdAt       DateTime         @default(now()) @map("created_at")

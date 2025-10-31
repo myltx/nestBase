@@ -19,6 +19,13 @@ export class RolesService {
   constructor(private prisma: PrismaService) {}
 
   /**
+   * 规范化 home 路径：去掉开头的 /
+   */
+  private normalizeHomePath(home: string): string {
+    return home.startsWith('/') ? home.slice(1) : home;
+  }
+
+  /**
    * 获取所有角色列表
    */
   async findAll(includeInactive = false) {
@@ -157,7 +164,7 @@ export class RolesService {
    * 创建新角色
    */
   async create(createDto: CreateRoleDto) {
-    const { code, name, ...rest } = createDto;
+    const { code, name, home, ...rest } = createDto;
 
     // 不允许通过 API 创建系统角色
     if ((rest as any).isSystem === true) {
@@ -196,6 +203,7 @@ export class RolesService {
       data: {
         code,
         name,
+        ...(home && { home: this.normalizeHomePath(home) }), // 如果提供了 home 字段则使用,否则使用数据库默认值 home
         ...rest,
         isSystem: false, // 强制设置为 false
       },
@@ -237,9 +245,15 @@ export class RolesService {
       }
     }
 
+    // 如果更新了 home 字段，需要标准化路径
+    const updateData = { ...rest };
+    if (updateData.home) {
+      updateData.home = this.normalizeHomePath(updateData.home);
+    }
+
     return this.prisma.role.update({
       where: { id },
-      data: rest, // code 不包含在更新数据中
+      data: updateData, // code 不包含在更新数据中
     });
   }
 
@@ -282,10 +296,10 @@ export class RolesService {
    * 为角色分配菜单
    */
   async assignMenus(roleId: string, assignDto: AssignMenusDto) {
-    const { menuIds } = assignDto;
+    const { menuIds, home } = assignDto;
 
     // 验证角色是否存在
-    await this.findOne(roleId);
+    const role = await this.findOne(roleId);
 
     // 验证所有菜单 ID 是否存在
     const menus = await this.prisma.menu.findMany({
@@ -321,9 +335,18 @@ export class RolesService {
       });
     }
 
+    // 如果提供了 home 字段，同时更新角色的 home 字段（标准化路径）
+    if (home !== undefined) {
+      await this.prisma.role.update({
+        where: { id: roleId },
+        data: { home: this.normalizeHomePath(home) },
+      });
+    }
+
     return {
       message: '角色菜单分配成功',
       menuCount: menuIds.length,
+      ...(home !== undefined && { home: this.normalizeHomePath(home) }), // 如果更新了 home 字段则返回标准化后的值
     };
   }
 
@@ -331,8 +354,8 @@ export class RolesService {
    * 获取角色的菜单列表
    */
   async getRoleMenus(roleId: string) {
-    // 验证角色是否存在
-    await this.findOne(roleId);
+    // 验证角色是否存在并获取 home 字段
+    const role = await this.findOne(roleId);
 
     const roleMenus = await this.prisma.roleMenu.findMany({
       where: { roleId },
@@ -373,7 +396,10 @@ export class RolesService {
       },
     });
 
-    return roleMenus.map((rm) => rm.menu);
+    return {
+      menus: roleMenus.map((rm) => rm.menu),
+      home: role.home,
+    };
   }
 
   /**

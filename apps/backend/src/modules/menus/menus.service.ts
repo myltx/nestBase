@@ -250,6 +250,40 @@ export class MenusService {
   }
 
   /**
+   * 转换菜单数据为前端路由格式
+   */
+  private transformMenuToRoute(menu: any): any {
+    const route: any = {
+      path: menu.routePath || '',
+      name: menu.routeName,
+      component: menu.component,
+      meta: {
+        title: menu.menuName,
+        ...(menu.i18nKey && { i18nKey: menu.i18nKey }),
+        ...(menu.href && { href: menu.href }),
+        hideInMenu: menu.hideInMenu ?? false,
+        keepAlive: menu.keepAlive ?? true,
+        order: menu.order ?? 0,
+        constant: menu.constant ?? false,
+        ...(menu.activeMenu && { activeMenu: menu.activeMenu }),
+        ...(menu.multiTab !== undefined && { multiTab: menu.multiTab }),
+        ...(menu.icon && { icon: menu.icon }),
+        ...(menu.iconType !== undefined && { iconType: menu.iconType }),
+        ...(menu.localIcon && { localIcon: menu.localIcon }),
+        ...(menu.fixedIndexInTab !== undefined && { fixedIndexInTab: menu.fixedIndexInTab }),
+      },
+      children: menu.children ? menu.children.map((child: any) => this.transformMenuToRoute(child)) : [],
+    };
+
+    // 如果 href 为 null 则不包含该字段
+    if (!route.meta.href) {
+      delete route.meta.href;
+    }
+
+    return route;
+  }
+
+  /**
    * 获取常量菜单（无需登录和权限验证的菜单）
    * 返回树形结构，过滤掉隐藏菜单
    */
@@ -279,7 +313,10 @@ export class MenusService {
         });
     };
 
-    return buildTree();
+    const tree = buildTree();
+
+    // 转换为前端路由格式
+    return tree.map((menu) => this.transformMenuToRoute(menu));
   }
 
   /**
@@ -312,9 +349,10 @@ export class MenusService {
 
   /**
    * 根据角色查询菜单（前端路由使用）
+   * 返回格式：{ routes: [], home: string }
    */
   async findByRoles(roleCodes: string[]) {
-    // 先通过角色 code 查询角色 ID
+    // 先通过角色 code 查询角色 ID 和 home 字段
     const roles = await this.prisma.role.findMany({
       where: {
         code: {
@@ -323,13 +361,17 @@ export class MenusService {
       },
       select: {
         id: true,
+        home: true,
       },
     });
 
     const roleIds = roles.map((role) => role.id);
 
     if (roleIds.length === 0) {
-      return [];
+      return {
+        routes: [],
+        home: '/home', // 默认首页
+      };
     }
 
     // 查询角色拥有的菜单 ID
@@ -347,7 +389,10 @@ export class MenusService {
     const menuIds = [...new Set(roleMenus.map((rm) => rm.menuId))];
 
     if (menuIds.length === 0) {
-      return [];
+      return {
+        routes: [],
+        home: roles[0]?.home || '/home', // 使用第一个角色的 home 或默认值
+      };
     }
 
     // 查询菜单详情
@@ -377,7 +422,17 @@ export class MenusService {
         });
     };
 
-    return buildTree();
+    const tree = buildTree();
+
+    // 转换为前端路由格式
+    const routes = tree.map((menu) => this.transformMenuToRoute(menu));
+
+    // 返回路由和首页
+    // 如果用户有多个角色，使用第一个角色的 home 字段
+    return {
+      routes,
+      home: roles[0]?.home || '/home',
+    };
   }
 
   /**
