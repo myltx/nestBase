@@ -230,7 +230,7 @@ export class AuthService {
   }
 
   /**
-   * 生成 JWT Token
+   * 生成 JWT Token（包含 Access Token 和 Refresh Token）
    */
   private async generateToken(user: any) {
     const payload = {
@@ -240,9 +240,23 @@ export class AuthService {
       roles: user.roles, // 使用 roles 数组(角色code字符串数组)
     };
 
+    // Access Token (短期，用于 API 访问)
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: this.configService.get<string>('JWT_ACCESS_EXPIRES_IN', '15m'),
+    });
+
+    // Refresh Token (长期，用于刷新 Access Token)
+    const refreshToken = this.jwtService.sign(
+      { sub: user.id, type: 'refresh' },
+      {
+        expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN', '7d'),
+      }
+    );
+
     return {
-      accessToken: this.jwtService.sign(payload),
-      expiresIn: this.configService.get<string>('JWT_EXPIRES_IN', '7d'),
+      accessToken,
+      refreshToken,
+      expiresIn: this.configService.get<string>('JWT_ACCESS_EXPIRES_IN', '15m'),
     };
   }
 
@@ -340,5 +354,115 @@ export class AuthService {
     ];
 
     return permissionCodes;
+  }
+
+  /**
+   * 刷新 Access Token
+   * @param refreshToken Refresh Token
+   * @returns 新的 Access Token 和 Refresh Token
+   */
+  async refreshToken(refreshToken: string) {
+    try {
+      // 验证 Refresh Token
+      const payload = this.jwtService.verify(refreshToken);
+
+      // 检查是否是 refresh token 类型
+      if (payload.type !== 'refresh') {
+        throw new UnauthorizedException({
+          message: '无效的 Refresh Token',
+          code: BusinessCode.TOKEN_INVALID,
+        });
+      }
+
+      // 获取用户信息
+      const user = await this.prisma.user.findUnique({
+        where: { id: payload.sub },
+        include: {
+          userRoles: {
+            include: {
+              role: {
+                select: {
+                  code: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!user) {
+        throw new UnauthorizedException({
+          message: '用户不存在',
+          code: BusinessCode.USER_NOT_FOUND,
+        });
+      }
+
+      // 检查用户状态
+      if (user.status !== 1) {
+        throw new UnauthorizedException({
+          message: '账户已被禁用',
+          code: BusinessCode.FORBIDDEN,
+        });
+      }
+
+      // 提取角色code数组
+      const roles = user.userRoles.map((ur) => ur.role.code);
+
+      // 生成新的 Token
+      const token = await this.generateToken({ ...user, roles });
+
+      return {
+        user: {
+          id: user.id,
+          email: user.email,
+          userName: user.userName,
+          nickName: user.nickName,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          phone: user.phone,
+          gender: user.gender,
+          avatar: user.avatar,
+          status: user.status,
+          roles,
+        },
+        token,
+      };
+    } catch (error) {
+      // JWT 验证失败或过期
+      if (error.name === 'TokenExpiredError') {
+        throw new UnauthorizedException({
+          message: 'Refresh Token 已过期，请重新登录',
+          code: BusinessCode.TOKEN_EXPIRED,
+        });
+      }
+
+      if (error.name === 'JsonWebTokenError') {
+        throw new UnauthorizedException({
+          message: '无效的 Refresh Token',
+          code: BusinessCode.TOKEN_INVALID,
+        });
+      }
+
+      // 重新抛出其他异常
+      throw error;
+    }
+  }
+
+  /**
+   * 退出登录
+   * 注意：由于 JWT 是无状态的，实际上只是返回成功消息
+   * 客户端需要删除本地存储的 token
+   * 如果需要真正的 token 失效，需要实现 token 黑名单机制（需要 Redis）
+   */
+  async logout(userId: string) {
+    // 这里可以添加额外的逻辑，比如：
+    // 1. 记录审计日志
+    // 2. 将 token 加入黑名单（需要 Redis）
+    // 3. 清除用户的会话信息
+
+    return {
+      message: '退出登录成功',
+    };
   }
 }

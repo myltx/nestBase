@@ -7,7 +7,7 @@
 import { Controller, Post, Body, HttpCode, HttpStatus, Get, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { RegisterDto, LoginDto } from './dto';
+import { RegisterDto, LoginDto, RefreshTokenDto } from './dto';
 import { Public, CurrentUser } from '@common/decorators';
 import { JwtAuthGuard } from '@common/guards';
 
@@ -67,5 +67,60 @@ export class AuthController {
   async getUserPermissions(@CurrentUser() user: any) {
     const permissions = await this.authService.getUserPermissions(user.id);
     return { permissions };
+  }
+
+  @Public()
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '刷新 Access Token' })
+  @ApiResponse({
+    status: 200,
+    description: 'Token 刷新成功',
+    schema: {
+      type: 'object',
+      properties: {
+        user: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            email: { type: 'string' },
+            userName: { type: 'string' },
+            roles: { type: 'array', items: { type: 'string' } }
+          }
+        },
+        token: {
+          type: 'object',
+          properties: {
+            accessToken: { type: 'string' },
+            refreshToken: { type: 'string' },
+            expiresIn: { type: 'string' }
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({ status: 401, description: 'Refresh Token 无效或已过期' })
+  async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
+    return this.authService.refreshToken(refreshTokenDto.refreshToken);
+  }
+
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '退出登录' })
+  @ApiResponse({
+    status: 200,
+    description: '退出登录成功',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', example: '退出登录成功' }
+      }
+    }
+  })
+  @ApiResponse({ status: 401, description: '未授权' })
+  async logout(@CurrentUser() user: any) {
+    return this.authService.logout(user.id);
   }
 }
