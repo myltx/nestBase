@@ -79,6 +79,12 @@ export class MenusController {
     return this.menusService.getAllRouteNames();
   }
 
+  @Get('route-exist/:routeName')
+  @ApiOperation({ summary: '检查路由名称是否存在' })
+  isRouteExist(@Param('routeName') routeName: string) {
+    return this.menusService.isRouteExist(routeName);
+  }
+
   @Get(':id')
   @Roles('ADMIN')
   @ApiOperation({ summary: '根据 ID 查询菜单' })
