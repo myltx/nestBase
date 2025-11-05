@@ -16,8 +16,14 @@ import { RolesModule } from './modules/roles/roles.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
 import { SwaggerModule as SwaggerDocModule } from './modules/swagger/swagger.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { RolesGuard } from './common/guards/roles.guard';
+import { PermissionsGuard } from './common/guards/permissions.guard';
+import { RateLimitGuard } from './common/guards/rate-limit.guard';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { SystemModule } from './modules/system/system.module';
+import { UserRolesModule } from './modules/user-roles/user-roles.module';
+import { AuditModule } from './modules/audit/audit.module';
 
 @Module({
   imports: [
@@ -35,12 +41,30 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     RolesModule,
     PermissionsModule,
     SwaggerDocModule,
+    SystemModule,
+    UserRolesModule,
+    AuditModule,
   ],
   providers: [
     // 全局 JWT 认证守卫
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    // 全局角色守卫
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+    // 全局权限守卫
+    {
+      provide: APP_GUARD,
+      useClass: PermissionsGuard,
+    },
+    // 全局限流守卫（仅对标注 @RateLimit 的接口生效）
+    {
+      provide: APP_GUARD,
+      useClass: RateLimitGuard,
     },
     // 全局响应转换拦截器
     {
