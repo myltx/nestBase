@@ -11,7 +11,7 @@
 
 基于 **NestJS + Supabase + Prisma** 的企业级全栈应用框架，采用 **Monorepo** 架构，支持前后端协作开发。
 
-[快速开始](#快速开始) • [功能特性](#功能特性) • [Monorepo 架构](#monorepo-架构) • [API 文档](#api-文档)
+[快速开始](#快速开始) • [功能特性](#功能特性) • [Monorepo 架构](#monorepo-架构) • [API 文档](#api-文档) • [使用说明](docs/USAGE.zh-CN.md)
 
 </div>
 
