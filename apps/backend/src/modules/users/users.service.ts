@@ -14,10 +14,14 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto, UpdateUserDto, QueryUserDto, ResetPasswordDto } from './dto';
 import { BusinessCode } from '@common/constants/business-codes';
+import { UserRolesService } from '../user-roles/user-roles.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private userRolesService: UserRolesService,
+  ) {}
 
   /**
    * 生成随机密码
@@ -298,7 +302,7 @@ export class UsersService {
   /**
    * 更新用户
    */
-  async update(id: string, updateUserDto: UpdateUserDto) {
+  async update(id: string, updateUserDto: UpdateUserDto, actorId?: string) {
     // 检查用户是否存在
     const existingUser = await this.prisma.user.findUnique({
       where: { id },
@@ -360,62 +364,24 @@ export class UsersService {
       updateData.password = await bcrypt.hash(updateUserDto.password, 10);
     }
 
-    // 处理角色更新
-    if (updateUserDto.roleIds !== undefined) {
-      // 验证角色ID是否存在
-      const roles = await this.prisma.role.findMany({
-        where: {
-          id: {
-            in: updateUserDto.roleIds,
-          },
-        },
-      });
-
-      if (roles.length !== updateUserDto.roleIds.length) {
-        throw new BadRequestException({
-          message: '部分角色 ID 不存在',
-          code: BusinessCode.NOT_FOUND,
-        });
-      }
-    }
-
-    // 使用事务更新用户和角色
-    const user = await this.prisma.$transaction(async (prisma) => {
-      // 更新用户基本信息
-      const updatedUser = await prisma.user.update({
-        where: { id },
-        data: updateData,
-        select: this.userSelect,
-      });
-
-      // 如果需要更新角色
-      if (updateUserDto.roleIds !== undefined) {
-        // 删除现有角色关联
-        await prisma.userRole.deleteMany({
-          where: { userId: id },
-        });
-
-        // 创建新的角色关联
-        if (updateUserDto.roleIds.length > 0) {
-          await prisma.userRole.createMany({
-            data: updateUserDto.roleIds.map((roleId) => ({
-              userId: id,
-              roleId,
-            })),
-          });
-        }
-
-        // 重新查询用户以获取最新角色
-        return prisma.user.findUnique({
-          where: { id },
-          select: this.userSelect,
-        });
-      }
-
-      return updatedUser;
+    // 更新用户基本信息
+    await this.prisma.user.update({
+      where: { id },
+      data: updateData,
     });
 
-    return this.formatUser(user);
+    // 如果需要更新角色，调用 UserRolesService（统一审计日志）
+    if (updateUserDto.roleIds !== undefined) {
+      await this.userRolesService.setUserRoles(id, updateUserDto.roleIds, actorId);
+    }
+
+    // 重新查询用户以获取最新数据（包括角色）
+    const updatedUser = await this.prisma.user.findUnique({
+      where: { id },
+      select: this.userSelect,
+    });
+
+    return this.formatUser(updatedUser);
   }
 
   /**

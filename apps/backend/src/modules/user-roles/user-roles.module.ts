@@ -14,5 +14,6 @@ import { UserRolesRolesController } from './user-roles.roles.controller';
   imports: [PrismaModule, AuditModule],
   controllers: [UserRolesUsersController, UserRolesRolesController],
   providers: [UserRolesService],
+  exports: [UserRolesService], // 导出服务供其他模块使用
 })
 export class UserRolesModule {}

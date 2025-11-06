@@ -61,7 +61,7 @@ export class MenusController {
 
   @Get('constant-routes')
   @ApiOperation({ summary: '获取常量菜单路由' })
-  // @Public()
+  @Public()
   getConstantRoutes() {
     return this.menusService.findConstantMenus();
   }

@@ -19,7 +19,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto, QueryUserDto, ResetPasswordDto } from './dto';
 import { JwtAuthGuard, RolesGuard } from '@common/guards';
-import { Roles } from '@common/decorators';
+import { Roles, CurrentUser } from '@common/decorators';
 
 @ApiTags('用户模块')
 @Controller('users')
@@ -60,8 +60,12 @@ export class UsersController {
   @ApiResponse({ status: 200, description: '更新成功' })
   @ApiResponse({ status: 403, description: '权限不足' })
   @ApiResponse({ status: 404, description: '用户不存在' })
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(id, updateUserDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+    @CurrentUser() currentUser: any,
+  ) {
+    return this.usersService.update(id, updateUserDto, currentUser?.id);
   }
 
   @Delete(':id')
