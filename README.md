@@ -11,7 +11,7 @@
 
 基于 **NestJS + Supabase + Prisma** 的企业级全栈应用框架，采用 **Monorepo** 架构，支持前后端协作开发。
 
-[快速开始](#快速开始) • [功能特性](#功能特性) • [Monorepo 架构](#monorepo-架构) • [API 文档](#api-文档)
+[快速开始](#快速开始) • [功能特性](#功能特性) • [Monorepo 架构](#monorepo-架构) • [API 文档](#api-文档) • [使用说明](docs/USAGE.zh-CN.md)
 
 </div>
 
@@ -229,11 +229,11 @@ pnpm dev
 
 数据库种子脚本已创建以下测试账户：
 
-| 角色               | 用户名    | 邮箱                  | 密码          |
-| ------------------ | --------- | --------------------- | ------------- |
-| **管理员+协调员**  | admin     | admin@example.com     | admin123      |
-| **普通用户**       | testuser  | user@example.com      | user123       |
-| **协调员**         | moderator | moderator@example.com | moderator123  |
+| 角色              | 用户名    | 邮箱                  | 密码         |
+| ----------------- | --------- | --------------------- | ------------ |
+| **管理员+协调员** | admin     | admin@example.com     | admin123     |
+| **普通用户**      | testuser  | user@example.com      | user123      |
+| **协调员**        | moderator | moderator@example.com | moderator123 |
 
 **说明**：管理员账户同时拥有 ADMIN 和 MODERATOR 两个角色，展示了多角色功能。
 
@@ -255,6 +255,8 @@ GET    /api/users/:id      # 根据 ID 查询用户
 POST   /api/users          # 创建用户（仅管理员）
 PATCH  /api/users/:id      # 更新用户（仅管理员）
 DELETE /api/users/:id      # 删除用户（仅管理员）
+PUT    /api/users/:id/roles   # 设置用户角色（完全替换，管理员）
+GET    /api/users/:id/roles   # 获取用户的角色列表
 ```
 
 #### 📁 菜单模块（v1.3.0 新增）
@@ -272,6 +274,7 @@ GET    /api/menus/role/:role       # 获取角色的菜单（仅管理员）
 ```
 
 **菜单系统特性**：
+
 - ✅ 支持树形层级结构（父子菜单）
 - ✅ 基于角色的菜单权限控制
 - ✅ 与前端路由定义完全兼容
@@ -303,6 +306,9 @@ GET    /api/roles/:id/menus            # 获取角色的菜单列表
 POST   /api/roles/:id/permissions      # 为角色分配权限（仅管理员）
 GET    /api/roles/:id/permissions      # 获取角色的权限列表
 GET    /api/roles/:id/stats            # 获取角色统计信息
+GET    /api/roles/:id/users            # 查看该角色下的用户（分页）
+POST   /api/roles/:id/users            # 批量添加用户到该角色（管理员）
+DELETE /api/roles/:id/users            # 批量将用户从该角色移除（管理员）
 ```
 
 ### 使用示例
@@ -323,6 +329,7 @@ curl -X POST http://localhost:3000/api/auth/register \
 ```
 
 **新增字段**：
+
 - `avatar`（可选）：用户头像 URL
 
 #### 用户登录
@@ -365,6 +372,7 @@ curl -X POST http://localhost:3000/api/auth/login \
 ```
 
 **注意**：
+
 - `roles` 现在是数组格式，支持多角色
 - `avatar` 字段包含用户头像 URL
 - `password` 字段已自动排除
@@ -496,6 +504,7 @@ enum Role {
 ```
 
 **重要更新（v1.2.0）**：
+
 - ✅ **多角色支持**：用户现在可以拥有多个角色（`roles` 数组）
 - ✅ **用户头像**：新增 `avatar` 字段用于存储用户头像 URL
 - ✅ **密码保护**：所有 API 响应自动排除 `password` 字段
@@ -508,24 +517,26 @@ enum Role {
 
 1. 用户通过 `/api/auth/login` 登录，获取 JWT Token
 2. 客户端在后续请求的 `Authorization` 头中携带 Token：
+
    ```
    Authorization: Bearer <token>
    ```
 
    **前端示例**:
+
    ```javascript
    // 使用 axios
    axios.get('/api/auth/profile', {
      headers: {
-       Authorization: `Bearer ${token}`
-     }
+       Authorization: `Bearer ${token}`,
+     },
    });
 
    // 使用 fetch
    fetch('/api/auth/profile', {
      headers: {
-       'Authorization': `Bearer ${token}`
-     }
+       Authorization: `Bearer ${token}`,
+     },
    });
    ```
 
@@ -541,6 +552,7 @@ enum Role {
 - 🔐 管理员账户只能通过数据库种子脚本或管理员手动创建
 
 **管理员账户创建方式**:
+
 1. 运行数据库种子脚本：`pnpm prisma:seed`
 2. 通过 Prisma Studio 手动创建：`pnpm prisma:studio`
 3. 由现有管理员通过后台管理接口创建
@@ -558,6 +570,7 @@ async deleteUser(@Param('id') id: string) {
 ```
 
 **多角色支持**（v1.2.0 新增）：
+
 - 用户可以同时拥有多个角色（例如：`[ADMIN, MODERATOR]`）
 - `@Roles()` 装饰器支持"OR"逻辑：用户只需拥有任一所需角色即可访问
 - 示例：`@Roles(Role.ADMIN, Role.MODERATOR)` - 拥有 ADMIN 或 MODERATOR 任一角色即可访问
@@ -592,6 +605,7 @@ async login(@Body() loginDto: LoginDto) {
 - `action`: 操作类型（如 create, read, update, delete）
 
 **系统内置权限示例**：
+
 - `user.create` - 创建用户
 - `user.read` - 查看用户
 - `user.update` - 更新用户
@@ -661,15 +675,16 @@ curl -X GET http://localhost:3000/api/roles/{roleId}/permissions \
 
 #### 权限与角色的区别
 
-| 特性 | 角色（Role） | 权限（Permission） |
-|------|-------------|-------------------|
-| 粒度 | 粗粒度 | 细粒度 |
-| 用途 | 菜单访问控制 | API 操作控制 |
-| 示例 | ADMIN, USER | user.create, user.delete |
-| 检查方式 | `@Roles()` | `@RequirePermissions()` |
-| 最佳实践 | 用于前端路由和菜单显示 | 用于后端 API 权限验证 |
+| 特性     | 角色（Role）           | 权限（Permission）       |
+| -------- | ---------------------- | ------------------------ |
+| 粒度     | 粗粒度                 | 细粒度                   |
+| 用途     | 菜单访问控制           | API 操作控制             |
+| 示例     | ADMIN, USER            | user.create, user.delete |
+| 检查方式 | `@Roles()`             | `@RequirePermissions()`  |
+| 最佳实践 | 用于前端路由和菜单显示 | 用于后端 API 权限验证    |
 
 **推荐实践**：
+
 - ✅ 使用角色控制菜单和页面访问（前端）
 - ✅ 使用权限控制具体操作权限（后端 API）
 - ✅ 一个用户可以有多个角色
@@ -822,6 +837,7 @@ datasource db {
 #### 实现方式
 
 1. **Prisma Schema 使用 `@map()` 映射**：
+
    ```prisma
    model User {
      firstName String?  @map("first_name")  // API: firstName, DB: first_name
@@ -832,10 +848,11 @@ datasource db {
    ```
 
 2. **DTO 使用 camelCase**：
+
    ```typescript
    export class CreateUserDto {
-     firstName?: string;  // 前端发送: firstName
-     lastName?: string;   // 后端接收: firstName
+     firstName?: string; // 前端发送: firstName
+     lastName?: string; // 后端接收: firstName
    }
    ```
 
@@ -843,15 +860,16 @@ datasource db {
    ```json
    {
      "id": "uuid",
-     "firstName": "John",      // ✅ camelCase
-     "lastName": "Doe",         // ✅ camelCase
-     "createdAt": "2025-01-15"  // ✅ camelCase
+     "firstName": "John", // ✅ camelCase
+     "lastName": "Doe", // ✅ camelCase
+     "createdAt": "2025-01-15" // ✅ camelCase
    }
    ```
 
 #### 为什么这样设计？
 
 ✅ **优势**：
+
 - **前端友好**：JavaScript/TypeScript 标准命名，无需转换
 - **数据库规范**：PostgreSQL 保持 snake_case 传统
 - **零性能开销**：Prisma 在编译时生成转换代码，无运行时开销
@@ -859,6 +877,7 @@ datasource db {
 - **维护简单**：只需在 Prisma schema 中配置一次 `@map()`
 
 ❌ **不推荐的方案**：
+
 - ~~添加全局拦截器转换字段名~~（性能损耗，复杂度高）
 - ~~前端手动转换~~（代码重复，容易出错）
 - ~~API 使用 snake_case~~（不符合 JavaScript 规范）
@@ -940,6 +959,7 @@ export class CreateUserDto {
 ```
 
 **示例**:
+
 ```json
 {
   "code": 0,
@@ -976,6 +996,7 @@ export class CreateUserDto {
 ```
 
 **示例**:
+
 ```json
 {
   "code": 1106,
@@ -996,6 +1017,7 @@ export class CreateUserDto {
 - [BUSINESS_CODES_IMPLEMENTATION.md](apps/backend/BUSINESS_CODES_IMPLEMENTATION.md) - 所有模块实现详情
 
 常用状态码：
+
 - `0`: 操作成功
 - `1101`: 用户名或密码错误
 - `1104`: 用户不存在
@@ -1005,12 +1027,11 @@ export class CreateUserDto {
 - `1201`: 资源不存在
 
 **模块覆盖情况**:
+
 - ✅ **AuthService**: 7 处异常处理
 - ✅ **UsersService**: 6 处异常处理
 - ✅ **ProjectsService**: 4 处异常处理
 - ✅ **全局拦截器**: 统一响应格式
-
-
 
 ---
 

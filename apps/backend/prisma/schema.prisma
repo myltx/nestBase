@@ -42,6 +42,7 @@ model User {
   createdAt DateTime   @default(now()) @map("created_at")
   updatedAt DateTime   @updatedAt @map("updated_at")
   userRoles UserRole[] // 用户角色关联
+  auditLogs AuditLog[] // 用户操作的审计日志
 
   @@map("users")
 }
@@ -164,4 +165,27 @@ model RolePermission {
 
   @@unique([roleId, permissionId])
   @@map("role_permissions")
+}
+
+// 审计日志模型
+model AuditLog {
+  id         String   @id @default(uuid())
+  event      String // 事件名称，如 "role:update", "permission:grant"
+  userId     String?  @map("user_id") // 操作用户ID（可选，因为某些系统事件可能没有用户）
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  ipAddress  String?  @map("ip_address") // 操作IP地址
+  userAgent  String?  @map("user_agent") // 用户代理
+  resource   String? // 操作的资源类型，如 "Role", "Permission", "Menu"
+  resourceId String?  @map("resource_id") // 操作的资源ID
+  action     String? // 操作类型，如 "CREATE", "UPDATE", "DELETE"
+  payload    Json // 事件详细数据（JSON格式）
+  result     String?  @default("SUCCESS") // 操作结果：SUCCESS, FAILED
+  errorMsg   String?  @map("error_msg") // 错误信息（如果失败）
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([event])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([resource, resourceId])
+  @@map("audit_logs")
 }

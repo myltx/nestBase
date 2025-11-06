@@ -47,10 +47,7 @@ export class MenusController {
   @Get('tree')
   @Roles('ADMIN')
   @ApiOperation({ summary: '获取树形菜单结构' })
-  findTree(
-    @Query('activeOnly') activeOnly?: string,
-    @Query('constantOnly') constantOnly?: string,
-  ) {
+  findTree(@Query('activeOnly') activeOnly?: string, @Query('constantOnly') constantOnly?: string) {
     // 解析 constantOnly 参数：'true' -> true, 'false' -> false, undefined -> undefined
     let constantOnlyBool: boolean | undefined;
     if (constantOnly === 'true') {
@@ -64,6 +61,7 @@ export class MenusController {
 
   @Get('constant-routes')
   @ApiOperation({ summary: '获取常量菜单路由' })
+  // @Public()
   getConstantRoutes() {
     return this.menusService.findConstantMenus();
   }
@@ -79,6 +77,12 @@ export class MenusController {
   @ApiOperation({ summary: '获取所有菜单的路由名称列表' })
   getAllRouteNames() {
     return this.menusService.getAllRouteNames();
+  }
+
+  @Get('route-exist/:routeName')
+  @ApiOperation({ summary: '检查路由名称是否存在' })
+  isRouteExist(@Param('routeName') routeName: string) {
+    return this.menusService.isRouteExist(routeName);
   }
 
   @Get(':id')

@@ -545,4 +545,41 @@ export class MenusService {
 
     return menus.map((menu) => menu.routeName);
   }
+
+  /**
+   * 检查路由名称是否存在
+   * @param routeName 路由名称
+   * @returns { exists: boolean, menu?: object } 是否存在以及菜单信息
+   */
+  async isRouteExist(routeName: string) {
+    const menu = await this.prisma.menu.findUnique({
+      where: { routeName },
+      select: {
+        id: true,
+        routeName: true,
+        menuName: true,
+        routePath: true,
+        status: true,
+      },
+    });
+
+    if (!menu) {
+      return {
+        exists: false,
+        routeName,
+      };
+    }
+
+    return {
+      exists: true,
+      routeName,
+      menu: {
+        id: menu.id,
+        routeName: menu.routeName,
+        menuName: menu.menuName,
+        routePath: menu.routePath,
+        status: menu.status,
+      },
+    };
+  }
 }
