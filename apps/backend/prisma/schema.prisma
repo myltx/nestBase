@@ -43,6 +43,7 @@ model User {
   updatedAt DateTime   @updatedAt @map("updated_at")
   userRoles UserRole[] // 用户角色关联
   auditLogs AuditLog[] // 用户操作的审计日志
+  contents  Content[] // 用户创建的内容
 
   @@map("users")
 }
@@ -188,4 +189,97 @@ model AuditLog {
   @@index([createdAt])
   @@index([resource, resourceId])
   @@map("audit_logs")
+}
+
+// ==================== 内容管理模块 ====================
+
+// 内容分类模型
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique // 分类名称
+  slug        String    @unique // URL友好的标识符
+  description String? // 分类描述
+  parentId    String?   @map("parent_id") // 父分类ID（支持分类层级）
+  parent      Category? @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children    Category[] @relation("CategoryHierarchy")
+  order       Int       @default(0) // 排序
+  status      Int       @default(1) // 状态 (1:启用 2:禁用)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  contents    Content[] // 该分类下的内容
+
+  @@map("categories")
+}
+
+// 标签模型
+model Tag {
+  id        String       @id @default(uuid())
+  name      String       @unique // 标签名称
+  slug      String       @unique // URL友好的标识符
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+  contents  ContentTag[] // 标签与内容的关联
+
+  @@map("tags")
+}
+
+// 内容模型
+model Content {
+  id             String        @id @default(uuid())
+  title          String // 标题
+  slug           String        @unique // URL友好的标识符
+  summary        String? // 摘要/简介
+  editorType     EditorType    @default(MARKDOWN) @map("editor_type") // 编辑器类型
+  contentMd      String?       @map("content_md") @db.Text // Markdown 原始内容（editorType=MARKDOWN时使用）
+  contentHtml    String?       @map("content_html") @db.Text // HTML 内容（富文本编辑或Markdown解析后）
+  contentRaw     String?       @map("content_raw") @db.Text // 原始内容备份（用于富文本编辑器）
+  coverImage     String?       @map("cover_image") // 封面图片URL
+  authorId       String        @map("author_id") // 作者ID
+  author         User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  categoryId     String?       @map("category_id") // 分类ID
+  category       Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  status         ContentStatus @default(DRAFT) // 内容状态
+  viewCount      Int           @default(0) @map("view_count") // 浏览量
+  likeCount      Int           @default(0) @map("like_count") // 点赞数
+  commentCount   Int           @default(0) @map("comment_count") // 评论数
+  isTop          Boolean       @default(false) @map("is_top") // 是否置顶
+  isRecommend    Boolean       @default(false) @map("is_recommend") // 是否推荐
+  publishedAt    DateTime?     @map("published_at") // 发布时间
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  tags           ContentTag[] // 内容与标签的关联
+
+  @@index([authorId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([publishedAt])
+  @@index([editorType])
+  @@map("contents")
+}
+
+// 编辑器类型枚举
+enum EditorType {
+  MARKDOWN // Markdown 编辑器
+  RICHTEXT // 富文本编辑器
+  UPLOAD // 上传 .md 文件
+}
+
+// 内容状态枚举
+enum ContentStatus {
+  DRAFT // 草稿
+  PUBLISHED // 已发布
+  ARCHIVED // 已归档
+}
+
+// 内容标签关联模型（多对多）
+model ContentTag {
+  id        String   @id @default(uuid())
+  contentId String   @map("content_id")
+  tagId     String   @map("tag_id")
+  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([contentId, tagId])
+  @@map("content_tags")
 }

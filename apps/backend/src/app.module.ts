@@ -24,6 +24,9 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { SystemModule } from './modules/system/system.module';
 import { UserRolesModule } from './modules/user-roles/user-roles.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { ContentsModule } from './modules/contents/contents.module';
+import { CategoriesModule } from './modules/categories/categories.module';
+import { TagsModule } from './modules/tags/tags.module';
 
 @Module({
   imports: [
@@ -44,6 +47,10 @@ import { AuditModule } from './modules/audit/audit.module';
     SystemModule,
     UserRolesModule,
     AuditModule,
+    // 内容管理模块
+    ContentsModule,
+    CategoriesModule,
+    TagsModule,
   ],
   providers: [
     // 全局 JWT 认证守卫
