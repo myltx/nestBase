@@ -10,7 +10,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateTagDto, UpdateTagDto } from './dto';
+import { CreateTagDto, UpdateTagDto, QueryTagDto } from './dto';
 import { BusinessCode } from '@common/constants/business-codes';
 
 @Injectable()
@@ -78,6 +78,64 @@ export class TagsService {
         createdAt: 'desc',
       },
     });
+  }
+
+  /**
+   * 分页查询标签
+   */
+  async findPage(queryDto: QueryTagDto) {
+    const { search, current = '1', size = '10' } = queryDto;
+
+    const pageNum = parseInt(current, 10);
+    const limitNum = parseInt(size, 10);
+
+    if (pageNum < 1 || limitNum < 1) {
+      throw new BadRequestException({
+        message: '页码和每页数量必须大于 0',
+        code: BusinessCode.VALIDATION_ERROR,
+      });
+    }
+
+    const skip = (pageNum - 1) * limitNum;
+
+    // 构建查询条件
+    const where: any = {};
+
+    // 搜索关键词（标签名称）
+    if (search) {
+      where.name = {
+        contains: search,
+        mode: 'insensitive',
+      };
+    }
+
+    // 查询标签
+    const [tags, total] = await Promise.all([
+      this.prisma.tag.findMany({
+        where,
+        skip,
+        take: limitNum,
+        include: {
+          _count: {
+            select: {
+              contents: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      }),
+      this.prisma.tag.count({ where }),
+    ]);
+
+    return {
+      records: tags,
+      current: pageNum,
+      size: limitNum,
+      total,
+      totalPages: Math.ceil(total / limitNum),
+    };
   }
 
   /**
