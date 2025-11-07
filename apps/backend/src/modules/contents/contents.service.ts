@@ -13,6 +13,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateContentDto, UpdateContentDto, QueryContentDto, PublishContentDto } from './dto';
 import { BusinessCode } from '@common/constants/business-codes';
 import { ContentStatus, EditorType } from '@prisma/client';
+import { parseMarkdown } from '@common/utils/markdown.util';
 
 @Injectable()
 export class ContentsService {
@@ -67,12 +68,18 @@ export class ContentsService {
       }
     }
 
+    // 自动解析 Markdown（如果是 Markdown 或 Upload 模式）
+    const editorType = contentData.editorType || EditorType.MARKDOWN;
+    if ((editorType === EditorType.MARKDOWN || editorType === EditorType.UPLOAD) && contentData.contentMd) {
+      contentData.contentHtml = await parseMarkdown(contentData.contentMd);
+    }
+
     // 创建内容
     const content = await this.prisma.content.create({
       data: {
         ...contentData,
         authorId,
-        editorType: contentData.editorType || EditorType.MARKDOWN,
+        editorType,
         tags: tagIds && tagIds.length > 0 ? {
           create: tagIds.map((tagId) => ({ tagId })),
         } : undefined,
@@ -367,6 +374,12 @@ export class ContentsService {
       }
     }
 
+    // 自动解析 Markdown（如果更新了 contentMd 并且是 Markdown 或 Upload 模式）
+    const editorType = contentData.editorType || existingContent.editorType;
+    if ((editorType === EditorType.MARKDOWN || editorType === EditorType.UPLOAD) && contentData.contentMd) {
+      contentData.contentHtml = await parseMarkdown(contentData.contentMd);
+    }
+
     // 更新内容
     const content = await this.prisma.content.update({
       where: { id },
@@ -427,12 +440,22 @@ export class ContentsService {
 
     const publishedAt = publishDto.publishedAt ? new Date(publishDto.publishedAt) : new Date();
 
+    // 如果是 Markdown 或 Upload 模式，确保生成了 HTML
+    const updateData: any = {
+      status: ContentStatus.PUBLISHED,
+      publishedAt,
+    };
+
+    if ((content.editorType === EditorType.MARKDOWN || content.editorType === EditorType.UPLOAD) && content.contentMd) {
+      // 如果没有 HTML 或需要重新生成，则解析 Markdown
+      if (!content.contentHtml) {
+        updateData.contentHtml = await parseMarkdown(content.contentMd);
+      }
+    }
+
     const updated = await this.prisma.content.update({
       where: { id },
-      data: {
-        status: ContentStatus.PUBLISHED,
-        publishedAt,
-      },
+      data: updateData,
       include: {
         author: {
           select: {
