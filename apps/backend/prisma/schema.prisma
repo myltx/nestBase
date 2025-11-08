@@ -235,6 +235,7 @@ model Content {
   contentRaw     String?       @map("content_raw") @db.Text // 原始内容备份（用于富文本编辑器）
   coverImage     String?       @map("cover_image") // 封面图片URL
   authorId       String        @map("author_id") // 作者ID
+  authorName     String?       @map("author_name") // 作者名称（优先使用用户提交的，否则自动从 nickName > userName 获取）
   author         User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
   categoryId     String?       @map("category_id") // 分类ID
   category       Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)

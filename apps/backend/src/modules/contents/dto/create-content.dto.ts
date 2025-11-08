@@ -75,6 +75,15 @@ export class CreateContentDto {
   @IsOptional()
   coverImage?: string;
 
+  @ApiPropertyOptional({
+    description: '作者名称（可选，未提供则自动使用 nickName > userName）',
+    example: '张三',
+  })
+  @IsString()
+  @IsOptional()
+  @MaxLength(100)
+  authorName?: string;
+
   @ApiPropertyOptional({ description: '分类ID', example: 'category-uuid-123' })
   @IsString()
   @IsOptional()

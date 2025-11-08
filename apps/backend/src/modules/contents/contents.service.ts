@@ -68,6 +68,19 @@ export class ContentsService {
       }
     }
 
+    // 自动填充作者名称：如果用户没有提供 authorName，则从用户信息自动获取
+    if (!contentData.authorName) {
+      const author = await this.prisma.user.findUnique({
+        where: { id: authorId },
+        select: { nickName: true, userName: true },
+      });
+
+      if (author) {
+        // 优先级: nickName > userName
+        contentData.authorName = author.nickName || author.userName;
+      }
+    }
+
     // 自动解析 Markdown（如果是 Markdown 或 Upload 模式）
     const editorType = contentData.editorType || EditorType.MARKDOWN;
     if ((editorType === EditorType.MARKDOWN || editorType === EditorType.UPLOAD) && contentData.contentMd) {
@@ -371,6 +384,19 @@ export class ContentsService {
           message: '部分标签不存在',
           code: BusinessCode.NOT_FOUND,
         });
+      }
+    }
+
+    // 自动填充作者名称：如果更新时 authorName 被设置为空字符串或未提供，则从用户信息自动获取
+    if (contentData.authorName === '' || (contentData.authorName === undefined && !existingContent.authorName)) {
+      const author = await this.prisma.user.findUnique({
+        where: { id: existingContent.authorId },
+        select: { nickName: true, userName: true },
+      });
+
+      if (author) {
+        // 优先级: nickName > userName
+        contentData.authorName = author.nickName || author.userName;
       }
     }
 
