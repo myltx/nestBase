@@ -575,6 +575,129 @@ export class ContentsService {
   }
 
   /**
+   * 切换推荐状态
+   */
+  async toggleRecommend(id: string) {
+    const content = await this.findOne(id);
+
+    const updated = await this.prisma.content.update({
+      where: { id },
+      data: {
+        isRecommend: !content.isRecommend,
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            userName: true,
+            nickName: true,
+            avatar: true,
+          },
+        },
+        category: true,
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+    });
+
+    return this.formatContent(updated);
+  }
+
+  /**
+   * 切换置顶状态
+   */
+  async toggleTop(id: string) {
+    const content = await this.findOne(id);
+
+    const updated = await this.prisma.content.update({
+      where: { id },
+      data: {
+        isTop: !content.isTop,
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            userName: true,
+            nickName: true,
+            avatar: true,
+          },
+        },
+        category: true,
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+    });
+
+    return this.formatContent(updated);
+  }
+
+  /**
+   * 切换发布状态
+   */
+  async togglePublish(id: string) {
+    const content = await this.findOne(id);
+
+    let newStatus: ContentStatus;
+    let publishedAt: Date | null;
+
+    // 根据当前状态切换
+    if (content.status === ContentStatus.PUBLISHED) {
+      // 如果已发布，切换为草稿
+      newStatus = ContentStatus.DRAFT;
+      publishedAt = null;
+    } else {
+      // 如果是草稿或归档，切换为发布
+      newStatus = ContentStatus.PUBLISHED;
+      publishedAt = new Date();
+    }
+
+    // 如果是 Markdown 或 Upload 模式，确保生成了 HTML
+    const updateData: any = {
+      status: newStatus,
+      publishedAt,
+    };
+
+    if (newStatus === ContentStatus.PUBLISHED) {
+      if ((content.editorType === EditorType.MARKDOWN || content.editorType === EditorType.UPLOAD) && content.contentMd) {
+        // 如果没有 HTML 或需要重新生成，则解析 Markdown
+        if (!content.contentHtml) {
+          updateData.contentHtml = await parseMarkdown(content.contentMd);
+        }
+      }
+    }
+
+    const updated = await this.prisma.content.update({
+      where: { id },
+      data: updateData,
+      include: {
+        author: {
+          select: {
+            id: true,
+            userName: true,
+            nickName: true,
+            avatar: true,
+          },
+        },
+        category: true,
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+    });
+
+    return this.formatContent(updated);
+  }
+
+  /**
    * 验证内容字段根据编辑器类型
    */
   private validateContentByEditorType(editorType: EditorType, contentData: any) {

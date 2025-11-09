@@ -126,4 +126,37 @@ export class ContentsController {
   archive(@Param('id') id: string) {
     return this.contentsService.archive(id);
   }
+
+  @Patch(':id/toggle-recommend')
+  @Roles('ADMIN', 'MODERATOR')
+  @ApiOperation({ summary: '切换推荐状态（快捷操作）' })
+  @ApiParam({ name: 'id', description: '内容ID', example: 'content-uuid-123' })
+  @ApiResponse({ status: 200, description: '切换成功' })
+  @ApiResponse({ status: 403, description: '权限不足' })
+  @ApiResponse({ status: 404, description: '内容不存在' })
+  toggleRecommend(@Param('id') id: string) {
+    return this.contentsService.toggleRecommend(id);
+  }
+
+  @Patch(':id/toggle-top')
+  @Roles('ADMIN', 'MODERATOR')
+  @ApiOperation({ summary: '切换置顶状态（快捷操作）' })
+  @ApiParam({ name: 'id', description: '内容ID', example: 'content-uuid-123' })
+  @ApiResponse({ status: 200, description: '切换成功' })
+  @ApiResponse({ status: 403, description: '权限不足' })
+  @ApiResponse({ status: 404, description: '内容不存在' })
+  toggleTop(@Param('id') id: string) {
+    return this.contentsService.toggleTop(id);
+  }
+
+  @Patch(':id/toggle-publish')
+  @Roles('ADMIN', 'MODERATOR')
+  @ApiOperation({ summary: '切换发布状态（快捷操作，已发布→草稿，草稿/归档→发布）' })
+  @ApiParam({ name: 'id', description: '内容ID', example: 'content-uuid-123' })
+  @ApiResponse({ status: 200, description: '切换成功' })
+  @ApiResponse({ status: 403, description: '权限不足' })
+  @ApiResponse({ status: 404, description: '内容不存在' })
+  togglePublish(@Param('id') id: string) {
+    return this.contentsService.togglePublish(id);
+  }
 }
