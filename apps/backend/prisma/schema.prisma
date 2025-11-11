@@ -28,22 +28,24 @@ model Role {
 
 // 用户模型
 model User {
-  id        String     @id @default(uuid())
-  email     String     @unique
-  password  String
-  userName  String     @unique @map("username")
-  nickName  String?    @map("nickname") // 昵称
-  firstName String?    @map("first_name")
-  lastName  String?    @map("last_name")
-  phone     String?    @unique // 手机号
-  gender    Gender? // 性别
-  avatar    String? // 用户头像 URL
-  status    Int        @default(1) // 用户状态 (1:启用 2:禁用)
-  createdAt DateTime   @default(now()) @map("created_at")
-  updatedAt DateTime   @updatedAt @map("updated_at")
-  userRoles UserRole[] // 用户角色关联
-  auditLogs AuditLog[] // 用户操作的审计日志
-  contents  Content[] // 用户创建的内容
+  id         String      @id @default(uuid())
+  email      String      @unique
+  password   String
+  userName   String      @unique @map("username")
+  nickName   String?     @map("nickname") // 昵称
+  firstName  String?     @map("first_name")
+  lastName   String?     @map("last_name")
+  phone      String?     @unique // 手机号
+  gender     Gender? // 性别
+  avatar     String? // 用户头像 URL
+  status     Int         @default(1) // 用户状态 (1:启用 2:禁用)
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+  userRoles  UserRole[] // 用户角色关联
+  auditLogs  AuditLog[] // 用户操作的审计日志
+  contents   Content[] // 用户创建的内容
+  accessLogs AccessLog[] // 用户访问日志
+  loginLogs  LoginLog[] // 用户登录日志
 
   @@map("users")
 }
@@ -283,4 +285,67 @@ model ContentTag {
 
   @@unique([contentId, tagId])
   @@map("content_tags")
+}
+
+// ==================== 日志管理模块 ====================
+
+// 访问日志模型
+model AccessLog {
+  id             String    @id @default(uuid())
+  userId         String?   @map("user_id") // 用户ID（可选，未登录用户为null）
+  user           User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  method         String // HTTP方法 (GET, POST, PUT, DELETE等)
+  path           String // 请求路径
+  query          String? // 查询参数
+  statusCode     Int       @map("status_code") // 响应状态码
+  ip             String // 客户端IP地址
+  userAgent      String?   @map("user_agent") @db.Text // 用户代理
+  referer        String? // 来源页面
+  responseTime   Int?      @map("response_time") // 响应时间(ms)
+  errorMessage   String?   @map("error_message") @db.Text // 错误信息
+  errorStack     String?   @map("error_stack") @db.Text // 错误堆栈（系统异常）
+  errorLevel     ErrorLevel? @map("error_level") // 错误级别
+  exceptionType  String?   @map("exception_type") // 异常类型（业务异常/系统异常）
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([path])
+  @@index([statusCode])
+  @@index([createdAt])
+  @@index([ip])
+  @@index([errorLevel])
+  @@map("access_logs")
+}
+
+// 登录日志模型
+model LoginLog {
+  id           String    @id @default(uuid())
+  userId       String?   @map("user_id") // 用户ID（登录失败时可能为null）
+  user         User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email        String // 登录使用的邮箱
+  status       LoginStatus // 登录状态
+  ip           String // 客户端IP地址
+  userAgent    String?   @map("user_agent") @db.Text // 用户代理
+  failReason   String?   @map("fail_reason") // 失败原因
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([email])
+  @@index([status])
+  @@index([createdAt])
+  @@index([ip])
+  @@map("login_logs")
+}
+
+// 登录状态枚举
+enum LoginStatus {
+  SUCCESS // 登录成功
+  FAILED  // 登录失败
+  LOGOUT  // 退出登录
+}
+
+// 错误日志级别枚举
+enum ErrorLevel {
+  WARN  // 业务异常（参数错误、权限不足等）
+  ERROR // 系统异常（数据库错误、第三方接口失败等）
 }

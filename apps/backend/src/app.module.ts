@@ -20,6 +20,7 @@ import { RolesGuard } from './common/guards/roles.guard';
 import { PermissionsGuard } from './common/guards/permissions.guard';
 import { RateLimitGuard } from './common/guards/rate-limit.guard';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { AccessLogInterceptor } from './common/interceptors/access-log.interceptor';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { SystemModule } from './modules/system/system.module';
 import { UserRolesModule } from './modules/user-roles/user-roles.module';
@@ -27,6 +28,7 @@ import { AuditModule } from './modules/audit/audit.module';
 import { ContentsModule } from './modules/contents/contents.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { TagsModule } from './modules/tags/tags.module';
+import { LogsModule } from './modules/logs/logs.module';
 
 @Module({
   imports: [
@@ -51,6 +53,8 @@ import { TagsModule } from './modules/tags/tags.module';
     ContentsModule,
     CategoriesModule,
     TagsModule,
+    // 日志模块
+    LogsModule,
   ],
   providers: [
     // 全局 JWT 认证守卫
@@ -73,12 +77,17 @@ import { TagsModule } from './modules/tags/tags.module';
       provide: APP_GUARD,
       useClass: RateLimitGuard,
     },
+    // 全局访问日志拦截器
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: AccessLogInterceptor,
+    },
     // 全局响应转换拦截器
     {
       provide: APP_INTERCEPTOR,
       useClass: TransformInterceptor,
     },
-    // 全局异常过滤器
+    // 全局异常过滤器（支持依赖注入）
     {
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
