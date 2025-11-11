@@ -4,3 +4,4 @@
  */
 
 export * from './transform.interceptor';
+export * from './access-log.interceptor';

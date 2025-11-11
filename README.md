@@ -11,7 +11,7 @@
 
 基于 **NestJS + Supabase + Prisma** 的企业级全栈应用框架，采用 **Monorepo** 架构，支持前后端协作开发。
 
-[快速开始](#快速开始) • [功能特性](#功能特性) • [Monorepo 架构](#monorepo-架构) • [API 文档](#api-文档) • [使用说明](docs/USAGE.zh-CN.md)
+[快速开始](#快速开始) • [功能特性](#功能特性) • [Monorepo 架构](#monorepo-架构) • [文档结构](#文档结构) • [API 文档](#api-文档)
 
 </div>
 
@@ -1032,6 +1032,51 @@ export class CreateUserDto {
 - ✅ **UsersService**: 6 处异常处理
 - ✅ **ProjectsService**: 4 处异常处理
 - ✅ **全局拦截器**: 统一响应格式
+
+---
+
+## 📚 文档结构
+
+本项目采用统一的文档管理体系，所有文档按服务分类整理在 `docs/` 目录下。
+
+### 文档目录结构
+
+```
+docs/
+├── README.md              # 📚 文档中心导航
+├── backend/               # 🔧 Backend 后端服务文档（29个）
+│   ├── architecture/     # 架构设计（API规范、业务状态码）
+│   ├── features/         # 功能发布（日志、CMS、Token）
+│   ├── guides/           # 使用指南（API、菜单、角色）
+│   ├── migrations/       # 数据库迁移
+│   └── api/              # API 参考
+├── frontend/              # 🎨 Frontend 前端服务文档（预留）
+└── project/               # 📦 项目级文档（19个）
+    ├── setup/            # 项目设置（快速开始、环境配置）
+    ├── development/      # 开发维护（变更日志、代码检查）
+    ├── features/         # 功能实现（RBAC、角色迁移）
+    ├── api-tools/        # API 工具（Apifox、OpenAPI）
+    └── project-management/ # 项目管理（交付报告）
+```
+
+### 快速入口
+
+| 文档类型 | 说明 | 入口 | 数量 |
+|---------|------|------|------|
+| 🔧 **Backend 文档** | NestJS 后端技术文档 | [docs/backend/README.md](docs/backend/README.md) | 29 个 |
+| 📦 **Project 文档** | 项目配置和管理文档 | [docs/project/README.md](docs/project/README.md) | 19 个 |
+| 🎨 **Frontend 文档** | 前端服务文档（预留） | [docs/frontend/README.md](docs/frontend/README.md) | - |
+| 📚 **文档中心** | 完整文档导航和索引 | [docs/README.md](docs/README.md) | - |
+
+### 按角色快速导航
+
+| 角色 | 推荐阅读路径 |
+|------|------------|
+| **新开发人员** | [快速开始](docs/project/setup/QUICKSTART.md) → [Supabase配置](docs/project/setup/SUPABASE_SETUP.md) → [RBAC权限](docs/project/features/RBAC_GUIDE.md) |
+| **后端开发** | [API规范](docs/backend/architecture/API_NAMING_CONVENTION.md) → [业务状态码](docs/backend/architecture/BUSINESS_CODES.md) → [CMS指南](docs/backend/guides/CMS_API_GUIDE.md) |
+| **前端开发** | [Apifox导入](docs/project/api-tools/APIFOX_IMPORT_GUIDE.md) → [CMS API](docs/backend/guides/CMS_API_GUIDE.md) → [用户角色API](docs/backend/guides/API_USER_ROLES.md) |
+| **架构师** | [Monorepo架构](docs/project/setup/MONOREPO.md) → [RBAC设计](docs/project/features/RBAC_REDESIGN.md) → [Backend架构](docs/backend/architecture/) |
+| **运维人员** | [Supabase配置](docs/project/setup/SUPABASE_SETUP.md) → [数据库迁移](docs/backend/migrations/MIGRATION_GUIDE.md) |
 
 ---
 

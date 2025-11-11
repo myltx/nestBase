@@ -9,13 +9,18 @@ import {
   ConflictException,
   UnauthorizedException,
   BadRequestException,
+  Inject,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { REQUEST } from '@nestjs/core';
+import type { Request } from 'express';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto, LoginDto } from './dto';
 import { BusinessCode } from '@common/constants/business-codes';
+import { LogsService } from '../logs/logs.service';
+import { LoginStatus } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -23,6 +28,8 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private logsService: LogsService,
+    @Inject(REQUEST) private request: Request,
   ) {}
 
   /**
@@ -160,6 +167,10 @@ export class AuthService {
   async login(loginDto: LoginDto) {
     const { userName, password } = loginDto;
 
+    // 获取请求信息
+    const ip = this.request.ip || (this.request.headers['x-forwarded-for'] as string)?.split(',')[0] || 'unknown';
+    const userAgent = this.request.headers['user-agent'] || 'unknown';
+
     // 查找用户(支持邮箱或用户名登录)
     const user = await this.prisma.user.findFirst({
       where: {
@@ -180,6 +191,15 @@ export class AuthService {
     });
 
     if (!user) {
+      // 记录登录失败日志
+      await this.logsService.createLoginLog({
+        email: userName,
+        ip,
+        userAgent,
+        status: LoginStatus.FAILED,
+        failReason: '用户名或密码错误',
+      });
+
       throw new UnauthorizedException({
         message: '用户名或密码错误',
         code: BusinessCode.INVALID_CREDENTIALS,
@@ -190,6 +210,16 @@ export class AuthService {
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
+      // 记录登录失败日志
+      await this.logsService.createLoginLog({
+        userId: user.id,
+        email: user.email,
+        ip,
+        userAgent,
+        status: LoginStatus.FAILED,
+        failReason: '用户名或密码错误',
+      });
+
       throw new UnauthorizedException({
         message: '用户名或密码错误',
         code: BusinessCode.INVALID_CREDENTIALS,
@@ -198,6 +228,16 @@ export class AuthService {
 
     // 检查用户状态
     if (user.status !== 1) {
+      // 记录登录失败日志
+      await this.logsService.createLoginLog({
+        userId: user.id,
+        email: user.email,
+        ip,
+        userAgent,
+        status: LoginStatus.FAILED,
+        failReason: '账户已被禁用',
+      });
+
       throw new UnauthorizedException({
         message: '账户已被禁用',
         code: BusinessCode.FORBIDDEN,
@@ -209,6 +249,15 @@ export class AuthService {
 
     // 生成 Token
     const token = await this.generateToken({ ...user, roles });
+
+    // 记录登录成功日志
+    await this.logsService.createLoginLog({
+      userId: user.id,
+      email: user.email,
+      ip,
+      userAgent,
+      status: LoginStatus.SUCCESS,
+    });
 
     return {
       user: {
