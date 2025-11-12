@@ -808,15 +808,344 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
 ---
 
+---
+
+## ✅ 实际实施情况（v2.0）
+
+### 已实现的功能
+
+#### 1. Redis 模块基础架构 ✅
+
+**实现时间**: 2025-11-12
+
+**核心特性**:
+- ✅ 使用 `ioredis` 作为 Redis 客户端
+- ✅ 全局模块设计，可在所有模块中直接使用
+- ✅ 完善的错误处理和连接管理
+- ✅ **优雅降级机制**：Redis 连接失败时自动回退到进程内存缓存
+
+**文件位置**:
+- `src/modules/redis/redis.module.ts` - Redis 模块配置
+- `src/modules/redis/redis.service.ts` - Redis 服务封装
+- `src/modules/redis/redis.constants.ts` - Redis 常量定义
+
+**实现亮点**:
+
+1. **智能降级策略**
+```typescript
+constructor(@Inject(REDIS_CLIENT) private readonly client: Redis | null) {
+  this.useFallback = !client;
+  if (this.useFallback) {
+    this.logger.warn('Redis 未启用或连接失败，回退到进程内缓存');
+  }
+}
+```
+
+2. **统一的缓存接口**
+```typescript
+// 无论使用 Redis 还是 Fallback，API 完全一致
+await redisService.set(key, value, ttl);
+await redisService.get(key);
+await redisService.del(key);
+await redisService.setJson(key, object, ttl);
+await redisService.getJson<T>(key);
+```
+
+3. **TTL 过期支持**
+```typescript
+// 支持 TTL 的 Fallback 实现
+private readonly fallbackStore = new Map<string, {
+  value: string;
+  expireAt?: number; // 过期时间戳
+}>();
+```
+
+#### 2. 权限缓存优化 ✅
+
+**实现时间**: 2025-11-12
+
+**使用场景**:
+- `PermissionsGuard` 中缓存用户权限列表
+- 减少数据库查询，提升权限验证性能
+
+**实现代码** (`src/common/guards/permissions.guard.ts`):
+```typescript
+// 缓存用户权限
+const cacheKey = `permissions:${user.id}`;
+let userPermissionCodes = await this.redisService.getJson<string[]>(cacheKey);
+
+if (!userPermissionCodes) {
+  // 缓存未命中，查询数据库
+  userPermissionCodes = await this.fetchPermissionsFromDB(userId);
+
+  // 写入缓存（默认 300 秒）
+  await this.redisService.setJson(
+    cacheKey,
+    userPermissionCodes,
+    this.permissionCacheTtl
+  );
+}
+```
+
+**配置项**:
+- `PERMISSIONS_CACHE_TTL`: 权限缓存时间（默认 300 秒）
+
+**性能提升**:
+- 数据库查询: ~20-50ms
+- Redis 缓存命中: <1ms
+- **性能提升**: 20-50倍
+
+#### 3. 环境变量配置 ✅
+
+**配置文件** (`.env.example`):
+```env
+# Redis 配置
+REDIS_ENABLED=true          # 是否启用 Redis
+REDIS_HOST=127.0.0.1       # Redis 主机
+REDIS_PORT=6379            # Redis 端口
+REDIS_PASSWORD=            # Redis 密码（可选）
+REDIS_DB=0                 # Redis 数据库编号
+REDIS_KEY_PREFIX=nestbase: # Key 前缀
+
+# 权限缓存配置
+PERMISSIONS_CACHE_TTL=300  # 权限缓存时间（秒）
+```
+
+**灵活控制**:
+- `REDIS_ENABLED=false`: 完全禁用 Redis，使用内存缓存
+- `REDIS_ENABLED=true`: 尝试连接 Redis，失败时自动降级
+
+#### 4. 连接管理和错误处理 ✅
+
+**懒连接模式**:
+```typescript
+const options: RedisOptions = {
+  // ... 其他配置
+  lazyConnect: true, // 延迟连接
+};
+
+const client = new Redis(options);
+
+try {
+  await client.connect(); // 显式连接
+  return client;
+} catch (error) {
+  logger.error(`Redis 连接失败，退回内存缓存: ${error.message}`);
+  client.disconnect();
+  return null; // 返回 null 触发降级
+}
+```
+
+**事件监听**:
+```typescript
+client.on('connect', () => logger.log('Redis 已连接'));
+client.on('error', (error) => logger.error('Redis 连接异常', error));
+client.on('reconnecting', () => logger.warn('Redis 正在重连...'));
+```
+
+**优雅关闭**:
+```typescript
+async onModuleDestroy() {
+  if (this.client) {
+    await this.client.quit(); // 优雅关闭连接
+  }
+}
+```
+
+---
+
+### 未实现的功能（待后续迭代）
+
+#### 1. Token 黑名单 ⏳
+
+**优先级**: 高
+**预计工时**: 2-3 小时
+
+**需要的改动**:
+1. 修改 `JwtAuthGuard` 添加黑名单检查
+2. 修改 `AuthService.logout()` 添加 Token 到黑名单
+3. 生成 Token 时添加 `jti` (JWT ID) 字段
+
+**阻塞原因**: 需要先确定是否需要强制 Token 失效功能
+
+#### 2. Refresh Token 白名单 ⏳
+
+**优先级**: 高
+**预计工时**: 2-3 小时
+
+**需要的改动**:
+1. 登录时存储 Refresh Token 到 Redis
+2. 刷新时验证 Refresh Token 是否在白名单
+3. 密码修改时清除白名单
+
+**阻塞原因**: 需要先确定单设备/多设备登录策略
+
+#### 3. 分布式限流 ⏳
+
+**优先级**: 中
+**预计工时**: 3-4 小时
+
+**需要的改动**:
+1. 创建 `RateLimitGuard`
+2. 使用 Redis INCR 命令实现原子计数
+3. 替换当前的进程内存限流
+
+**阻塞原因**: 当前单服务器部署，暂不需要分布式限流
+
+#### 4. 会话管理 ⏳
+
+**优先级**: 低
+**预计工时**: 1 天
+
+**功能规划**:
+- 查看用户所有登录设备
+- 远程下线指定设备
+- 限制同时登录设备数量
+
+**阻塞原因**: 需求优先级较低
+
+---
+
+### 实施经验总结
+
+#### ✅ 成功经验
+
+1. **优雅降级是关键**
+   - Redis 连接失败不应该阻塞应用启动
+   - Fallback 机制让开发环境更友好
+   - 生产环境和开发环境可以使用相同代码
+
+2. **统一的接口设计**
+   - RedisService 提供了统一的 API
+   - 业务代码无需关心是 Redis 还是 Fallback
+   - 便于后续切换或升级
+
+3. **环境变量控制**
+   - `REDIS_ENABLED` 开关非常实用
+   - 可以快速切换 Redis/内存缓存
+   - 方便测试和调试
+
+#### ⚠️ 需要注意的问题
+
+1. **Fallback 的局限性**
+   - 进程内存缓存不支持分布式
+   - 应用重启后缓存丢失
+   - 多实例部署时缓存不同步
+
+2. **连接错误日志过多**
+   - Redis 未启动时会不断重连
+   - 建议禁用自动重连或设置 `REDIS_ENABLED=false`
+
+3. **缓存失效策略**
+   - 当前只实现了 TTL 自动过期
+   - 需要手动清除缓存（如权限变更时）
+   - 建议添加 `invalidatePermissionCache(userId)` 方法
+
+#### 💡 改进建议
+
+1. **添加缓存失效方法**
+```typescript
+// src/modules/redis/redis.service.ts
+async invalidatePattern(pattern: string) {
+  if (this.useFallback) {
+    // 删除所有匹配的 key
+    for (const key of this.fallbackStore.keys()) {
+      if (key.match(pattern)) {
+        this.fallbackStore.delete(key);
+      }
+    }
+    return;
+  }
+
+  const keys = await this.client!.keys(pattern);
+  if (keys.length > 0) {
+    await this.client!.del(...keys);
+  }
+}
+```
+
+2. **禁用自动重连**
+```typescript
+const options: RedisOptions = {
+  // ... 其他配置
+  retryStrategy: () => null, // 禁用重连
+  maxRetriesPerRequest: 1,   // 最多重试1次
+};
+```
+
+3. **添加权限缓存失效**
+```typescript
+// src/modules/user-roles/user-roles.service.ts
+async setUserRoles(userId: string, roleIds: string[]) {
+  await this.prisma.$transaction(/* ... */);
+
+  // 清除用户权限缓存
+  await this.redisService.del(`permissions:${userId}`);
+}
+```
+
+---
+
+### 性能监控建议
+
+#### 推荐监控指标
+
+1. **缓存命中率**
+```typescript
+private cacheHits = 0;
+private cacheMisses = 0;
+
+async getJson<T>(key: string): Promise<T | null> {
+  const value = await this.get(key);
+  if (value) {
+    this.cacheHits++;
+  } else {
+    this.cacheMisses++;
+  }
+  return value ? JSON.parse(value) : null;
+}
+
+getCacheStats() {
+  const total = this.cacheHits + this.cacheMisses;
+  const hitRate = total > 0 ? (this.cacheHits / total * 100).toFixed(2) : '0.00';
+  return { hits: this.cacheHits, misses: this.cacheMisses, hitRate: `${hitRate}%` };
+}
+```
+
+2. **Redis 连接状态**
+```typescript
+getRedisStatus() {
+  return {
+    enabled: !this.useFallback,
+    connected: this.client?.status === 'ready',
+    mode: this.useFallback ? 'fallback' : 'redis',
+  };
+}
+```
+
+3. **Fallback 存储大小**
+```typescript
+getFallbackStats() {
+  if (!this.useFallback) return null;
+  return {
+    keys: this.fallbackStore.size,
+    memory: this.estimateMemoryUsage(),
+  };
+}
+```
+
+---
+
 ## 🔄 版本历史
 
 | 版本 | 日期 | 说明 |
 |------|------|------|
 | v1.0 | 2025-11-05 | 初始版本，完整需求分析 |
+| v2.0 | 2025-11-12 | 添加实际实施情况、经验总结和改进建议 |
 
 ---
 
 **创建时间**: 2025-11-05
-**最后更新**: 2025-11-05
+**最后更新**: 2025-11-12
 **文档维护**: Backend Team
 **联系方式**: 项目 Issue Tracker

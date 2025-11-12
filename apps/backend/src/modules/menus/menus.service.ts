@@ -13,10 +13,20 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMenuDto, UpdateMenuDto, QueryMenuDto } from './dto';
 import { BusinessCode } from '@common/constants/business-codes';
+import { RedisService } from '@modules/redis/redis.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class MenusService {
-  constructor(private prisma: PrismaService) {}
+  private readonly routesCacheTtl: number;
+
+  constructor(
+    private prisma: PrismaService,
+    private readonly configService: ConfigService,
+    private readonly redisService: RedisService,
+  ) {
+    this.routesCacheTtl = Number(this.configService.get('MENU_ROUTES_CACHE_TTL', 300));
+  }
 
   /**
    * 菜单字段选择器
@@ -352,6 +362,17 @@ export class MenusService {
    * 返回格式：{ routes: [], home: string }
    */
   async findByRoles(roleCodes: string[]) {
+    const normalizedRoleCodes = Array.from(new Set(roleCodes?.filter(Boolean) ?? []));
+    const cacheKey =
+      normalizedRoleCodes.length > 0
+        ? `menu:routes:${normalizedRoleCodes.join('|')}`
+        : 'menu:routes:guest';
+    const cached = await this.redisService.getJson<{ routes: any[]; home: string }>(cacheKey);
+
+    if (cached) {
+      return cached;
+    }
+
     // 先通过角色 code 查询角色 ID 和 home 字段
     const roles = await this.prisma.role.findMany({
       where: {
@@ -368,10 +389,12 @@ export class MenusService {
     const roleIds = roles.map((role) => role.id);
 
     if (roleIds.length === 0) {
-      return {
+      const result = {
         routes: [],
         home: '/home', // 默认首页
       };
+      await this.redisService.setJson(cacheKey, result, this.routesCacheTtl);
+      return result;
     }
 
     // 查询角色拥有的菜单 ID
@@ -389,10 +412,12 @@ export class MenusService {
     const menuIds = [...new Set(roleMenus.map((rm) => rm.menuId))];
 
     if (menuIds.length === 0) {
-      return {
+      const result = {
         routes: [],
         home: roles[0]?.home || '/home', // 使用第一个角色的 home 或默认值
       };
+      await this.redisService.setJson(cacheKey, result, this.routesCacheTtl);
+      return result;
     }
 
     // 查询菜单详情
@@ -429,10 +454,14 @@ export class MenusService {
 
     // 返回路由和首页
     // 如果用户有多个角色，使用第一个角色的 home 字段
-    return {
+    const result = {
       routes,
       home: roles[0]?.home || '/home',
     };
+
+    await this.redisService.setJson(cacheKey, result, this.routesCacheTtl);
+
+    return result;
   }
 
   /**

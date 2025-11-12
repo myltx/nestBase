@@ -29,6 +29,7 @@ import { ContentsModule } from './modules/contents/contents.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { TagsModule } from './modules/tags/tags.module';
 import { LogsModule } from './modules/logs/logs.module';
+import { RedisModule } from './modules/redis/redis.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { LogsModule } from './modules/logs/logs.module';
     TagsModule,
     // 日志模块
     LogsModule,
+    RedisModule,
   ],
   providers: [
     // 全局 JWT 认证守卫
