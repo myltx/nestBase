@@ -7,15 +7,23 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PrismaService } from '@modules/prisma/prisma.service';
+import { ConfigService } from '@nestjs/config';
+import { RedisService } from '@modules/redis/redis.service';
 
 export const PERMISSIONS_KEY = 'permissions';
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
+  private readonly permissionCacheTtl: number;
+
   constructor(
     private reflector: Reflector,
     private prisma: PrismaService,
-  ) {}
+    private configService: ConfigService,
+    private redisService: RedisService,
+  ) {
+    this.permissionCacheTtl = Number(this.configService.get('PERMISSIONS_CACHE_TTL', 300));
+  }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // 获取路由所需权限
@@ -34,42 +42,49 @@ export class PermissionsGuard implements CanActivate {
       throw new ForbiddenException('未登录或用户信息不完整');
     }
 
-    // 查询用户的角色 ID
-    const userRoles = await this.prisma.userRole.findMany({
-      where: {
-        userId: user.id,
-      },
-      select: {
-        roleId: true,
-      },
-    });
+    const cacheKey = `permissions:${user.id}`;
+    let userPermissionCodes = await this.redisService.getJson<string[]>(cacheKey);
 
-    const roleIds = userRoles.map((ur) => ur.roleId);
-
-    if (roleIds.length === 0) {
-      throw new ForbiddenException('用户未分配任何角色');
-    }
-
-    // 查询角色拥有的权限代码
-    const rolePermissions = await this.prisma.rolePermission.findMany({
-      where: {
-        roleId: {
-          in: roleIds,
+    if (!userPermissionCodes) {
+      // 查询用户的角色 ID
+      const userRoles = await this.prisma.userRole.findMany({
+        where: {
+          userId: user.id,
         },
-      },
-      include: {
-        permission: {
-          select: {
-            code: true,
-            status: true,
+        select: {
+          roleId: true,
+        },
+      });
+
+      const roleIds = userRoles.map((ur) => ur.roleId);
+
+      if (roleIds.length === 0) {
+        throw new ForbiddenException('用户未分配任何角色');
+      }
+
+      // 查询角色拥有的权限代码
+      const rolePermissions = await this.prisma.rolePermission.findMany({
+        where: {
+          roleId: {
+            in: roleIds,
           },
         },
-      },
-    });
+        include: {
+          permission: {
+            select: {
+              code: true,
+              status: true,
+            },
+          },
+        },
+      });
 
-    const userPermissionCodes = rolePermissions
-      .filter((rp) => rp.permission.status === 1) // 只统计启用的权限
-      .map((rp) => rp.permission.code);
+      userPermissionCodes = rolePermissions
+        .filter((rp) => rp.permission.status === 1) // 只统计启用的权限
+        .map((rp) => rp.permission.code);
+
+      await this.redisService.setJson(cacheKey, userPermissionCodes, this.permissionCacheTtl);
+    }
 
     // 检查是否拥有所有所需权限
     const hasAllPermissions = requiredPermissions.every((permission) =>

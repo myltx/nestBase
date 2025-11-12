@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { RedisService } from '@modules/redis/redis.service';
 
 @Injectable()
 export class UserRolesService {
@@ -20,7 +21,17 @@ export class UserRolesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
+    private readonly redisService: RedisService,
   ) {}
+
+  private async invalidatePermissionCache(userIds: string | string[]) {
+    const ids = Array.isArray(userIds) ? userIds : [userIds];
+    if (ids.length === 0) {
+      return;
+    }
+    const keys = ids.map((id) => `permissions:${id}`);
+    await this.redisService.del(...keys);
+  }
 
   /**
    * 获取用户的角色列表
@@ -118,6 +129,8 @@ export class UserRolesService {
           after: roleIds,
         },
       });
+
+      await this.invalidatePermissionCache(userId);
 
       return {
         userId,
@@ -269,6 +282,8 @@ export class UserRolesService {
         },
       });
 
+      await this.invalidatePermissionCache(userIds);
+
       return {
         roleId,
         added: result.count,
@@ -328,6 +343,8 @@ export class UserRolesService {
           removed: result.count,
         },
       });
+
+      await this.invalidatePermissionCache(userIds);
 
       return {
         roleId,
