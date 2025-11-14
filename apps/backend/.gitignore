@@ -3,7 +3,8 @@
 /node_modules
 
 # Logs
-logs
+# 只忽略根目录的 logs 日志文件夹，不忽略 src/modules/logs 源代码模块
+/logs
 *.log
 npm-debug.log*
 pnpm-debug.log*
