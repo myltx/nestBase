@@ -26,43 +26,10 @@ export class RolesService {
   }
 
   /**
-   * 获取所有角色列表
+   * 获取所有角色列表（支持分页和筛选）
    */
-  async findAll(includeInactive = false) {
-    return this.prisma.role.findMany({
-      where: includeInactive ? {} : { status: 1 },
-      include: {
-        _count: {
-          select: {
-            userRoles: true,
-            roleMenus: true,
-          },
-        },
-      },
-      orderBy: [
-        { isSystem: 'desc' }, // 系统角色优先
-        { createdAt: 'asc' },
-      ],
-    });
-  }
-
-  /**
-   * 分页查询角色列表
-   */
-  async findPage(queryDto: QueryRoleDto) {
-    const { search, isSystem, status, current = '1', size = '10' } = queryDto;
-
-    const pageNum = parseInt(current, 10);
-    const limitNum = parseInt(size, 10);
-
-    if (pageNum < 1 || limitNum < 1) {
-      throw new BadRequestException({
-        message: '页码和每页数量必须大于 0',
-        code: BusinessCode.VALIDATION_ERROR,
-      });
-    }
-
-    const skip = (pageNum - 1) * limitNum;
+  async findAll(queryDto: QueryRoleDto) {
+    const { search, isSystem, status, current, size } = queryDto;
 
     // 构建查询条件
     const where: any = {};
@@ -84,6 +51,38 @@ export class RolesService {
     if (status !== undefined) {
       where.status = status;
     }
+
+    // 如果未请求分页，返回所有符合条件的结果
+    if (!current && !size) {
+      return this.prisma.role.findMany({
+        where,
+        include: {
+          _count: {
+            select: {
+              userRoles: true,
+              roleMenus: true,
+            },
+          },
+        },
+        orderBy: [
+          { isSystem: 'desc' }, // 系统角色优先
+          { createdAt: 'asc' },
+        ],
+      });
+    }
+
+    // 处理分页
+    const pageNum = parseInt(current || '1', 10);
+    const limitNum = parseInt(size || '10', 10);
+
+    if (pageNum < 1 || limitNum < 1) {
+      throw new BadRequestException({
+        message: '页码和每页数量必须大于 0',
+        code: BusinessCode.VALIDATION_ERROR,
+      });
+    }
+
+    const skip = (pageNum - 1) * limitNum;
 
     // 查询角色列表和总数
     const [roles, total] = await Promise.all([

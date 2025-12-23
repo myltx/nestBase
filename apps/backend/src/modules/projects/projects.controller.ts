@@ -57,16 +57,7 @@ export class ProjectsController {
     return this.projectsService.findAll(queryDto);
   }
 
-  /**
-   * 获取所有精选项目（公开，不分页）
-   */
-  @Get('featured')
-  @Public()
-  @ApiOperation({ summary: '获取所有精选项目' })
-  @ApiResponse({ status: 200, description: '查询成功' })
-  findFeatured() {
-    return this.projectsService.findFeatured();
-  }
+
 
   /**
    * 获取所有技术栈（公开）
@@ -107,20 +98,7 @@ export class ProjectsController {
     return this.projectsService.update(id, updateProjectDto);
   }
 
-  /**
-   * 切换项目精选状态（仅管理员）
-   */
-  @Patch(':id/toggle-featured')
-  @Roles('ADMIN')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: '切换项目精选状态' })
-  @ApiResponse({ status: 200, description: '操作成功' })
-  @ApiResponse({ status: 401, description: '未授权' })
-  @ApiResponse({ status: 403, description: '权限不足' })
-  @ApiResponse({ status: 404, description: '项目不存在' })
-  toggleFeatured(@Param('id') id: string) {
-    return this.projectsService.toggleFeatured(id);
-  }
+
 
   /**
    * 删除项目（仅管理员）

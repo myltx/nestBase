@@ -97,21 +97,9 @@ export class PermissionsService {
       type,
       menuId,
       activeOnly,
-      current = '1',
-      size = '10',
+      current,
+      size,
     } = queryDto;
-
-    const pageNum = parseInt(current, 10);
-    const limitNum = parseInt(size, 10);
-
-    if (pageNum < 1 || limitNum < 1) {
-      throw new BadRequestException({
-        message: '页码和每页数量必须大于 0',
-        code: BusinessCode.VALIDATION_ERROR,
-      });
-    }
-
-    const skip = (pageNum - 1) * limitNum;
 
     // 构建查询条件
     const where: any = {};
@@ -134,6 +122,37 @@ export class PermissionsService {
     if (activeOnly) {
       where.status = 1;
     }
+
+    // 如果未请求分页，返回所有符合条件的结果
+    if (!current && !size) {
+      return this.prisma.permission.findMany({
+        where,
+        select: {
+          ...this.permissionSelect,
+          menu: {
+            select: {
+              id: true,
+              routeName: true,
+              menuName: true,
+            },
+          },
+        },
+        orderBy: [{ type: 'asc' }, { code: 'asc' }],
+      });
+    }
+
+    // 处理分页
+    const pageNum = parseInt(current || '1', 10);
+    const limitNum = parseInt(size || '10', 10);
+
+    if (pageNum < 1 || limitNum < 1) {
+      throw new BadRequestException({
+        message: '页码和每页数量必须大于 0',
+        code: BusinessCode.VALIDATION_ERROR,
+      });
+    }
+
+    const skip = (pageNum - 1) * limitNum;
 
     // 查询权限及总数
     const [permissions, total] = await Promise.all([
@@ -220,59 +239,7 @@ export class PermissionsService {
     return permissions;
   }
 
-  /**
-   * 根据菜单 ID 查询权限
-   */
-  async findByMenuId(menuId: string) {
-    // 检查菜单是否存在
-    const menu = await this.prisma.menu.findUnique({
-      where: { id: menuId },
-    });
 
-    if (!menu) {
-      throw new NotFoundException({
-        message: `菜单 ID ${menuId} 不存在`,
-        code: BusinessCode.NOT_FOUND,
-      });
-    }
-
-    // 查询该菜单的所有权限
-    const permissions = await this.prisma.permission.findMany({
-      where: {
-        menuId,
-        status: 1,
-      },
-      select: this.permissionSelect,
-      orderBy: [{ type: 'asc' }, { code: 'asc' }],
-    });
-
-    return permissions;
-  }
-
-  /**
-   * 根据权限类型查询权限
-   */
-  async findByType(type: 'MENU' | 'BUTTON' | 'API') {
-    const permissions = await this.prisma.permission.findMany({
-      where: {
-        type,
-        status: 1,
-      },
-      select: {
-        ...this.permissionSelect,
-        menu: {
-          select: {
-            id: true,
-            routeName: true,
-            menuName: true,
-          },
-        },
-      },
-      orderBy: [{ code: 'asc' }],
-    });
-
-    return permissions;
-  }
 
   /**
    * 更新权限

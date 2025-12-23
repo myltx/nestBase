@@ -198,20 +198,11 @@ export class UsersService {
   /**
    * 查询所有用户(支持分页和搜索)
    */
+  /**
+   * 查询所有用户(支持分页和搜索)
+   */
   async findAll(queryDto: QueryUserDto) {
-    const { search, nickName, gender, phone, status, role, current = '1', size = '10' } = queryDto;
-
-    const pageNum = parseInt(current, 10);
-    const limitNum = parseInt(size, 10);
-
-    if (pageNum < 1 || limitNum < 1) {
-      throw new BadRequestException({
-        message: '页码和每页数量必须大于 0',
-        code: BusinessCode.VALIDATION_ERROR,
-      });
-    }
-
-    const skip = (pageNum - 1) * limitNum;
+    const { search, nickName, gender, phone, status, role, current, size } = queryDto;
 
     // 构建查询条件
     const where: any = {};
@@ -256,6 +247,31 @@ export class UsersService {
         },
       };
     }
+
+    // 如果未请求分页，返回所有符合条件的结果
+    if (!current && !size) {
+      const users = await this.prisma.user.findMany({
+        where,
+        select: this.userSelect,
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+      return users.map((user) => this.formatUser(user));
+    }
+
+    // 处理分页
+    const pageNum = parseInt(current || '1', 10);
+    const limitNum = parseInt(size || '10', 10);
+
+    if (pageNum < 1 || limitNum < 1) {
+      throw new BadRequestException({
+        message: '页码和每页数量必须大于 0',
+        code: BusinessCode.VALIDATION_ERROR,
+      });
+    }
+
+    const skip = (pageNum - 1) * limitNum;
 
     // 查询用户(排除密码字段)
     const [users, total] = await Promise.all([

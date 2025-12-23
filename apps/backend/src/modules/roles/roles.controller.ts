@@ -30,16 +30,9 @@ export class RolesController {
 
   @Get()
   @Roles('ADMIN')
-  @ApiOperation({ summary: '获取所有角色列表' })
-  findAll() {
-    return this.rolesService.findAll();
-  }
-
-  @Get('page')
-  @Roles('ADMIN')
-  @ApiOperation({ summary: '分页查询角色列表' })
-  findPage(@Query() queryDto: QueryRoleDto) {
-    return this.rolesService.findPage(queryDto);
+  @ApiOperation({ summary: '获取所有角色列表（支持分页）' })
+  findAll(@Query() queryDto: QueryRoleDto) {
+    return this.rolesService.findAll(queryDto);
   }
 
   @Get(':id')

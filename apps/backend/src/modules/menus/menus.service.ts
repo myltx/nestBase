@@ -115,20 +115,19 @@ export class MenusService {
   /**
    * 查询所有菜单（支持分页和树形结构）
    */
+  /**
+   * 查询所有菜单（支持分页和树形结构）
+   */
   async findAll(queryDto: QueryMenuDto) {
-    const { search, rootOnly, activeOnly, parentId, current = '1', size = '10' } = queryDto;
-
-    const pageNum = parseInt(current, 10);
-    const limitNum = parseInt(size, 10);
-
-    if (pageNum < 1 || limitNum < 1) {
-      throw new BadRequestException({
-        message: '页码和每页数量必须大于 0',
-        code: BusinessCode.VALIDATION_ERROR,
-      });
-    }
-
-    const skip = (pageNum - 1) * limitNum;
+    const {
+      search,
+      rootOnly,
+      activeOnly,
+      parentId,
+      current,
+      size,
+      format,
+    } = queryDto;
 
     // 构建查询条件
     const where: any = {};
@@ -152,67 +151,63 @@ export class MenusService {
       where.status = 1;
     }
 
-    // 只查询顶层菜单（没有父菜单的）
-    const topLevelWhere = {
-      ...where,
-      parentId: null,
-    };
+    // 如果请求树形结构，或者没有分页参数且不是 rootOnly，则返回全量数据的树形或列表
+    if (format === 'tree' || (!current && !size && !rootOnly)) {
+      const allMenus = await this.prisma.menu.findMany({
+        where,
+        select: this.menuSelect,
+        orderBy: { order: 'asc' },
+      });
 
-    // 查询顶层菜单及总数
-    const [topLevelMenus, total] = await Promise.all([
+      if (format === 'tree' || (!current && !size)) {
+         // 在内存中构建树形结构（递归函数）
+        const buildTree = (pid: string | null = null): any[] => {
+          const children = allMenus.filter((menu) => menu.parentId === pid);
+          return children.map((menu) => ({
+            ...menu,
+            children: buildTree(menu.id).length > 0 ? buildTree(menu.id) : undefined,
+          }));
+        };
+        // 如果指定了 parentId，则从该 parentId 开始构建；否则从根节点开始
+        return buildTree(parentId || null);
+      }
+
+      // 如果只是列表且没分页 (理论上如果不传 current/size 且不是 tree，上面逻辑会走 tree，这里做个 fallback 或明确 list 逻辑)
+      // 但实际上如果有 format='list' 且无分页，应该返回全量列表
+      return allMenus;
+    }
+
+
+    // 以下是分页逻辑（通常用于 list 模式）
+    const pageNum = parseInt(current || '1', 10);
+    const limitNum = parseInt(size || '10', 10);
+
+    if (pageNum < 1 || limitNum < 1) {
+      throw new BadRequestException({
+        message: '页码和每页数量必须大于 0',
+        code: BusinessCode.VALIDATION_ERROR,
+      });
+    }
+
+    const skip = (pageNum - 1) * limitNum;
+
+    // 针对只查询顶层菜单的分页（rootOnly=true）
+    // 或者普通的列表分页
+    
+    // 查询菜单及总数
+    const [menus, total] = await Promise.all([
       this.prisma.menu.findMany({
-        where: topLevelWhere,
+        where,
         skip,
         take: limitNum,
         select: this.menuSelect,
         orderBy: { order: 'asc' },
       }),
-      this.prisma.menu.count({ where: topLevelWhere }),
+      this.prisma.menu.count({ where }),
     ]);
 
-    // 如果没有顶层菜单，直接返回空结果
-    if (topLevelMenus.length === 0) {
-      return {
-        records: [],
-        current: pageNum,
-        size: limitNum,
-        total,
-        totalPages: Math.ceil(total / limitNum),
-      };
-    }
-
-    // 获取所有顶层菜单的ID
-    const topLevelIds = topLevelMenus.map((menu) => menu.id);
-
-    // 一次性查询所有相关的子菜单（优化：避免N+1查询）
-    const allChildMenus = await this.prisma.menu.findMany({
-      where: {
-        ...(activeOnly ? { status: 1 } : {}),
-      },
-      select: this.menuSelect,
-      orderBy: { order: 'asc' },
-    });
-
-    // 构建菜单映射，方便快速查找
-    const menuMap = new Map(allChildMenus.map((menu) => [menu.id, menu]));
-
-    // 在内存中构建树形结构（递归函数）
-    const buildChildren = (parentId: string): any[] => {
-      const children = allChildMenus.filter((menu) => menu.parentId === parentId);
-      return children.map((child) => ({
-        ...child,
-        children: buildChildren(child.id),
-      }));
-    };
-
-    // 为每个顶层菜单添加子菜单
-    const menusWithChildren = topLevelMenus.map((menu) => ({
-      ...menu,
-      children: buildChildren(menu.id),
-    }));
-
     return {
-      records: menusWithChildren,
+      records: menus,
       current: pageNum,
       size: limitNum,
       total,
@@ -220,44 +215,7 @@ export class MenusService {
     };
   }
 
-  /**
-   * 获取树形菜单结构
-   * @param activeOnly 是否只返回启用的菜单
-   * @param constantOnly 是否只返回常量菜单
-   */
-  async findTree(activeOnly: boolean = false, constantOnly?: boolean) {
-    // 构建查询条件
-    const where: any = {};
 
-    if (activeOnly) {
-      where.status = 1;
-    }
-
-    // 根据 constantOnly 参数过滤常量/非常量菜单
-    if (constantOnly === true) {
-      where.constant = true;
-    } else if (constantOnly === false) {
-      where.constant = false;
-    }
-
-    // 一次性查询所有符合条件的菜单（优化：避免N+1查询）
-    const allMenus = await this.prisma.menu.findMany({
-      where,
-      select: this.menuSelect,
-      orderBy: { order: 'asc' },
-    });
-
-    // 在内存中构建树形结构（递归函数）
-    const buildTree = (parentId: string | null = null): any[] => {
-      const children = allMenus.filter((menu) => menu.parentId === parentId);
-      return children.map((menu) => ({
-        ...menu,
-        children: buildTree(menu.id).length > 0 ? buildTree(menu.id) : undefined,
-      }));
-    };
-
-    return buildTree();
-  }
 
   /**
    * 转换菜单数据为前端路由格式
