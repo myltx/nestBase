@@ -66,10 +66,10 @@ export class MenusController {
     return this.menusService.getAllRouteNames();
   }
 
-  @Get('route-exist/:routeName')
-  @ApiOperation({ summary: '检查路由名称是否存在' })
-  isRouteExist(@Param('routeName') routeName: string) {
-    return this.menusService.isRouteExist(routeName);
+  @Get('validation/route-name')
+  @ApiOperation({ summary: '验证路由名称是否可用' })
+  checkRouteName(@Query('name') name: string) {
+    return this.menusService.isRouteExist(name);
   }
 
   @Get(':id')

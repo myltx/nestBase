@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateUserDto, UpdateUserDto, QueryUserDto, ResetPasswordDto } from './dto';
+import { CreateUserDto, UpdateUserDto, QueryUserDto } from './dto';
 import { BusinessCode } from '@common/constants/business-codes';
 import { UserRolesService } from '../user-roles/user-roles.service';
 
@@ -424,37 +424,7 @@ export class UsersService {
     return { message: '用户删除成功' };
   }
 
-  /**
-   * 重置用户密码
-   */
-  async resetPassword(id: string, resetPasswordDto: ResetPasswordDto) {
-    // 检查用户是否存在
-    const existingUser = await this.prisma.user.findUnique({
-      where: { id },
-    });
 
-    if (!existingUser) {
-      throw new NotFoundException({
-        message: `用户 ID ${id} 不存在`,
-        code: BusinessCode.USER_NOT_FOUND,
-      });
-    }
-
-    // 如果未提供密码，生成随机密码
-    const plainPassword = resetPasswordDto.newPassword || this.generateRandomPassword();
-    const hashedPassword = await bcrypt.hash(plainPassword, 10);
-
-    // 更新密码
-    await this.prisma.user.update({
-      where: { id },
-      data: { password: hashedPassword },
-    });
-
-    return {
-      message: '密码重置成功',
-      newPassword: plainPassword,
-    };
-  }
 
   /**
    * 格式化用户数据,将 userRoles 转换为 roles 数组
