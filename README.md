@@ -264,7 +264,6 @@ POST   /api/users          # 创建用户（仅管理员）
 PATCH  /api/users/:id      # 更新用户（仅管理员）
 DELETE /api/users/:id      # 删除用户（仅管理员）
 PUT    /api/users/:id/roles   # 设置用户角色（完全替换，管理员）
-PUT    /api/users/:id/roles   # 设置用户角色（完全替换，管理员）
 GET    /api/users/:id/roles   # 获取用户的角色列表
 POST   /api/users/batch-delete # 批量删除用户（管理员，v1.5.0）
 ```
@@ -281,6 +280,8 @@ PATCH  /api/menus/:id              # 更新菜单（仅管理员）
 DELETE /api/menus/:id              # 删除菜单（仅管理员）
 POST   /api/menus/assign           # 为角色分配菜单（仅管理员）
 GET    /api/menus/role/:role       # 获取角色的菜单（仅管理员）
+GET    /api/menus/route-names      # 获取所有菜单的路由名称（仅管理员，v1.5.0）
+GET    /api/menus/validation/route-name # 验证路由名称是否可用 (v1.5.0)
 ```
 
 **菜单系统特性**：
@@ -305,8 +306,7 @@ DELETE /api/permissions/:id            # 删除权限（仅管理员）
 #### 👥 角色模块（v1.4.0 扩展）
 
 ```http
-GET    /api/roles                      # 查询所有角色
-GET    /api/roles/page                 # 分页查询角色
+GET    /api/roles                      # 查询所有角色（支持分页）
 GET    /api/roles/:id                  # 查询角色详情
 POST   /api/roles                      # 创建角色（仅管理员）
 PATCH  /api/roles/:id                  # 更新角色（仅管理员）
@@ -315,9 +315,7 @@ POST   /api/roles/:id/menus            # 为角色分配菜单（仅管理员）
 GET    /api/roles/:id/menus            # 获取角色的菜单列表
 POST   /api/roles/:id/permissions      # 为角色分配权限（仅管理员）
 GET    /api/roles/:id/permissions      # 获取角色的权限列表
-GET    /api/roles/:id/stats            # 获取角色统计信息
 GET    /api/roles/:id/users            # 查看该角色下的用户（分页）
-POST   /api/roles/:id/users            # 批量添加用户到该角色（管理员）
 POST   /api/roles/:id/users            # 批量添加用户到该角色（管理员）
 DELETE /api/roles/:id/users            # 批量将用户从该角色移除（管理员）
 POST   /api/roles/batch-delete         # 批量删除角色（管理员，v1.5.0）
@@ -332,6 +330,41 @@ POST   /api/contents                   # 创建内容
 PATCH  /api/contents/:id               # 更新内容
 DELETE /api/contents/:id               # 删除内容
 POST   /api/contents/batch-delete      # 批量删除内容（管理员，v1.5.0）
+```
+
+#### 🏷️ 标签模块 (v1.5.0 新增)
+
+```http
+POST   /api/tags                       # 创建标签（仅管理员）
+POST   /api/tags/batch                 # 批量创建标签（仅管理员）
+GET    /api/tags                       # 查询标签列表
+GET    /api/tags/:id                   # 根据 ID 查询标签
+GET    /api/tags/slug/:slug            # 根据 slug 查询标签
+PATCH  /api/tags/:id                   # 更新标签（仅管理员）
+DELETE /api/tags/:id                   # 删除标签（仅管理员）
+```
+
+#### 🗂️ 分类模块 (v1.5.0 新增)
+
+```http
+POST   /api/categories                 # 创建分类（仅管理员）
+GET    /api/categories                 # 查询分类列表（支持 ?format=tree|flat）
+GET    /api/categories/:id             # 根据 ID 查询分类
+PATCH  /api/categories/:id             # 更新分类（仅管理员）
+DELETE /api/categories/:id             # 删除分类（仅管理员）
+```
+
+#### 📜 日志模块 (v1.5.0 新增)
+
+```http
+GET    /api/logs                       # 查询日志列表（管理员）
+GET    /api/logs/stats                 # 获取日志统计（管理员）
+```
+
+#### ⚙️ 系统模块 (v1.5.0 新增)
+
+```http
+GET    /api/system/status              # 获取系统运行状态
 ```
 
 ### 使用示例
