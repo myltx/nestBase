@@ -1,4 +1,3 @@
-// src/modules/user-roles/dto/batch-role-users.dto.ts
 /**
  * 角色批量关联/移除用户 DTO
  * - 用于角色管理页：编辑角色 → 批量添加/移除用户

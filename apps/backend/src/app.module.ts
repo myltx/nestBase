@@ -23,7 +23,6 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
 import { AccessLogInterceptor } from './common/interceptors/access-log.interceptor';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { SystemModule } from './modules/system/system.module';
-import { UserRolesModule } from './modules/user-roles/user-roles.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { ContentsModule } from './modules/contents/contents.module';
 import { CategoriesModule } from './modules/categories/categories.module';
@@ -48,7 +47,6 @@ import { RedisModule } from './modules/redis/redis.module';
     PermissionsModule,
     SwaggerDocModule,
     SystemModule,
-    UserRolesModule,
     AuditModule,
     // 内容管理模块
     ContentsModule,

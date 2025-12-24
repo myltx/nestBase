@@ -9,14 +9,24 @@ import {
   BadRequestException,
   NotFoundException,
   ConflictException,
+  InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateRoleDto, UpdateRoleDto, QueryRoleDto } from './dto';
 import { BusinessCode } from '@common/constants/business-codes';
+import { AuditService } from '../audit/audit.service';
+import { RedisService } from '@modules/redis/redis.service';
 
 @Injectable()
 export class RolesService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(RolesService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+    private readonly redisService: RedisService,
+  ) {}
 
   /**
    * 规范化 home 路径：去掉开头的 /
@@ -330,4 +340,204 @@ export class RolesService {
     };
   }
 
+  private async invalidatePermissionCache(userIds: string | string[]) {
+    const ids = Array.isArray(userIds) ? userIds : [userIds];
+    if (ids.length === 0) {
+      return;
+    }
+    const keys = ids.map((id) => `permissions:${id}`);
+    await this.redisService.del(...keys);
+  }
+
+  /**
+   * 查询角色下的用户列表（分页）
+   */
+  async getUsersByRole(roleId: string, page = 1, pageSize = 20, search?: string) {
+    const role = await this.prisma.role.findUnique({
+      where: { id: roleId },
+    });
+
+    if (!role) {
+      throw new NotFoundException('角色不存在');
+    }
+
+    const safePage = Math.max(1, page);
+    const safeSize = Math.min(Math.max(1, pageSize), 100);
+    const skip = (safePage - 1) * safeSize;
+
+    const searchCondition = search
+      ? {
+          OR: [
+            { userName: { contains: search, mode: 'insensitive' as const } },
+            { email: { contains: search, mode: 'insensitive' as const } },
+          ],
+        }
+      : {};
+
+    try {
+      const [users, total] = await this.prisma.$transaction([
+        this.prisma.user.findMany({
+          where: {
+            ...searchCondition,
+            userRoles: {
+              some: { roleId },
+            },
+          },
+          select: {
+            id: true,
+            email: true,
+            userName: true,
+            nickName: true,
+            avatar: true,
+            status: true,
+            createdAt: true,
+          },
+          skip,
+          take: safeSize,
+          orderBy: { createdAt: 'desc' },
+        }),
+        this.prisma.user.count({
+          where: {
+            ...searchCondition,
+            userRoles: {
+              some: { roleId },
+            },
+          },
+        }),
+      ]);
+
+      return {
+        items: users,
+        total,
+        page: safePage,
+        pageSize: safeSize,
+        totalPages: Math.ceil(total / safeSize),
+      };
+    } catch (error) {
+      this.logger.error(`查询角色用户失败: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('查询角色用户失败');
+    }
+  }
+
+  /**
+   * 批量将用户添加到角色
+   */
+  async addUsersToRole(roleId: string, userIds: string[], actorId?: string) {
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+      throw new BadRequestException('用户列表不能为空');
+    }
+
+    if (userIds.length > 100) {
+      throw new BadRequestException('最多支持 100 个用户的批量操作');
+    }
+
+    const role = await this.prisma.role.findUnique({
+      where: { id: roleId },
+    });
+
+    if (!role) {
+      throw new NotFoundException('角色不存在');
+    }
+
+    const users = await this.prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true },
+    });
+
+    if (users.length !== userIds.length) {
+      const foundIds = users.map((u) => u.id);
+      const missingIds = userIds.filter((id) => !foundIds.includes(id));
+      throw new BadRequestException(`以下用户不存在: ${missingIds.join(', ')}`);
+    }
+
+    try {
+      const result = await this.prisma.userRole.createMany({
+        data: userIds.map((userId) => ({
+          userId,
+          roleId,
+        })),
+        skipDuplicates: true,
+      });
+
+      await this.audit.log({
+        event: 'role.users.add',
+        userId: actorId,
+        resource: 'Role',
+        resourceId: roleId,
+        action: 'UPDATE',
+        payload: {
+          actorId,
+          roleId,
+          userIds,
+          added: result.count,
+        },
+      });
+
+      await this.invalidatePermissionCache(userIds);
+
+      return {
+        roleId,
+        added: result.count,
+        message: `成功添加 ${result.count} 个用户到角色`,
+      };
+    } catch (error) {
+      this.logger.error(`批量添加用户到角色失败: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('批量添加用户到角色失败');
+    }
+  }
+
+  /**
+   * 批量将用户从角色移除
+   */
+  async removeUsersFromRole(roleId: string, userIds: string[], actorId?: string) {
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+      throw new BadRequestException('用户列表不能为空');
+    }
+
+    if (userIds.length > 100) {
+      throw new BadRequestException('最多支持 100 个用户的批量操作');
+    }
+
+    const role = await this.prisma.role.findUnique({
+      where: { id: roleId },
+    });
+
+    if (!role) {
+      throw new NotFoundException('角色不存在');
+    }
+
+    try {
+      const result = await this.prisma.userRole.deleteMany({
+        where: {
+          roleId,
+          userId: { in: userIds },
+        },
+      });
+
+      await this.audit.log({
+        event: 'role.users.remove',
+        userId: actorId,
+        resource: 'Role',
+        resourceId: roleId,
+        action: 'UPDATE',
+        payload: {
+          actorId,
+          roleId,
+          userIds,
+          removed: result.count,
+        },
+      });
+
+      await this.invalidatePermissionCache(userIds);
+
+      return {
+        roleId,
+        removed: result.count,
+        message: `成功移除 ${result.count} 个用户的角色`,
+      };
+    } catch (error) {
+      this.logger.error(`批量移除角色用户失败: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('批量移除角色用户失败');
+    }
+  }
 }
