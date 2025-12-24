@@ -65,101 +65,61 @@ export class TagsService {
   /**
    * 查询所有标签
    */
-  async findAll() {
-    return this.prisma.tag.findMany({
-      include: {
-        _count: {
-          select: {
-            contents: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-  }
-
   /**
-   * 分页查询标签
+   * 查询标签列表（支持分页、搜索、排序）
    */
-  async findPage(queryDto: QueryTagDto) {
-    const { search, current = '1', size = '10' } = queryDto;
+  async findAll(queryDto?: QueryTagDto) {
+    const { search, sort, current, size } = queryDto || {};
 
-    const pageNum = parseInt(current, 10);
-    const limitNum = parseInt(size, 10);
-
-    if (pageNum < 1 || limitNum < 1) {
-      throw new BadRequestException({
-        message: '页码和每页数量必须大于 0',
-        code: BusinessCode.VALIDATION_ERROR,
-      });
+    const where: any = {};
+    if (search) {
+      where.name = { contains: search, mode: 'insensitive' };
     }
 
-    const skip = (pageNum - 1) * limitNum;
+    const orderBy: any = {};
+    if (sort === 'popular') {
+      orderBy.contents = { _count: 'desc' };
+    } else {
+      orderBy.createdAt = 'desc';
+    }
 
-    // 构建查询条件
-    const where: any = {};
+    // Include logic strictly matches previous behavior: count of contents.
+    const include = {
+      _count: { select: { contents: true } },
+    };
 
-    // 搜索关键词（标签名称）
-    if (search) {
-      where.name = {
-        contains: search,
-        mode: 'insensitive',
+    // If current/size are provided, use pagination
+    if (current && size) {
+      const pageNum = parseInt(current, 10);
+      const limitNum = parseInt(size, 10);
+
+      if (pageNum < 1 || limitNum < 1) {
+        throw new BadRequestException({
+          message: '页码和每页数量必须大于 0',
+          code: BusinessCode.VALIDATION_ERROR,
+        });
+      }
+
+      const skip = (pageNum - 1) * limitNum;
+      const [data, total] = await Promise.all([
+        this.prisma.tag.findMany({ where, orderBy, skip, take: limitNum, include }),
+        this.prisma.tag.count({ where }),
+      ]);
+
+      return {
+        records: data,
+        current: pageNum,
+        size: limitNum,
+        total,
+        totalPages: Math.ceil(total / limitNum),
       };
     }
 
-    // 查询标签
-    const [tags, total] = await Promise.all([
-      this.prisma.tag.findMany({
-        where,
-        skip,
-        take: limitNum,
-        include: {
-          _count: {
-            select: {
-              contents: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-      }),
-      this.prisma.tag.count({ where }),
-    ]);
-
-    return {
-      records: tags,
-      current: pageNum,
-      size: limitNum,
-      total,
-      totalPages: Math.ceil(total / limitNum),
-    };
+    // Default: find all (no paging)
+    return this.prisma.tag.findMany({ where, orderBy, include });
   }
 
-  /**
-   * 查询热门标签（按内容数量排序）
-   */
-  async findPopular(limit = 10) {
-    const tags = await this.prisma.tag.findMany({
-      include: {
-        _count: {
-          select: {
-            contents: true,
-          },
-        },
-      },
-      orderBy: {
-        contents: {
-          _count: 'desc',
-        },
-      },
-      take: limit,
-    });
 
-    return tags;
-  }
 
   /**
    * 根据 ID 查询标签

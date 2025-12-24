@@ -12,8 +12,9 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto, UpdateCategoryDto } from './dto';
 import { JwtAuthGuard, RolesGuard } from '@common/guards';
@@ -39,28 +40,11 @@ export class CategoriesController {
 
   @Get()
   @Public()
-  @ApiOperation({ summary: '查询所有分类（树形结构）' })
+  @ApiOperation({ summary: '查询分类列表（支持树形/扁平结构）' })
+  @ApiQuery({ name: 'format', required: false, description: '返回格式', enum: ['tree', 'flat'], example: 'tree' })
   @ApiResponse({ status: 200, description: '查询成功' })
-  findAll() {
-    return this.categoriesService.findAll();
-  }
-
-  @Get('flat')
-  @Public()
-  @ApiOperation({ summary: '查询所有分类（扁平列表）' })
-  @ApiResponse({ status: 200, description: '查询成功' })
-  findAllFlat() {
-    return this.categoriesService.findAllFlat();
-  }
-
-  @Get('slug/:slug')
-  @Public()
-  @ApiOperation({ summary: '根据 slug 查询分类' })
-  @ApiParam({ name: 'slug', description: 'URL标识符', example: 'tech-articles' })
-  @ApiResponse({ status: 200, description: '查询成功' })
-  @ApiResponse({ status: 404, description: '分类不存在' })
-  findBySlug(@Param('slug') slug: string) {
-    return this.categoriesService.findBySlug(slug);
+  findAll(@Query('format') format?: 'tree' | 'flat') {
+    return this.categoriesService.findAll(format);
   }
 
   @Get(':id')
