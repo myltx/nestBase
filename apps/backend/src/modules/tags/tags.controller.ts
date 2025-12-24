@@ -49,31 +49,10 @@ export class TagsController {
 
   @Get()
   @Public()
-  @ApiOperation({ summary: '查询所有标签' })
+  @ApiOperation({ summary: '查询标签列表（支持分页、搜索、排序）' })
   @ApiResponse({ status: 200, description: '查询成功' })
-  findAll() {
-    return this.tagsService.findAll();
-  }
-
-  @Get('page')
-  @Public()
-  @ApiOperation({ summary: '分页查询标签（支持搜索）' })
-  @ApiQuery({ name: 'current', required: false, description: '页码', example: 1 })
-  @ApiQuery({ name: 'size', required: false, description: '每页数量', example: 10 })
-  @ApiQuery({ name: 'search', required: false, description: '搜索关键词（标签名称）', example: 'NestJS' })
-  @ApiResponse({ status: 200, description: '查询成功' })
-  findPage(@Query() queryDto: QueryTagDto) {
-    return this.tagsService.findPage(queryDto);
-  }
-
-  @Get('popular')
-  @Public()
-  @ApiOperation({ summary: '查询热门标签（按内容数量排序）' })
-  @ApiQuery({ name: 'limit', required: false, description: '返回数量', example: 10 })
-  @ApiResponse({ status: 200, description: '查询成功' })
-  findPopular(@Query('limit') limit?: string) {
-    const limitNum = limit ? parseInt(limit, 10) : 10;
-    return this.tagsService.findPopular(limitNum);
+  findAll(@Query() queryDto: QueryTagDto) {
+    return this.tagsService.findAll(queryDto);
   }
 
   @Get('slug/:slug')

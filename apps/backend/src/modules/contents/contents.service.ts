@@ -479,6 +479,23 @@ export class ContentsService {
   }
 
   /**
+   * 批量删除内容
+   */
+  async batchRemove(ids: string[]) {
+    if (ids.length === 0) {
+      return { message: '删除成功(未选择任何内容)' };
+    }
+
+    const result = await this.prisma.content.deleteMany({
+      where: {
+        id: { in: ids },
+      },
+    });
+
+    return { message: `成功删除 ${result.count} 条内容` };
+  }
+
+  /**
    * 验证内容字段根据编辑器类型
    */
   private validateContentByEditorType(editorType: EditorType, contentData: any) {

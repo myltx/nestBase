@@ -23,13 +23,13 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
 import { AccessLogInterceptor } from './common/interceptors/access-log.interceptor';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { SystemModule } from './modules/system/system.module';
-import { UserRolesModule } from './modules/user-roles/user-roles.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { ContentsModule } from './modules/contents/contents.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { TagsModule } from './modules/tags/tags.module';
 import { LogsModule } from './modules/logs/logs.module';
 import { RedisModule } from './modules/redis/redis.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -48,7 +48,6 @@ import { RedisModule } from './modules/redis/redis.module';
     PermissionsModule,
     SwaggerDocModule,
     SystemModule,
-    UserRolesModule,
     AuditModule,
     // 内容管理模块
     ContentsModule,
@@ -57,6 +56,8 @@ import { RedisModule } from './modules/redis/redis.module';
     // 日志模块
     LogsModule,
     RedisModule,
+    // 仪表盘模块
+    DashboardModule,
   ],
   providers: [
     // 全局 JWT 认证守卫

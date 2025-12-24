@@ -6,11 +6,13 @@
 import { Module } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
-import { UserRolesModule } from '../user-roles/user-roles.module';
+import { UserRolesController } from './user-roles.controller';
+import { AuditModule } from '../audit/audit.module';
+import { RedisModule } from '@modules/redis/redis.module';
 
 @Module({
-  imports: [UserRolesModule], // 导入 UserRolesModule 以使用 UserRolesService
-  controllers: [UsersController],
+  imports: [AuditModule, RedisModule],
+  controllers: [UsersController, UserRolesController],
   providers: [UsersService],
   exports: [UsersService],
 })

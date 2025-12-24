@@ -14,12 +14,18 @@ import {
   UseGuards,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { RolesService } from './roles.service';
-import { CreateRoleDto, UpdateRoleDto, QueryRoleDto } from './dto';
+import {
+  CreateRoleDto,
+  UpdateRoleDto,
+  QueryRoleDto,
+  BatchDeleteRolesDto,
+} from './dto';
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { RolesGuard } from '@common/guards/roles.guard';
-import { Roles } from '@common/decorators/roles.decorator';
+import { Roles, CurrentUser } from '@common/decorators';
+import { RequirePermissions } from '@common/decorators/permissions.decorator';
 
 @ApiTags('角色管理')
 @Controller('roles')
@@ -60,9 +66,23 @@ export class RolesController {
 
   @Delete(':id')
   @Roles('ADMIN')
+  @RequirePermissions('role.delete')
   @ApiOperation({ summary: '删除角色' })
-  remove(@Param('id') id: string) {
+  @ApiResponse({ status: 200, description: '删除成功' })
+  async remove(@Param('id') id: string) {
     return this.rolesService.remove(id);
   }
 
+  @Post('batch-delete')
+  @Roles('ADMIN')
+  @RequirePermissions('role.delete')
+  @ApiOperation({ summary: '批量删除角色' })
+  @ApiResponse({ status: 200, description: '删除成功' })
+  async batchRemove(
+    @Body() dto: BatchDeleteRolesDto,
+    @CurrentUser() currentUser: any,
+  ) {
+    const actorId = currentUser?.id;
+    return this.rolesService.batchRemove(dto.ids, actorId);
+  }
 }

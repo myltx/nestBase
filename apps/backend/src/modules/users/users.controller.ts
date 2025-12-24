@@ -17,9 +17,14 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService } from './users.service';
-import { CreateUserDto, UpdateUserDto, QueryUserDto } from './dto';
+import { CreateUserDto,  UpdateUserDto,
+  QueryUserDto,
+  BatchDeleteUsersDto,
+  UpdateUserRolesDto,
+} from './dto';
 import { JwtAuthGuard, RolesGuard } from '@common/guards';
 import { Roles, CurrentUser } from '@common/decorators';
+import { RequirePermissions } from '@common/decorators/permissions.decorator';
 
 @ApiTags('用户模块')
 @Controller('users')
@@ -70,12 +75,23 @@ export class UsersController {
 
   @Delete(':id')
   @Roles('ADMIN')
-  @ApiOperation({ summary: '删除用户（仅管理员）' })
+  @RequirePermissions('user.delete')
+  @ApiOperation({ summary: '删除用户' })
   @ApiResponse({ status: 200, description: '删除成功' })
-  @ApiResponse({ status: 403, description: '权限不足' })
-  @ApiResponse({ status: 404, description: '用户不存在' })
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string) {
     return this.usersService.remove(id);
   }
 
+  @Post('batch-delete')
+  @Roles('ADMIN')
+  @RequirePermissions('user.delete')
+  @ApiOperation({ summary: '批量删除用户' })
+  @ApiResponse({ status: 200, description: '删除成功' })
+  async batchRemove(
+    @Body() dto: BatchDeleteUsersDto,
+    @CurrentUser() currentUser: any,
+  ) {
+    const actorId = currentUser?.id;
+    return this.usersService.batchRemove(dto.ids, actorId);
+  }
 }

@@ -8,6 +8,11 @@ export class QueryTagDto {
   @IsOptional()
   search?: string;
 
+  @ApiPropertyOptional({ description: '排序方式', example: 'popular', enum: ['latest', 'popular'] })
+  @IsString()
+  @IsOptional()
+  sort?: 'latest' | 'popular';
+
   @ApiPropertyOptional({ description: '页码', example: '1', default: '1' })
   @IsString()
   @IsOptional()

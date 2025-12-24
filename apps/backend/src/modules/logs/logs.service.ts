@@ -36,9 +36,22 @@ export class LogsService {
   }
 
   /**
+   * 查询日志列表 (统一接口)
+   */
+  async findAll(queryDto: any) {
+    const { type = 'ACCESS' } = queryDto;
+
+    if (type === 'LOGIN') {
+      return this.findAllLoginLogs(queryDto);
+    } else {
+      return this.findAllAccessLogs(queryDto);
+    }
+  }
+
+  /**
    * 查询访问日志列表
    */
-  async findAllAccessLogs(queryDto: QueryAccessLogDto) {
+  private async findAllAccessLogs(queryDto: any) {
     const {
       userId,
       method,
@@ -58,34 +71,16 @@ export class LogsService {
     // 构建查询条件
     const where: any = {};
 
-    if (userId) {
-      where.userId = userId;
-    }
-
-    if (method) {
-      where.method = method;
-    }
-
-    if (path) {
-      where.path = { contains: path, mode: 'insensitive' };
-    }
-
-    if (statusCode) {
-      where.statusCode = statusCode;
-    }
-
-    if (ip) {
-      where.ip = ip;
-    }
+    if (userId) where.userId = userId;
+    if (method) where.method = method;
+    if (path) where.path = { contains: path, mode: 'insensitive' };
+    if (statusCode) where.statusCode = statusCode;
+    if (ip) where.ip = ip;
 
     if (startDate || endDate) {
       where.createdAt = {};
-      if (startDate) {
-        where.createdAt.gte = new Date(startDate);
-      }
-      if (endDate) {
-        where.createdAt.lte = new Date(endDate);
-      }
+      if (startDate) where.createdAt.gte = new Date(startDate);
+      if (endDate) where.createdAt.lte = new Date(endDate);
     }
 
     const [records, total] = await Promise.all([
@@ -103,11 +98,69 @@ export class LogsService {
             },
           },
         },
-        orderBy: {
-          createdAt: 'desc',
-        },
+        orderBy: { createdAt: 'desc' },
       }),
       this.prisma.accessLog.count({ where }),
+    ]);
+
+    return {
+      records,
+      current: pageNum,
+      size: limitNum,
+      total,
+      totalPages: Math.ceil(total / limitNum),
+    };
+  }
+
+  /**
+   * 查询登录日志列表
+   */
+  private async findAllLoginLogs(queryDto: any) {
+    const {
+      userId,
+      email,
+      status,
+      ip,
+      startDate,
+      endDate,
+      current = '1',
+      size = '10',
+    } = queryDto;
+
+    const pageNum = parseInt(current, 10);
+    const limitNum = parseInt(size, 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    const where: any = {};
+    if (userId) where.userId = userId;
+    if (email) where.email = { contains: email, mode: 'insensitive' };
+    if (status) where.status = status;
+    if (ip) where.ip = ip;
+
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) where.createdAt.gte = new Date(startDate);
+      if (endDate) where.createdAt.lte = new Date(endDate);
+    }
+
+    const [records, total] = await Promise.all([
+      this.prisma.loginLog.findMany({
+        where,
+        skip,
+        take: limitNum,
+        include: {
+          user: {
+            select: {
+              id: true,
+              userName: true,
+              nickName: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.loginLog.count({ where }),
     ]);
 
     return {
@@ -136,98 +189,26 @@ export class LogsService {
   }
 
   /**
-   * 查询登录日志列表
+   * 获取日志统计信息 (统一接口)
    */
-  async findAllLoginLogs(queryDto: QueryLoginLogDto) {
-    const {
-      userId,
-      email,
-      status,
-      ip,
-      startDate,
-      endDate,
-      current = '1',
-      size = '10',
-    } = queryDto;
-
-    const pageNum = parseInt(current, 10);
-    const limitNum = parseInt(size, 10);
-    const skip = (pageNum - 1) * limitNum;
-
-    // 构建查询条件
-    const where: any = {};
-
-    if (userId) {
-      where.userId = userId;
+  async getStats(type: 'ACCESS' | 'LOGIN' = 'ACCESS', startDate?: string, endDate?: string) {
+    if (type === 'LOGIN') {
+      return this.getLoginLogStats(startDate, endDate);
+    } else {
+      return this.getAccessLogStats(startDate, endDate);
     }
-
-    if (email) {
-      where.email = { contains: email, mode: 'insensitive' };
-    }
-
-    if (status) {
-      where.status = status;
-    }
-
-    if (ip) {
-      where.ip = ip;
-    }
-
-    if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) {
-        where.createdAt.gte = new Date(startDate);
-      }
-      if (endDate) {
-        where.createdAt.lte = new Date(endDate);
-      }
-    }
-
-    const [records, total] = await Promise.all([
-      this.prisma.loginLog.findMany({
-        where,
-        skip,
-        take: limitNum,
-        include: {
-          user: {
-            select: {
-              id: true,
-              userName: true,
-              nickName: true,
-              email: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-      }),
-      this.prisma.loginLog.count({ where }),
-    ]);
-
-    return {
-      records,
-      current: pageNum,
-      size: limitNum,
-      total,
-      totalPages: Math.ceil(total / limitNum),
-    };
   }
 
   /**
    * 获取访问日志统计信息
    */
-  async getAccessLogStats(startDate?: string, endDate?: string) {
+  private async getAccessLogStats(startDate?: string, endDate?: string) {
     const where: any = {};
 
     if (startDate || endDate) {
       where.createdAt = {};
-      if (startDate) {
-        where.createdAt.gte = new Date(startDate);
-      }
-      if (endDate) {
-        where.createdAt.lte = new Date(endDate);
-      }
+      if (startDate) where.createdAt.gte = new Date(startDate);
+      if (endDate) where.createdAt.lte = new Date(endDate);
     }
 
     const [
@@ -240,46 +221,25 @@ export class LogsService {
       topPaths,
       statusCodeDistribution,
     ] = await Promise.all([
-      // 总访问量
       this.prisma.accessLog.count({ where }),
-
-      // 成功请求数 (2xx, 3xx)
       this.prisma.accessLog.count({
-        where: {
-          ...where,
-          statusCode: { gte: 200, lt: 400 },
-        },
+        where: { ...where, statusCode: { gte: 200, lt: 400 } },
       }),
-
-      // 错误请求数 (4xx, 5xx)
       this.prisma.accessLog.count({
-        where: {
-          ...where,
-          statusCode: { gte: 400 },
-        },
+        where: { ...where, statusCode: { gte: 400 } },
       }),
-
-      // 独立用户数
-      this.prisma.accessLog.findMany({
+      this.prisma.accessLog.groupBy({
+        by: ['userId'],
         where: { ...where, userId: { not: null } },
-        select: { userId: true },
-        distinct: ['userId'],
       }).then((users) => users.length),
-
-      // 独立IP数
-      this.prisma.accessLog.findMany({
+      this.prisma.accessLog.groupBy({
+        by: ['ip'],
         where,
-        select: { ip: true },
-        distinct: ['ip'],
       }).then((ips) => ips.length),
-
-      // 平均响应时间
       this.prisma.accessLog.aggregate({
         where: { ...where, responseTime: { not: null } },
         _avg: { responseTime: true },
       }).then((result) => result._avg.responseTime || 0),
-
-      // 访问最多的路径 TOP 10
       this.prisma.$queryRaw`
         SELECT path, COUNT(*) as count
         FROM access_logs
@@ -288,8 +248,6 @@ export class LogsService {
         ORDER BY count DESC
         LIMIT 10
       `,
-
-      // 状态码分布
       this.prisma.$queryRaw`
         SELECT
           CASE
@@ -321,17 +279,13 @@ export class LogsService {
   /**
    * 获取登录日志统计信息
    */
-  async getLoginLogStats(startDate?: string, endDate?: string) {
+  private async getLoginLogStats(startDate?: string, endDate?: string) {
     const where: any = {};
 
     if (startDate || endDate) {
       where.createdAt = {};
-      if (startDate) {
-        where.createdAt.gte = new Date(startDate);
-      }
-      if (endDate) {
-        where.createdAt.lte = new Date(endDate);
-      }
+      if (startDate) where.createdAt.gte = new Date(startDate);
+      if (endDate) where.createdAt.lte = new Date(endDate);
     }
 
     const [
@@ -343,39 +297,24 @@ export class LogsService {
       uniqueIps,
       topFailReasons,
     ] = await Promise.all([
-      // 总登录次数
       this.prisma.loginLog.count({ where }),
-
-      // 成功登录数
       this.prisma.loginLog.count({
         where: { ...where, status: LoginStatus.SUCCESS },
       }),
-
-      // 失败登录数
       this.prisma.loginLog.count({
         where: { ...where, status: LoginStatus.FAILED },
       }),
-
-      // 退出登录数
       this.prisma.loginLog.count({
         where: { ...where, status: LoginStatus.LOGOUT },
       }),
-
-      // 独立用户数
-      this.prisma.loginLog.findMany({
+      this.prisma.loginLog.groupBy({
+        by: ['userId'],
         where: { ...where, userId: { not: null } },
-        select: { userId: true },
-        distinct: ['userId'],
       }).then((users) => users.length),
-
-      // 独立IP数
-      this.prisma.loginLog.findMany({
+      this.prisma.loginLog.groupBy({
+        by: ['ip'],
         where,
-        select: { ip: true },
-        distinct: ['ip'],
       }).then((ips) => ips.length),
-
-      // 登录失败原因 TOP 5
       this.prisma.$queryRaw`
         SELECT fail_reason, COUNT(*) as count
         FROM login_logs

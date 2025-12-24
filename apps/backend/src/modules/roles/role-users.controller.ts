@@ -1,11 +1,10 @@
-// src/modules/user-roles/user-roles.roles.controller.ts
 /**
- * 用户角色控制器（角色侧）
- * 提供角色用户管理接口：查询、批量添加、批量移除
+ * 角色用户控制器
+ * 处理角色侧的用户管理接口 (/roles/:id/users)
  */
 import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
-import { UserRolesService } from './user-roles.service';
+import { RolesService } from './roles.service';
 import { BatchRoleUsersDto } from './dto/batch-role-users.dto';
 import { GetRoleUsersQueryDto } from './dto/get-role-users.dto';
 import { Roles } from '@common/decorators/roles.decorator';
@@ -19,8 +18,8 @@ import { CurrentUser } from '@common/decorators/current-user.decorator';
 @Controller('roles')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
-export class UserRolesRolesController {
-  constructor(private readonly userRolesService: UserRolesService) {}
+export class RoleUsersController {
+  constructor(private readonly rolesService: RolesService) {}
 
   @Get(':id/users')
   @Roles('ADMIN')
@@ -30,7 +29,7 @@ export class UserRolesRolesController {
   @ApiResponse({ status: 403, description: '权限不足' })
   async getUsers(@Param('id') id: string, @Query() query: GetRoleUsersQueryDto) {
     const { page = 1, pageSize = 20, search } = query;
-    return this.userRolesService.getUsersByRole(id, page, pageSize, search);
+    return this.rolesService.getUsersByRole(id, page, pageSize, search);
   }
 
   @Post(':id/users')
@@ -47,7 +46,7 @@ export class UserRolesRolesController {
     @CurrentUser() currentUser: any,
   ) {
     const actorId = currentUser?.id;
-    return this.userRolesService.addUsersToRole(id, dto.userIds, actorId);
+    return this.rolesService.addUsersToRole(id, dto.userIds, actorId);
   }
 
   @Delete(':id/users')
@@ -64,6 +63,6 @@ export class UserRolesRolesController {
     @CurrentUser() currentUser: any,
   ) {
     const actorId = currentUser?.id;
-    return this.userRolesService.removeUsersFromRole(id, dto.userIds, actorId);
+    return this.rolesService.removeUsersFromRole(id, dto.userIds, actorId);
   }
 }

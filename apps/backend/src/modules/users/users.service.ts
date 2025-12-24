@@ -9,18 +9,21 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto, UpdateUserDto, QueryUserDto } from './dto';
 import { BusinessCode } from '@common/constants/business-codes';
-import { UserRolesService } from '../user-roles/user-roles.service';
+import { AuditService } from '../audit/audit.service';
+import { RedisService } from '@modules/redis/redis.service';
 
 @Injectable()
 export class UsersService {
   constructor(
-    private prisma: PrismaService,
-    private userRolesService: UserRolesService,
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+    private readonly redisService: RedisService,
   ) {}
 
   /**
@@ -388,7 +391,7 @@ export class UsersService {
 
     // 如果需要更新角色，调用 UserRolesService（统一审计日志）
     if (updateUserDto.roleIds !== undefined) {
-      await this.userRolesService.setUserRoles(id, updateUserDto.roleIds, actorId);
+      await this.setUserRoles(id, updateUserDto.roleIds, actorId);
     }
 
     // 重新查询用户以获取最新数据（包括角色）
@@ -424,6 +427,40 @@ export class UsersService {
     return { message: '用户删除成功' };
   }
 
+  /**
+   * 批量删除用户
+   */
+  async batchRemove(ids: string[], actorId?: string) {
+    if (ids.length === 0) {
+      return { message: '删除成功(未选择任何用户)' };
+    }
+
+    const result = await this.prisma.user.deleteMany({
+      where: {
+        id: { in: ids },
+      },
+    });
+
+    if (result.count > 0) {
+      await this.audit.log({
+        event: 'user.batch_delete',
+        userId: actorId,
+        resource: 'User',
+        resourceId: JSON.stringify(ids),
+        action: 'DELETE',
+        payload: {
+          ids,
+          count: result.count,
+        },
+      });
+
+      // 清除缓存
+      await this.invalidatePermissionCache(ids);
+    }
+
+    return { message: `成功删除 ${result.count} 个用户` };
+  }
+
 
 
   /**
@@ -439,5 +476,111 @@ export class UsersService {
         name: ur.role.name,
       })),
     };
+  }
+
+  private async invalidatePermissionCache(userIds: string | string[]) {
+    const ids = Array.isArray(userIds) ? userIds : [userIds];
+    if (ids.length === 0) {
+      return;
+    }
+    const keys = ids.map((id) => `permissions:${id}`);
+    await this.redisService.del(...keys);
+  }
+
+  /**
+   * 获取用户的角色列表
+   */
+  async getUserRoles(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        userRoles: {
+          include: {
+            role: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+                description: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('用户不存在');
+    }
+
+    return user.userRoles.map((ur) => ur.role);
+  }
+
+  /**
+   * 设置用户的角色（完全替换）
+   */
+  async setUserRoles(userId: string, roleIds: string[], actorId?: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('用户不存在');
+    }
+
+    if (roleIds.length > 0) {
+      const roles = await this.prisma.role.findMany({
+        where: { id: { in: roleIds } },
+      });
+
+      if (roles.length !== roleIds.length) {
+        const foundIds = roles.map((r) => r.id);
+        const missingIds = roleIds.filter((id) => !foundIds.includes(id));
+        throw new BadRequestException(`以下角色不存在: ${missingIds.join(', ')}`);
+      }
+    }
+
+    const beforeRoles = await this.getUserRoles(userId);
+
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.userRole.deleteMany({
+          where: { userId },
+        });
+
+        if (roleIds.length > 0) {
+          await tx.userRole.createMany({
+            data: roleIds.map((roleId) => ({
+              userId,
+              roleId,
+            })),
+          });
+        }
+      });
+
+      await this.audit.log({
+        event: 'user.roles.set',
+        userId: actorId,
+        resource: 'User',
+        resourceId: userId,
+        action: 'UPDATE',
+        payload: {
+          actorId,
+          userId,
+          before: beforeRoles.map((r) => r.id),
+          after: roleIds,
+        },
+      });
+
+      await this.invalidatePermissionCache(userId);
+
+      return {
+        userId,
+        roleIds,
+        message: '用户角色设置成功',
+      };
+    } catch (error) {
+      throw new InternalServerErrorException('设置用户角色失败');
+    }
   }
 }

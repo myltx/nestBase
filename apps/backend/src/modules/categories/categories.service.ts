@@ -79,9 +79,10 @@ export class CategoriesService {
   }
 
   /**
-   * 查询所有分类（树形结构）
+   * 查询所有分类
+   * @param format 'tree' | 'flat' (default: 'tree')
    */
-  async findAll() {
+  async findAll(format: 'tree' | 'flat' = 'tree') {
     const categories = await this.prisma.category.findMany({
       where: { status: 1 },
       include: {
@@ -89,6 +90,7 @@ export class CategoriesService {
         children: true,
         _count: {
           select: {
+            children: true,
             contents: true,
           },
         },
@@ -98,6 +100,10 @@ export class CategoriesService {
         { createdAt: 'asc' },
       ],
     });
+
+    if (format === 'flat') {
+      return categories;
+    }
 
     // 构建树形结构
     return this.buildTree(categories);
@@ -158,32 +164,7 @@ export class CategoriesService {
     return category;
   }
 
-  /**
-   * 根据 slug 查询分类
-   */
-  async findBySlug(slug: string) {
-    const category = await this.prisma.category.findUnique({
-      where: { slug },
-      include: {
-        parent: true,
-        children: true,
-        _count: {
-          select: {
-            contents: true,
-          },
-        },
-      },
-    });
 
-    if (!category) {
-      throw new NotFoundException({
-        message: '分类不存在',
-        code: BusinessCode.NOT_FOUND,
-      });
-    }
-
-    return category;
-  }
 
   /**
    * 更新分类

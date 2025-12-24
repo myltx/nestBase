@@ -1,4 +1,3 @@
-// src/modules/user-roles/dto/get-role-users.dto.ts
 /**
  * 角色下用户列表查询 DTO（分页/搜索）
  */
@@ -27,4 +26,3 @@ export class GetRoleUsersQueryDto {
   @IsOptional()
   search?: string;
 }
-

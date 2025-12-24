@@ -1,11 +1,10 @@
-// src/modules/user-roles/user-roles.users.controller.ts
 /**
- * 用户角色控制器（用户侧）
- * 提供用户角色查询和设置接口
+ * 用户角色控制器
+ * 处理用户侧的角色管理接口 (/users/:id/roles)
  */
 import { Controller, Get, Param, Put, Body, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
-import { UserRolesService } from './user-roles.service';
+import { UsersService } from './users.service';
 import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
 import { Roles } from '@common/decorators/roles.decorator';
 import { RequirePermissions } from '@common/decorators/permissions.decorator';
@@ -18,8 +17,8 @@ import { CurrentUser } from '@common/decorators/current-user.decorator';
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
-export class UserRolesUsersController {
-  constructor(private readonly userRolesService: UserRolesService) {}
+export class UserRolesController {
+  constructor(private readonly usersService: UsersService) {}
 
   @Get(':id/roles')
   @Roles('ADMIN')
@@ -29,7 +28,7 @@ export class UserRolesUsersController {
   @ApiResponse({ status: 403, description: '权限不足' })
   @ApiResponse({ status: 404, description: '用户不存在' })
   async getUserRoles(@Param('id') id: string) {
-    return this.userRolesService.getUserRoles(id);
+    return this.usersService.getUserRoles(id);
   }
 
   @Put(':id/roles')
@@ -47,6 +46,6 @@ export class UserRolesUsersController {
     @CurrentUser() currentUser: any,
   ) {
     const actorId = currentUser?.id;
-    return this.userRolesService.setUserRoles(id, dto.roleIds || [], actorId);
+    return this.usersService.setUserRoles(id, dto.roleIds || [], actorId);
   }
 }
