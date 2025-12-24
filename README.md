@@ -49,6 +49,8 @@
 - ✅ 统一响应格式
 - ✅ 全局异常处理
 - ✅ 请求数据验证管道
+- ✅ **全局 API 治理标准** (v1.5.0 新增)
+- ✅ **仪表盘统计模块** (v1.5.0 新增)
 
 ---
 
@@ -247,6 +249,12 @@ POST /api/auth/login       # 用户登录
 GET  /api/auth/profile     # 获取当前用户信息（需认证）
 ```
 
+#### 📊 仪表盘模块 (v1.5.0 新增)
+
+```http
+GET    /api/dashboard/stats # 获取系统概览统计信息
+```
+
 #### 👥 用户模块
 
 ```http
@@ -256,7 +264,9 @@ POST   /api/users          # 创建用户（仅管理员）
 PATCH  /api/users/:id      # 更新用户（仅管理员）
 DELETE /api/users/:id      # 删除用户（仅管理员）
 PUT    /api/users/:id/roles   # 设置用户角色（完全替换，管理员）
+PUT    /api/users/:id/roles   # 设置用户角色（完全替换，管理员）
 GET    /api/users/:id/roles   # 获取用户的角色列表
+POST   /api/users/batch-delete # 批量删除用户（管理员，v1.5.0）
 ```
 
 #### 📁 菜单模块（v1.3.0 新增）
@@ -308,7 +318,20 @@ GET    /api/roles/:id/permissions      # 获取角色的权限列表
 GET    /api/roles/:id/stats            # 获取角色统计信息
 GET    /api/roles/:id/users            # 查看该角色下的用户（分页）
 POST   /api/roles/:id/users            # 批量添加用户到该角色（管理员）
+POST   /api/roles/:id/users            # 批量添加用户到该角色（管理员）
 DELETE /api/roles/:id/users            # 批量将用户从该角色移除（管理员）
+POST   /api/roles/batch-delete         # 批量删除角色（管理员，v1.5.0）
+```
+
+#### 📄 内容模块 (v1.5.0 更新)
+
+```http
+GET    /api/contents                   # 查询内容列表
+GET    /api/contents/:id               # 查询内容详情
+POST   /api/contents                   # 创建内容
+PATCH  /api/contents/:id               # 更新内容
+DELETE /api/contents/:id               # 删除内容
+POST   /api/contents/batch-delete      # 批量删除内容（管理员，v1.5.0）
 ```
 
 ### 使用示例
@@ -689,6 +712,33 @@ curl -X GET http://localhost:3000/api/roles/{roleId}/permissions \
 - ✅ 使用权限控制具体操作权限（后端 API）
 - ✅ 一个用户可以有多个角色
 - ✅ 一个角色可以有多个权限
+
+---
+
+## ⚖️ API 治理标准 (v1.5.0)
+
+本项目遵循严格的 RESTful API 设计规范与治理标准，确保接口的一致性与可维护性。
+
+### 核心原则
+
+1.  **资源导向设计**：API URL 基于名词资源（如 `/users`, `/roles`），避免动词（如 `/getUsers`）。
+2.  **标准 HTTP 方法**：
+    - `GET`: 查询资源
+    - `POST`: 创建资源
+    - `PATCH`: 部分更新资源
+    - `DELETE`: 删除资源
+3.  **统一批量操作**：
+    - 批量删除接口统一为 `POST /:resource/batch-delete`。
+    - 请求体统一格式：`{ ids: ["id1", "id2"] }`。
+4.  **轻量级 Controller**：Controller 仅负责参数校验与权限控制，业务逻辑全部下沉至 Service 层。
+
+### 目录结构优化
+
+v1.5.0 对后端模块进行了重构与标准化：
+
+- **移除中间模块**：废弃 `user-roles` 模块，相关功能拆分归位至 `users`（用户视角）和 `roles`（角色视角）。
+- **新增 Dashboard**：使用 `dashboard` 模块替代原有的 `home` 模块，提供专门的系统统计服务。
+- **模块独立性**：增强了 Users 和 Auth 模块的边界清晰度。
 
 ---
 
