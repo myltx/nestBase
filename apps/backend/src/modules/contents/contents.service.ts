@@ -131,6 +131,7 @@ export class ContentsService {
       authorId,
       isTop,
       isRecommend,
+      slug,
       current = '1',
       size = '10',
     } = queryDto;
@@ -156,6 +157,11 @@ export class ContentsService {
         { title: { contains: search, mode: 'insensitive' } },
         { summary: { contains: search, mode: 'insensitive' } },
       ];
+    }
+
+    // Slug 筛选
+    if (slug) {
+      where.slug = { equals: slug };
     }
 
     // 状态筛选
@@ -216,7 +222,7 @@ export class ContentsService {
           tags: {
             include: {
               tag: true,
-            },
+              },
           },
         },
         orderBy: [
@@ -387,7 +393,7 @@ export class ContentsService {
       }
     }
 
-    // 自动填充作者名称：如果更新时 authorName 被设置为空字符串或未提供，则从用户信息自动获取
+    // 自动填充作者名称
     if (contentData.authorName === '' || (contentData.authorName === undefined && !existingContent.authorName)) {
       const author = await this.prisma.user.findUnique({
         where: { id: existingContent.authorId },
@@ -395,22 +401,43 @@ export class ContentsService {
       });
 
       if (author) {
-        // 优先级: nickName > userName
         contentData.authorName = author.nickName || author.userName;
       }
     }
 
-    // 自动解析 Markdown（如果更新了 contentMd 并且是 Markdown 或 Upload 模式）
+    // 准备更新数据
+    const dataToUpdate: any = {
+      ...contentData,
+    };
+
+    // 处理状态变更：如果状态变为发布，且之前未发布或无发布时间，则设置发布时间
+    if (contentData.status === ContentStatus.PUBLISHED && !existingContent.publishedAt) {
+      if (existingContent.status !== ContentStatus.PUBLISHED) {
+        dataToUpdate.publishedAt = new Date();
+      }
+    }
+
+    // 自动解析 Markdown
+    // 触发条件：
+    // 1. 显式更新了 contentMd
+    // 2. 状态变为 PUBLISHED 且没有 HTML (或者需要重新生成)
     const editorType = contentData.editorType || existingContent.editorType;
-    if ((editorType === EditorType.MARKDOWN || editorType === EditorType.UPLOAD) && contentData.contentMd) {
-      contentData.contentHtml = await parseMarkdown(contentData.contentMd);
+    const shouldParseMarkdown =
+      (editorType === EditorType.MARKDOWN || editorType === EditorType.UPLOAD) &&
+      (contentData.contentMd || (contentData.status === ContentStatus.PUBLISHED && !existingContent.contentHtml));
+
+    if (shouldParseMarkdown) {
+      const md = contentData.contentMd || existingContent.contentMd;
+      if (md) {
+        dataToUpdate.contentHtml = await parseMarkdown(md);
+      }
     }
 
     // 更新内容
     const content = await this.prisma.content.update({
       where: { id },
       data: {
-        ...contentData,
+        ...dataToUpdate,
         tags: tagIds !== undefined ? {
           deleteMany: {},
           create: tagIds.map((tagId) => ({ tagId })),
@@ -449,252 +476,6 @@ export class ContentsService {
     });
 
     return { message: '内容删除成功' };
-  }
-
-  /**
-   * 发布内容
-   */
-  async publish(id: string, publishDto: PublishContentDto) {
-    const content = await this.findOne(id);
-
-    if (content.status === ContentStatus.PUBLISHED) {
-      throw new BadRequestException({
-        message: '内容已发布',
-        code: BusinessCode.VALIDATION_ERROR,
-      });
-    }
-
-    const publishedAt = publishDto.publishedAt ? new Date(publishDto.publishedAt) : new Date();
-
-    // 如果是 Markdown 或 Upload 模式，确保生成了 HTML
-    const updateData: any = {
-      status: ContentStatus.PUBLISHED,
-      publishedAt,
-    };
-
-    if ((content.editorType === EditorType.MARKDOWN || content.editorType === EditorType.UPLOAD) && content.contentMd) {
-      // 如果没有 HTML 或需要重新生成，则解析 Markdown
-      if (!content.contentHtml) {
-        updateData.contentHtml = await parseMarkdown(content.contentMd);
-      }
-    }
-
-    const updated = await this.prisma.content.update({
-      where: { id },
-      data: updateData,
-      include: {
-        author: {
-          select: {
-            id: true,
-            userName: true,
-            nickName: true,
-            avatar: true,
-          },
-        },
-        category: true,
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
-      },
-    });
-
-    return this.formatContent(updated);
-  }
-
-  /**
-   * 撤回发布（变为草稿）
-   */
-  async unpublish(id: string) {
-    const content = await this.findOne(id);
-
-    if (content.status !== ContentStatus.PUBLISHED) {
-      throw new BadRequestException({
-        message: '内容未发布',
-        code: BusinessCode.VALIDATION_ERROR,
-      });
-    }
-
-    const updated = await this.prisma.content.update({
-      where: { id },
-      data: {
-        status: ContentStatus.DRAFT,
-      },
-      include: {
-        author: {
-          select: {
-            id: true,
-            userName: true,
-            nickName: true,
-            avatar: true,
-          },
-        },
-        category: true,
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
-      },
-    });
-
-    return this.formatContent(updated);
-  }
-
-  /**
-   * 归档内容
-   */
-  async archive(id: string) {
-    const content = await this.findOne(id);
-
-    const updated = await this.prisma.content.update({
-      where: { id },
-      data: {
-        status: ContentStatus.ARCHIVED,
-      },
-      include: {
-        author: {
-          select: {
-            id: true,
-            userName: true,
-            nickName: true,
-            avatar: true,
-          },
-        },
-        category: true,
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
-      },
-    });
-
-    return this.formatContent(updated);
-  }
-
-  /**
-   * 切换推荐状态
-   */
-  async toggleRecommend(id: string) {
-    const content = await this.findOne(id);
-
-    const updated = await this.prisma.content.update({
-      where: { id },
-      data: {
-        isRecommend: !content.isRecommend,
-      },
-      include: {
-        author: {
-          select: {
-            id: true,
-            userName: true,
-            nickName: true,
-            avatar: true,
-          },
-        },
-        category: true,
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
-      },
-    });
-
-    return this.formatContent(updated);
-  }
-
-  /**
-   * 切换置顶状态
-   */
-  async toggleTop(id: string) {
-    const content = await this.findOne(id);
-
-    const updated = await this.prisma.content.update({
-      where: { id },
-      data: {
-        isTop: !content.isTop,
-      },
-      include: {
-        author: {
-          select: {
-            id: true,
-            userName: true,
-            nickName: true,
-            avatar: true,
-          },
-        },
-        category: true,
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
-      },
-    });
-
-    return this.formatContent(updated);
-  }
-
-  /**
-   * 切换发布状态
-   */
-  async togglePublish(id: string) {
-    const content = await this.findOne(id);
-
-    let newStatus: ContentStatus;
-    let publishedAt: Date | null;
-
-    // 根据当前状态切换
-    if (content.status === ContentStatus.PUBLISHED) {
-      // 如果已发布，切换为草稿
-      newStatus = ContentStatus.DRAFT;
-      publishedAt = null;
-    } else {
-      // 如果是草稿或归档，切换为发布
-      newStatus = ContentStatus.PUBLISHED;
-      publishedAt = new Date();
-    }
-
-    // 如果是 Markdown 或 Upload 模式，确保生成了 HTML
-    const updateData: any = {
-      status: newStatus,
-      publishedAt,
-    };
-
-    if (newStatus === ContentStatus.PUBLISHED) {
-      if ((content.editorType === EditorType.MARKDOWN || content.editorType === EditorType.UPLOAD) && content.contentMd) {
-        // 如果没有 HTML 或需要重新生成，则解析 Markdown
-        if (!content.contentHtml) {
-          updateData.contentHtml = await parseMarkdown(content.contentMd);
-        }
-      }
-    }
-
-    const updated = await this.prisma.content.update({
-      where: { id },
-      data: updateData,
-      include: {
-        author: {
-          select: {
-            id: true,
-            userName: true,
-            nickName: true,
-            avatar: true,
-          },
-        },
-        category: true,
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
-      },
-    });
-
-    return this.formatContent(updated);
   }
 
   /**

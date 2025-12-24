@@ -65,6 +65,15 @@ export class QueryMenuDto {
   status?: number;
 
   @ApiPropertyOptional({
+    description: '返回格式 (tree: 树形结构, list: 列表结构)',
+    example: 'list',
+    enum: ['tree', 'list'],
+  })
+  @IsOptional()
+  @IsString()
+  format?: 'tree' | 'list';
+
+  @ApiPropertyOptional({
     description: '当前页码',
     example: 1,
   })

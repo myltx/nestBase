@@ -16,7 +16,9 @@ build/
 **/.env.local
 
 # 日志
-logs
+# 只忽略根目录和各应用目录下的 logs 日志文件夹，不忽略源代码中的 logs 模块
+/logs
+/apps/*/logs
 *.log
 npm-debug.log*
 pnpm-debug.log*

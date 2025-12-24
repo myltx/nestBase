@@ -4,7 +4,7 @@
  */
 
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, IsBoolean, IsInt, Min, Max, MinLength, MaxLength } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsInt, Min, Max, MinLength, MaxLength, IsArray, IsUUID } from 'class-validator';
 
 export class CreateRoleDto {
   @ApiProperty({
@@ -66,4 +66,26 @@ export class CreateRoleDto {
   @Min(1, { message: '角色状态必须是 1 或 2' })
   @Max(2, { message: '角色状态必须是 1 或 2' })
   status?: number;
+
+  @ApiProperty({
+    description: '菜单 ID 数组',
+    type: [String],
+    required: false,
+    example: ['uuid1', 'uuid2'],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsUUID('4', { each: true, message: '每个菜单 ID 必须是有效的 UUID' })
+  menuIds?: string[];
+
+  @ApiProperty({
+    description: '权限 ID 数组',
+    type: [String],
+    required: false,
+    example: ['uuid1', 'uuid2'],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsUUID('4', { each: true, message: '每个权限 ID 必须是有效的 UUID' })
+  permissionIds?: string[];
 }

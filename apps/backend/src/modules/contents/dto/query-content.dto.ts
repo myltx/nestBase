@@ -58,4 +58,9 @@ export class QueryContentDto {
   @IsOptional()
   @IsIn(['true', 'false'])
   isRecommend?: string;
+
+  @ApiPropertyOptional({ description: 'Slug (URL标识符)', example: 'my-first-post' })
+  @IsString()
+  @IsOptional()
+  slug?: string;
 }

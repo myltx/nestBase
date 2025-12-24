@@ -100,21 +100,7 @@ export class ProjectsService {
     };
   }
 
-  /**
-   * 获取所有精选项目（不分页）
-   */
-  async findFeatured() {
-    const projects = await this.prisma.project.findMany({
-      where: {
-        featured: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
 
-    return projects;
-  }
 
   /**
    * 根据 ID 查询单个项目
@@ -177,21 +163,7 @@ export class ProjectsService {
     }
   }
 
-  /**
-   * 切换项目精选状态
-   */
-  async toggleFeatured(id: string) {
-    const project = await this.findOne(id);
 
-    const updated = await this.prisma.project.update({
-      where: { id },
-      data: {
-        featured: !project.featured,
-      },
-    });
-
-    return updated;
-  }
 
   /**
    * 获取所有使用的技术栈（去重）

@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateUserDto, UpdateUserDto, QueryUserDto, ResetPasswordDto } from './dto';
+import { CreateUserDto, UpdateUserDto, QueryUserDto } from './dto';
 import { BusinessCode } from '@common/constants/business-codes';
 import { UserRolesService } from '../user-roles/user-roles.service';
 
@@ -198,20 +198,11 @@ export class UsersService {
   /**
    * 查询所有用户(支持分页和搜索)
    */
+  /**
+   * 查询所有用户(支持分页和搜索)
+   */
   async findAll(queryDto: QueryUserDto) {
-    const { search, nickName, gender, phone, status, role, current = '1', size = '10' } = queryDto;
-
-    const pageNum = parseInt(current, 10);
-    const limitNum = parseInt(size, 10);
-
-    if (pageNum < 1 || limitNum < 1) {
-      throw new BadRequestException({
-        message: '页码和每页数量必须大于 0',
-        code: BusinessCode.VALIDATION_ERROR,
-      });
-    }
-
-    const skip = (pageNum - 1) * limitNum;
+    const { search, nickName, gender, phone, status, role, current, size } = queryDto;
 
     // 构建查询条件
     const where: any = {};
@@ -256,6 +247,31 @@ export class UsersService {
         },
       };
     }
+
+    // 如果未请求分页，返回所有符合条件的结果
+    if (!current && !size) {
+      const users = await this.prisma.user.findMany({
+        where,
+        select: this.userSelect,
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+      return users.map((user) => this.formatUser(user));
+    }
+
+    // 处理分页
+    const pageNum = parseInt(current || '1', 10);
+    const limitNum = parseInt(size || '10', 10);
+
+    if (pageNum < 1 || limitNum < 1) {
+      throw new BadRequestException({
+        message: '页码和每页数量必须大于 0',
+        code: BusinessCode.VALIDATION_ERROR,
+      });
+    }
+
+    const skip = (pageNum - 1) * limitNum;
 
     // 查询用户(排除密码字段)
     const [users, total] = await Promise.all([
@@ -408,37 +424,7 @@ export class UsersService {
     return { message: '用户删除成功' };
   }
 
-  /**
-   * 重置用户密码
-   */
-  async resetPassword(id: string, resetPasswordDto: ResetPasswordDto) {
-    // 检查用户是否存在
-    const existingUser = await this.prisma.user.findUnique({
-      where: { id },
-    });
 
-    if (!existingUser) {
-      throw new NotFoundException({
-        message: `用户 ID ${id} 不存在`,
-        code: BusinessCode.USER_NOT_FOUND,
-      });
-    }
-
-    // 如果未提供密码，生成随机密码
-    const plainPassword = resetPasswordDto.newPassword || this.generateRandomPassword();
-    const hashedPassword = await bcrypt.hash(plainPassword, 10);
-
-    // 更新密码
-    await this.prisma.user.update({
-      where: { id },
-      data: { password: hashedPassword },
-    });
-
-    return {
-      message: '密码重置成功',
-      newPassword: plainPassword,
-    };
-  }
 
   /**
    * 格式化用户数据,将 userRoles 转换为 roles 数组

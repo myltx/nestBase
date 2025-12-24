@@ -11,7 +11,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { AssignMenusDto, CreateRoleDto, UpdateRoleDto, QueryRoleDto } from './dto';
+import { CreateRoleDto, UpdateRoleDto, QueryRoleDto } from './dto';
 import { BusinessCode } from '@common/constants/business-codes';
 
 @Injectable()
@@ -26,43 +26,10 @@ export class RolesService {
   }
 
   /**
-   * 获取所有角色列表
+   * 获取所有角色列表（支持分页和筛选）
    */
-  async findAll(includeInactive = false) {
-    return this.prisma.role.findMany({
-      where: includeInactive ? {} : { status: 1 },
-      include: {
-        _count: {
-          select: {
-            userRoles: true,
-            roleMenus: true,
-          },
-        },
-      },
-      orderBy: [
-        { isSystem: 'desc' }, // 系统角色优先
-        { createdAt: 'asc' },
-      ],
-    });
-  }
-
-  /**
-   * 分页查询角色列表
-   */
-  async findPage(queryDto: QueryRoleDto) {
-    const { search, isSystem, status, current = '1', size = '10' } = queryDto;
-
-    const pageNum = parseInt(current, 10);
-    const limitNum = parseInt(size, 10);
-
-    if (pageNum < 1 || limitNum < 1) {
-      throw new BadRequestException({
-        message: '页码和每页数量必须大于 0',
-        code: BusinessCode.VALIDATION_ERROR,
-      });
-    }
-
-    const skip = (pageNum - 1) * limitNum;
+  async findAll(queryDto: QueryRoleDto) {
+    const { search, isSystem, status, current, size } = queryDto;
 
     // 构建查询条件
     const where: any = {};
@@ -84,6 +51,38 @@ export class RolesService {
     if (status !== undefined) {
       where.status = status;
     }
+
+    // 如果未请求分页，返回所有符合条件的结果
+    if (!current && !size) {
+      return this.prisma.role.findMany({
+        where,
+        include: {
+          _count: {
+            select: {
+              userRoles: true,
+              roleMenus: true,
+            },
+          },
+        },
+        orderBy: [
+          { isSystem: 'desc' }, // 系统角色优先
+          { createdAt: 'asc' },
+        ],
+      });
+    }
+
+    // 处理分页
+    const pageNum = parseInt(current || '1', 10);
+    const limitNum = parseInt(size || '10', 10);
+
+    if (pageNum < 1 || limitNum < 1) {
+      throw new BadRequestException({
+        message: '页码和每页数量必须大于 0',
+        code: BusinessCode.VALIDATION_ERROR,
+      });
+    }
+
+    const skip = (pageNum - 1) * limitNum;
 
     // 查询角色列表和总数
     const [roles, total] = await Promise.all([
@@ -119,7 +118,7 @@ export class RolesService {
   /**
    * 根据角色 ID 获取角色信息
    */
-  async findOne(id: string) {
+  async findOne(id: string, includeRelations = false) {
     const role = await this.prisma.role.findUnique({
       where: { id },
       include: {
@@ -127,8 +126,13 @@ export class RolesService {
           select: {
             userRoles: true,
             roleMenus: true,
+            rolePermissions: true, // Also include permission count if not already
           },
         },
+        ...(includeRelations && {
+          roleMenus: { select: { menuId: true } },
+          rolePermissions: { select: { permissionId: true } },
+        }),
       },
     });
 
@@ -137,6 +141,15 @@ export class RolesService {
         message: `角色不存在`,
         code: BusinessCode.NOT_FOUND,
       });
+    }
+
+    if (includeRelations) {
+      const { roleMenus, rolePermissions, ...rest } = role;
+      return {
+        ...rest,
+        menuIds: roleMenus.map((rm) => rm.menuId),
+        permissionIds: rolePermissions.map((rp) => rp.permissionId),
+      };
     }
 
     return role;
@@ -164,7 +177,7 @@ export class RolesService {
    * 创建新角色
    */
   async create(createDto: CreateRoleDto) {
-    const { code, name, home, ...rest } = createDto;
+    const { code, name, home, menuIds, permissionIds, ...rest } = createDto;
 
     // 不允许通过 API 创建系统角色
     if ((rest as any).isSystem === true) {
@@ -206,6 +219,16 @@ export class RolesService {
         ...(home && { home: this.normalizeHomePath(home) }), // 如果提供了 home 字段则使用,否则使用数据库默认值 home
         ...rest,
         isSystem: false, // 强制设置为 false
+        roleMenus: menuIds?.length
+          ? {
+              create: menuIds.map((menuId) => ({ menuId })),
+            }
+          : undefined,
+        rolePermissions: permissionIds?.length
+          ? {
+              create: permissionIds.map((permissionId) => ({ permissionId })),
+            }
+          : undefined,
       },
     });
   }
@@ -226,7 +249,7 @@ export class RolesService {
 
     // 从 DTO 中提取 code 字段,但不会用于更新
     // code 字段在创建后不可修改(即使传入也会被忽略)
-    const { code, ...rest } = updateDto;
+    const { code, menuIds, permissionIds, ...rest } = updateDto;
 
     // 所有角色都不允许修改 code 字段(即使传入也会被忽略)
     // isSystem 字段也不允许通过 API 修改(即使传入也会被忽略)
@@ -246,9 +269,24 @@ export class RolesService {
     }
 
     // 如果更新了 home 字段，需要标准化路径
-    const updateData = { ...rest };
+    const updateData: any = { ...rest };
     if (updateData.home) {
       updateData.home = this.normalizeHomePath(updateData.home);
+    }
+
+    // 更新关联关系
+    if (menuIds !== undefined) {
+      updateData.roleMenus = {
+        deleteMany: {},
+        create: menuIds.map((menuId) => ({ menuId })),
+      };
+    }
+
+    if (permissionIds !== undefined) {
+      updateData.rolePermissions = {
+        deleteMany: {},
+        create: permissionIds.map((permissionId) => ({ permissionId })),
+      };
     }
 
     return this.prisma.role.update({
@@ -292,271 +330,4 @@ export class RolesService {
     };
   }
 
-  /**
-   * 为角色分配菜单
-   */
-  async assignMenus(roleId: string, assignDto: AssignMenusDto) {
-    const { menuIds, home } = assignDto;
-
-    // 验证角色是否存在
-    const role = await this.findOne(roleId);
-
-    // 验证所有菜单 ID 是否存在
-    const menus = await this.prisma.menu.findMany({
-      where: {
-        id: {
-          in: menuIds,
-        },
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (menus.length !== menuIds.length) {
-      throw new BadRequestException({
-        message: '部分菜单 ID 不存在',
-        code: BusinessCode.NOT_FOUND,
-      });
-    }
-
-    // 删除该角色现有的所有菜单关联
-    await this.prisma.roleMenu.deleteMany({
-      where: { roleId },
-    });
-
-    // 创建新的菜单关联
-    if (menuIds.length > 0) {
-      await this.prisma.roleMenu.createMany({
-        data: menuIds.map((menuId) => ({
-          roleId,
-          menuId,
-        })),
-      });
-    }
-
-    // 如果提供了 home 字段，同时更新角色的 home 字段（标准化路径）
-    if (home !== undefined) {
-      await this.prisma.role.update({
-        where: { id: roleId },
-        data: { home: this.normalizeHomePath(home) },
-      });
-    }
-
-    return {
-      message: '角色菜单分配成功',
-      menuCount: menuIds.length,
-      ...(home !== undefined && { home: this.normalizeHomePath(home) }), // 如果更新了 home 字段则返回标准化后的值
-    };
-  }
-
-  /**
-   * 获取角色的菜单列表
-   */
-  async getRoleMenus(roleId: string) {
-    // 验证角色是否存在并获取 home 字段
-    const role = await this.findOne(roleId);
-
-    const roleMenus = await this.prisma.roleMenu.findMany({
-      where: { roleId },
-      include: {
-        menu: {
-          select: {
-            id: true,
-            routeName: true,
-            routePath: true,
-            menuName: true,
-            i18nKey: true,
-            iconType: true,
-            icon: true,
-            localIcon: true,
-            iconFontSize: true,
-            order: true,
-            parentId: true,
-            menuType: true,
-            component: true,
-            href: true,
-            hideInMenu: true,
-            activeMenu: true,
-            multiTab: true,
-            fixedIndexInTab: true,
-            status: true,
-            keepAlive: true,
-            constant: true,
-            query: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-        },
-      },
-      orderBy: {
-        menu: {
-          order: 'asc',
-        },
-      },
-    });
-
-    return {
-      menus: roleMenus.map((rm) => rm.menu),
-      home: role.home,
-    };
-  }
-
-  /**
-   * 获取角色关联的用户数量
-   */
-  async getRoleUserCount(roleId: string) {
-    // 验证角色是否存在
-    await this.findOne(roleId);
-
-    const count = await this.prisma.userRole.count({
-      where: { roleId },
-    });
-
-    return { userCount: count };
-  }
-
-  /**
-   * 获取角色关联的菜单数量
-   */
-  async getRoleMenuCount(roleId: string) {
-    // 验证角色是否存在
-    await this.findOne(roleId);
-
-    const count = await this.prisma.roleMenu.count({
-      where: { roleId },
-    });
-
-    return { menuCount: count };
-  }
-
-  /**
-   * 获取角色的统计信息
-   */
-  async getRoleStats(roleId: string) {
-    const role = await this.findOne(roleId);
-
-    const [userCount, menuCount, permissionCount] = await Promise.all([
-      this.prisma.userRole.count({
-        where: { roleId },
-      }),
-      this.prisma.roleMenu.count({
-        where: { roleId },
-      }),
-      this.prisma.rolePermission.count({
-        where: { roleId },
-      }),
-    ]);
-
-    return {
-      ...role,
-      userCount,
-      menuCount,
-      permissionCount,
-    };
-  }
-
-  /**
-   * 为角色分配权限
-   */
-  async assignPermissions(roleId: string, permissionIds: string[]) {
-    // 验证角色是否存在
-    await this.findOne(roleId);
-
-    // 验证所有权限 ID 是否存在
-    if (permissionIds.length > 0) {
-      const permissions = await this.prisma.permission.findMany({
-        where: {
-          id: {
-            in: permissionIds,
-          },
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      if (permissions.length !== permissionIds.length) {
-        throw new BadRequestException({
-          message: '部分权限 ID 不存在',
-          code: BusinessCode.NOT_FOUND,
-        });
-      }
-    }
-
-    // 删除该角色现有的所有权限关联
-    await this.prisma.rolePermission.deleteMany({
-      where: { roleId },
-    });
-
-    // 创建新的权限关联
-    if (permissionIds.length > 0) {
-      await this.prisma.rolePermission.createMany({
-        data: permissionIds.map((permissionId) => ({
-          roleId,
-          permissionId,
-        })),
-      });
-    }
-
-    return {
-      message: '角色权限分配成功',
-      permissionCount: permissionIds.length,
-    };
-  }
-
-  /**
-   * 获取角色的权限列表
-   */
-  async getRolePermissions(roleId: string) {
-    // 验证角色是否存在
-    await this.findOne(roleId);
-
-    const rolePermissions = await this.prisma.rolePermission.findMany({
-      where: { roleId },
-      include: {
-        permission: {
-          select: {
-            id: true,
-            code: true,
-            name: true,
-            type: true,
-            menuId: true,
-            description: true,
-            status: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-        },
-      },
-      orderBy: [
-        {
-          permission: {
-            type: 'asc',
-          },
-        },
-        {
-          permission: {
-            code: 'asc',
-          },
-        },
-      ],
-    });
-
-    return rolePermissions.map((rp) => rp.permission);
-  }
-
-  /**
-   * 获取角色关联的权限数量
-   */
-  async getRolePermissionCount(roleId: string) {
-    // 验证角色是否存在
-    await this.findOne(roleId);
-
-    const count = await this.prisma.rolePermission.count({
-      where: { roleId },
-    });
-
-    return { permissionCount: count };
-  }
 }

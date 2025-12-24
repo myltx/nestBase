@@ -1,6 +1,8 @@
 // src/modules/redis/redis.module.ts
 import { Global, Logger, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { existsSync, readFileSync } from 'fs';
+import { resolve } from 'path';
 import Redis, { RedisOptions } from 'ioredis';
 import { REDIS_CLIENT } from './redis.constants';
 import { RedisService } from './redis.service';
@@ -20,16 +22,64 @@ import { RedisService } from './redis.service';
           return null;
         }
 
-        const options: RedisOptions = {
-          host: configService.get<string>('REDIS_HOST', '127.0.0.1'),
-          port: Number(configService.get<string>('REDIS_PORT', '6379')),
-          password: configService.get<string>('REDIS_PASSWORD') || undefined,
-          db: Number(configService.get<string>('REDIS_DB', '0')),
+        const connectionUrl = configService.get<string>('REDIS_URL');
+        const tlsMode = (configService.get<string>('REDIS_TLS', 'auto') || 'auto').toLowerCase();
+        const rejectUnauthorized = configService.get<string>('REDIS_TLS_REJECT_UNAUTHORIZED', 'true') !== 'false';
+        const caFile = configService.get<string>('REDIS_TLS_CA_FILE');
+        const commonOptions: RedisOptions = {
           keyPrefix: configService.get<string>('REDIS_KEY_PREFIX', 'nestbase:'),
           lazyConnect: true,
         };
 
-        const client = new Redis(options);
+        const tlsShouldEnable = (url?: string) => {
+          if (tlsMode === 'true') return true;
+          if (tlsMode === 'false') return false;
+          return Boolean(url?.startsWith('rediss://'));
+        };
+
+        const buildTlsOptions = (enabled: boolean) => {
+          if (!enabled) {
+            return undefined;
+          }
+
+          const tlsOptions: RedisOptions['tls'] = {
+            rejectUnauthorized,
+          };
+
+          if (caFile) {
+            const filePath = resolve(process.cwd(), caFile);
+            if (existsSync(filePath)) {
+              tlsOptions.ca = readFileSync(filePath, 'utf8');
+            } else {
+              logger.warn(`REDIS_TLS_CA_FILE 指定的证书未找到: ${filePath}`);
+            }
+          }
+
+          return tlsOptions;
+        };
+
+        let client: Redis;
+
+        if (connectionUrl) {
+          client = new Redis(connectionUrl, {
+            ...commonOptions,
+            tls: buildTlsOptions(tlsShouldEnable(connectionUrl)),
+          });
+        } else {
+          const host = configService.get<string>('REDIS_HOST', '127.0.0.1');
+          const port = Number(configService.get<string>('REDIS_PORT', '6379'));
+          const password = configService.get<string>('REDIS_PASSWORD') || undefined;
+          const db = Number(configService.get<string>('REDIS_DB', '0'));
+
+          client = new Redis({
+            ...commonOptions,
+            host,
+            port,
+            password,
+            db,
+            tls: buildTlsOptions(tlsShouldEnable()),
+          });
+        }
 
         client.on('connect', () => logger.log('Redis 已连接'));
         client.on('error', (error) => logger.error('Redis 连接异常', error));
