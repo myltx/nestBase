@@ -16,9 +16,16 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { ContentsService } from './contents.service';
-import { CreateContentDto, UpdateContentDto, QueryContentDto } from './dto';
-import { JwtAuthGuard, RolesGuard } from '@common/guards';
+import {
+  CreateContentDto,
+  UpdateContentDto,
+  QueryContentDto,
+  BatchDeleteContentsDto,
+} from './dto';
+import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
+import { RolesGuard } from '@common/guards/roles.guard';
 import { Roles, CurrentUser, Public } from '@common/decorators';
+import { RequirePermissions } from '@common/decorators/permissions.decorator';
 
 @ApiTags('内容管理')
 @Controller('contents')
@@ -73,13 +80,18 @@ export class ContentsController {
   }
 
   @Delete(':id')
-  @Roles('ADMIN')
-  @ApiOperation({ summary: '删除内容（仅管理员）' })
-  @ApiParam({ name: 'id', description: '内容ID', example: 'content-uuid-123' })
+  @RequirePermissions('content.delete')
+  @ApiOperation({ summary: '删除内容' })
   @ApiResponse({ status: 200, description: '删除成功' })
-  @ApiResponse({ status: 403, description: '权限不足' })
-  @ApiResponse({ status: 404, description: '内容不存在' })
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string) {
     return this.contentsService.remove(id);
+  }
+
+  @Post('batch-delete')
+  @RequirePermissions('content.delete')
+  @ApiOperation({ summary: '批量删除内容' })
+  @ApiResponse({ status: 200, description: '删除成功' })
+  async batchRemove(@Body() dto: BatchDeleteContentsDto) {
+    return this.contentsService.batchRemove(dto.ids);
   }
 }

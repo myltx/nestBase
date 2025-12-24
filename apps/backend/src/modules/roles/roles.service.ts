@@ -340,6 +340,67 @@ export class RolesService {
     };
   }
 
+  /**
+   * 批量删除角色
+   */
+  async batchRemove(ids: string[], actorId?: string) {
+    if (ids.length === 0) {
+      return { message: '删除成功(未选择任何角色)' };
+    }
+
+    // 检查是否包含系统角色
+    const systemRoles = await this.prisma.role.findMany({
+      where: {
+        id: { in: ids },
+        isSystem: true,
+      },
+      select: { code: true },
+    });
+
+    if (systemRoles.length > 0) {
+      throw new BadRequestException(
+        `包含系统角色无法删除: ${systemRoles.map((r) => r.code).join(', ')}`,
+      );
+    }
+
+    // 检查是否有关联用户
+    // 这里使用 aggregation 快速检查
+    const userRole = await this.prisma.userRole.findFirst({
+      where: {
+        roleId: { in: ids },
+      },
+      select: { roleId: true },
+    });
+
+    if (userRole) {
+      // 如果需要更详细的错误信息，可以进一步查询哪一个角色有关联用户
+      // 简单起见，拒绝操作
+      throw new BadRequestException('部分角色下仍有用户关联，无法删除');
+    }
+
+    const result = await this.prisma.role.deleteMany({
+      where: {
+        id: { in: ids },
+      },
+    });
+
+    if (result.count > 0) {
+      await this.audit.log({
+        event: 'role.batch_delete',
+        userId: actorId,
+        resource: 'Role',
+        resourceId: JSON.stringify(ids),
+        action: 'DELETE',
+        payload: {
+          ids,
+          count: result.count,
+        },
+      });
+    }
+
+    return { message: `成功删除 ${result.count} 个角色` };
+  }
+
   private async invalidatePermissionCache(userIds: string | string[]) {
     const ids = Array.isArray(userIds) ? userIds : [userIds];
     if (ids.length === 0) {

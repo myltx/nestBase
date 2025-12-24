@@ -427,6 +427,40 @@ export class UsersService {
     return { message: '用户删除成功' };
   }
 
+  /**
+   * 批量删除用户
+   */
+  async batchRemove(ids: string[], actorId?: string) {
+    if (ids.length === 0) {
+      return { message: '删除成功(未选择任何用户)' };
+    }
+
+    const result = await this.prisma.user.deleteMany({
+      where: {
+        id: { in: ids },
+      },
+    });
+
+    if (result.count > 0) {
+      await this.audit.log({
+        event: 'user.batch_delete',
+        userId: actorId,
+        resource: 'User',
+        resourceId: JSON.stringify(ids),
+        action: 'DELETE',
+        payload: {
+          ids,
+          count: result.count,
+        },
+      });
+
+      // 清除缓存
+      await this.invalidatePermissionCache(ids);
+    }
+
+    return { message: `成功删除 ${result.count} 个用户` };
+  }
+
 
 
   /**
