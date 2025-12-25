@@ -52,6 +52,27 @@
 - ✅ **全局 API 治理标准** (v1.5.0 新增)
 - ✅ **仪表盘统计模块** (v1.5.0 新增)
 
+```mermaid
+graph TD
+    User[用户 / 客户端] -->|HTTP 请求| Guards[守卫 (Auth/Roles)]
+
+    subgraph Application [NestJS 应用]
+        Guards -->|通过| Interceptors[拦截器 (Logging/Transform)]
+        Interceptors --> Pipes[管道 (Validation)]
+        Pipes --> Controller[控制器层]
+        Controller --> Service[服务层 (Business Logic)]
+    end
+
+    subgraph Infrastructure [基础设施]
+        Service -->|Prisma Client| ORM[Prisma ORM]
+        ORM -->|TCP Connection| DB[(Supabase / PostgreSQL)]
+    end
+
+    style User fill:#f9fafb,stroke:#374151
+    style Application fill:#eef2ff,stroke:#4f46e5
+    style Infrastructure fill:#f0fdf4,stroke:#16a34a
+```
+
 ---
 
 ## 🛠️ 技术栈
@@ -1144,22 +1165,22 @@ docs/
 
 ### 快速入口
 
-| 文档类型 | 说明 | 入口 | 数量 |
-|---------|------|------|------|
-| 🔧 **Backend 文档** | NestJS 后端技术文档 | [docs/backend/README.md](docs/backend/README.md) | 29 个 |
-| 📦 **Project 文档** | 项目配置和管理文档 | [docs/project/README.md](docs/project/README.md) | 19 个 |
-| 🎨 **Frontend 文档** | 前端服务文档（预留） | [docs/frontend/README.md](docs/frontend/README.md) | - |
-| 📚 **文档中心** | 完整文档导航和索引 | [docs/README.md](docs/README.md) | - |
+| 文档类型             | 说明                 | 入口                                               | 数量  |
+| -------------------- | -------------------- | -------------------------------------------------- | ----- |
+| 🔧 **Backend 文档**  | NestJS 后端技术文档  | [docs/backend/README.md](docs/backend/README.md)   | 29 个 |
+| 📦 **Project 文档**  | 项目配置和管理文档   | [docs/project/README.md](docs/project/README.md)   | 19 个 |
+| 🎨 **Frontend 文档** | 前端服务文档（预留） | [docs/frontend/README.md](docs/frontend/README.md) | -     |
+| 📚 **文档中心**      | 完整文档导航和索引   | [docs/README.md](docs/README.md)                   | -     |
 
 ### 按角色快速导航
 
-| 角色 | 推荐阅读路径 |
-|------|------------|
-| **新开发人员** | [快速开始](docs/project/setup/QUICKSTART.md) → [Supabase配置](docs/project/setup/SUPABASE_SETUP.md) → [RBAC权限](docs/project/features/RBAC_GUIDE.md) |
-| **后端开发** | [API规范](docs/backend/architecture/API_NAMING_CONVENTION.md) → [业务状态码](docs/backend/architecture/BUSINESS_CODES.md) → [CMS指南](docs/backend/guides/CMS_API_GUIDE.md) |
-| **前端开发** | [Apifox导入](docs/project/api-tools/APIFOX_IMPORT_GUIDE.md) → [CMS API](docs/backend/guides/CMS_API_GUIDE.md) → [用户角色API](docs/backend/guides/API_USER_ROLES.md) |
-| **架构师** | [Monorepo架构](docs/project/setup/MONOREPO.md) → [RBAC设计](docs/project/features/RBAC_REDESIGN.md) → [Backend架构](docs/backend/architecture/) |
-| **运维人员** | [Supabase配置](docs/project/setup/SUPABASE_SETUP.md) → [数据库迁移](docs/backend/migrations/MIGRATION_GUIDE.md) |
+| 角色           | 推荐阅读路径                                                                                                                                                                |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **新开发人员** | [快速开始](docs/project/setup/QUICKSTART.md) → [Supabase配置](docs/project/setup/SUPABASE_SETUP.md) → [RBAC权限](docs/project/features/RBAC_GUIDE.md)                       |
+| **后端开发**   | [API规范](docs/backend/architecture/API_NAMING_CONVENTION.md) → [业务状态码](docs/backend/architecture/BUSINESS_CODES.md) → [CMS指南](docs/backend/guides/CMS_API_GUIDE.md) |
+| **前端开发**   | [Apifox导入](docs/project/api-tools/APIFOX_IMPORT_GUIDE.md) → [CMS API](docs/backend/guides/CMS_API_GUIDE.md) → [用户角色API](docs/backend/guides/API_USER_ROLES.md)        |
+| **架构师**     | [Monorepo架构](docs/project/setup/MONOREPO.md) → [RBAC设计](docs/project/features/RBAC_REDESIGN.md) → [Backend架构](docs/backend/architecture/)                             |
+| **运维人员**   | [Supabase配置](docs/project/setup/SUPABASE_SETUP.md) → [数据库迁移](docs/backend/migrations/MIGRATION_GUIDE.md)                                                             |
 
 ---
 
@@ -1242,6 +1263,6 @@ CMD ["node", "dist/main"]
 
 **⭐ 如果这个项目对您有帮助，请给个 Star！**
 
-Made with ❤️ by [Your Name]
+Made with ❤️ by [myltx]
 
 </div>
