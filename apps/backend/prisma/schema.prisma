@@ -348,4 +348,40 @@ enum LoginStatus {
 enum ErrorLevel {
   WARN  // 业务异常（参数错误、权限不足等）
   ERROR // 系统异常（数据库错误、第三方接口失败等）
+  EMAIL // 邮件发送异常
+  OTHER // 其他系统异常
+}
+
+// ==================== 基础数据模块 ====================
+
+// 数据字典模型
+model Dictionary {
+  id          String           @id @default(uuid())
+  code        String           @unique // 字典编码 (如: user_gender)
+  name        String           // 字典名称 (如: 用户性别)
+  description String?          // 描述
+  isActive    Boolean          @default(true) @map("is_active") // 是否启用
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  items       DictionaryItem[] // 字典项
+
+  @@map("dictionaries")
+}
+
+// 数据字典项模型
+model DictionaryItem {
+  id           String     @id @default(uuid())
+  dictionaryId String     @map("dictionary_id")
+  dictionary   Dictionary @relation(fields: [dictionaryId], references: [id], onDelete: Cascade)
+  label        String     // 显示文本 (如: 男)
+  value        String     // 存储值 (如: 1)
+  sort         Int        @default(0) // 排序
+  color        String?    // 展示颜色 (tag color, e.g. blue, green)
+  status       Boolean    @default(true) // 状态 (true:启用 false:禁用)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  @@unique([dictionaryId, value]) // 同一字典下value唯一
+  @@index([dictionaryId])
+  @@map("dictionary_items")
 }

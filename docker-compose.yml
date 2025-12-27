@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/nestbase
+      - DIRECT_URL=postgresql://postgres:postgres@db:5432/nestbase
+      - JWT_SECRET=dev_secret_key_change_in_production
+    depends_on:
+      - db
+    networks:
+      - nestbase-network
+
+  db:
+    image: postgres:15-alpine
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=nestbase
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - nestbase-network
+
+volumes:
+  postgres_data:
+
+networks:
+  nestbase-network:

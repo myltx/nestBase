@@ -49,6 +49,29 @@
 - ✅ 统一响应格式
 - ✅ 全局异常处理
 - ✅ 请求数据验证管道
+- ✅ **全局 API 治理标准** (v1.5.0 新增)
+- ✅ **仪表盘统计模块** (v1.5.0 新增)
+
+```mermaid
+graph TD
+    User[用户 / 客户端] -->|HTTP 请求| Guards[守卫 (Auth/Roles)]
+
+    subgraph Application [NestJS 应用]
+        Guards -->|通过| Interceptors[拦截器 (Logging/Transform)]
+        Interceptors --> Pipes[管道 (Validation)]
+        Pipes --> Controller[控制器层]
+        Controller --> Service[服务层 (Business Logic)]
+    end
+
+    subgraph Infrastructure [基础设施]
+        Service -->|Prisma Client| ORM[Prisma ORM]
+        ORM -->|TCP Connection| DB[(Supabase / PostgreSQL)]
+    end
+
+    style User fill:#f9fafb,stroke:#374151
+    style Application fill:#eef2ff,stroke:#4f46e5
+    style Infrastructure fill:#f0fdf4,stroke:#16a34a
+```
 
 ---
 
@@ -247,6 +270,12 @@ POST /api/auth/login       # 用户登录
 GET  /api/auth/profile     # 获取当前用户信息（需认证）
 ```
 
+#### 📊 仪表盘模块 (v1.5.0 新增)
+
+```http
+GET    /api/dashboard/stats # 获取系统概览统计信息
+```
+
 #### 👥 用户模块
 
 ```http
@@ -257,6 +286,7 @@ PATCH  /api/users/:id      # 更新用户（仅管理员）
 DELETE /api/users/:id      # 删除用户（仅管理员）
 PUT    /api/users/:id/roles   # 设置用户角色（完全替换，管理员）
 GET    /api/users/:id/roles   # 获取用户的角色列表
+POST   /api/users/batch-delete # 批量删除用户（管理员，v1.5.0）
 ```
 
 #### 📁 菜单模块（v1.3.0 新增）
@@ -271,6 +301,8 @@ PATCH  /api/menus/:id              # 更新菜单（仅管理员）
 DELETE /api/menus/:id              # 删除菜单（仅管理员）
 POST   /api/menus/assign           # 为角色分配菜单（仅管理员）
 GET    /api/menus/role/:role       # 获取角色的菜单（仅管理员）
+GET    /api/menus/route-names      # 获取所有菜单的路由名称（仅管理员，v1.5.0）
+GET    /api/menus/validation/route-name # 验证路由名称是否可用 (v1.5.0)
 ```
 
 **菜单系统特性**：
@@ -295,8 +327,7 @@ DELETE /api/permissions/:id            # 删除权限（仅管理员）
 #### 👥 角色模块（v1.4.0 扩展）
 
 ```http
-GET    /api/roles                      # 查询所有角色
-GET    /api/roles/page                 # 分页查询角色
+GET    /api/roles                      # 查询所有角色（支持分页）
 GET    /api/roles/:id                  # 查询角色详情
 POST   /api/roles                      # 创建角色（仅管理员）
 PATCH  /api/roles/:id                  # 更新角色（仅管理员）
@@ -305,10 +336,56 @@ POST   /api/roles/:id/menus            # 为角色分配菜单（仅管理员）
 GET    /api/roles/:id/menus            # 获取角色的菜单列表
 POST   /api/roles/:id/permissions      # 为角色分配权限（仅管理员）
 GET    /api/roles/:id/permissions      # 获取角色的权限列表
-GET    /api/roles/:id/stats            # 获取角色统计信息
 GET    /api/roles/:id/users            # 查看该角色下的用户（分页）
 POST   /api/roles/:id/users            # 批量添加用户到该角色（管理员）
 DELETE /api/roles/:id/users            # 批量将用户从该角色移除（管理员）
+POST   /api/roles/batch-delete         # 批量删除角色（管理员，v1.5.0）
+```
+
+#### 📄 内容模块 (v1.5.0 更新)
+
+```http
+GET    /api/contents                   # 查询内容列表
+GET    /api/contents/:id               # 查询内容详情
+POST   /api/contents                   # 创建内容
+PATCH  /api/contents/:id               # 更新内容
+DELETE /api/contents/:id               # 删除内容
+POST   /api/contents/batch-delete      # 批量删除内容（管理员，v1.5.0）
+```
+
+#### 🏷️ 标签模块 (v1.5.0 新增)
+
+```http
+POST   /api/tags                       # 创建标签（仅管理员）
+POST   /api/tags/batch                 # 批量创建标签（仅管理员）
+GET    /api/tags                       # 查询标签列表
+GET    /api/tags/:id                   # 根据 ID 查询标签
+GET    /api/tags/slug/:slug            # 根据 slug 查询标签
+PATCH  /api/tags/:id                   # 更新标签（仅管理员）
+DELETE /api/tags/:id                   # 删除标签（仅管理员）
+```
+
+#### 🗂️ 分类模块 (v1.5.0 新增)
+
+```http
+POST   /api/categories                 # 创建分类（仅管理员）
+GET    /api/categories                 # 查询分类列表（支持 ?format=tree|flat）
+GET    /api/categories/:id             # 根据 ID 查询分类
+PATCH  /api/categories/:id             # 更新分类（仅管理员）
+DELETE /api/categories/:id             # 删除分类（仅管理员）
+```
+
+#### 📜 日志模块 (v1.5.0 新增)
+
+```http
+GET    /api/logs                       # 查询日志列表（管理员）
+GET    /api/logs/stats                 # 获取日志统计（管理员）
+```
+
+#### ⚙️ 系统模块 (v1.5.0 新增)
+
+```http
+GET    /api/system/status              # 获取系统运行状态
 ```
 
 ### 使用示例
@@ -692,6 +769,33 @@ curl -X GET http://localhost:3000/api/roles/{roleId}/permissions \
 
 ---
 
+## ⚖️ API 治理标准 (v1.5.0)
+
+本项目遵循严格的 RESTful API 设计规范与治理标准，确保接口的一致性与可维护性。
+
+### 核心原则
+
+1.  **资源导向设计**：API URL 基于名词资源（如 `/users`, `/roles`），避免动词（如 `/getUsers`）。
+2.  **标准 HTTP 方法**：
+    - `GET`: 查询资源
+    - `POST`: 创建资源
+    - `PATCH`: 部分更新资源
+    - `DELETE`: 删除资源
+3.  **统一批量操作**：
+    - 批量删除接口统一为 `POST /:resource/batch-delete`。
+    - 请求体统一格式：`{ ids: ["id1", "id2"] }`。
+4.  **轻量级 Controller**：Controller 仅负责参数校验与权限控制，业务逻辑全部下沉至 Service 层。
+
+### 目录结构优化
+
+v1.5.0 对后端模块进行了重构与标准化：
+
+- **移除中间模块**：废弃 `user-roles` 模块，相关功能拆分归位至 `users`（用户视角）和 `roles`（角色视角）。
+- **新增 Dashboard**：使用 `dashboard` 模块替代原有的 `home` 模块，提供专门的系统统计服务。
+- **模块独立性**：增强了 Users 和 Auth 模块的边界清晰度。
+
+---
+
 ## 🔧 Supabase 配置指南
 
 ### 获取 Supabase 连接信息
@@ -1061,22 +1165,22 @@ docs/
 
 ### 快速入口
 
-| 文档类型 | 说明 | 入口 | 数量 |
-|---------|------|------|------|
-| 🔧 **Backend 文档** | NestJS 后端技术文档 | [docs/backend/README.md](docs/backend/README.md) | 29 个 |
-| 📦 **Project 文档** | 项目配置和管理文档 | [docs/project/README.md](docs/project/README.md) | 19 个 |
-| 🎨 **Frontend 文档** | 前端服务文档（预留） | [docs/frontend/README.md](docs/frontend/README.md) | - |
-| 📚 **文档中心** | 完整文档导航和索引 | [docs/README.md](docs/README.md) | - |
+| 文档类型             | 说明                 | 入口                                               | 数量  |
+| -------------------- | -------------------- | -------------------------------------------------- | ----- |
+| 🔧 **Backend 文档**  | NestJS 后端技术文档  | [docs/backend/README.md](docs/backend/README.md)   | 29 个 |
+| 📦 **Project 文档**  | 项目配置和管理文档   | [docs/project/README.md](docs/project/README.md)   | 19 个 |
+| 🎨 **Frontend 文档** | 前端服务文档（预留） | [docs/frontend/README.md](docs/frontend/README.md) | -     |
+| 📚 **文档中心**      | 完整文档导航和索引   | [docs/README.md](docs/README.md)                   | -     |
 
 ### 按角色快速导航
 
-| 角色 | 推荐阅读路径 |
-|------|------------|
-| **新开发人员** | [快速开始](docs/project/setup/QUICKSTART.md) → [Supabase配置](docs/project/setup/SUPABASE_SETUP.md) → [RBAC权限](docs/project/features/RBAC_GUIDE.md) |
-| **后端开发** | [API规范](docs/backend/architecture/API_NAMING_CONVENTION.md) → [业务状态码](docs/backend/architecture/BUSINESS_CODES.md) → [CMS指南](docs/backend/guides/CMS_API_GUIDE.md) |
-| **前端开发** | [Apifox导入](docs/project/api-tools/APIFOX_IMPORT_GUIDE.md) → [CMS API](docs/backend/guides/CMS_API_GUIDE.md) → [用户角色API](docs/backend/guides/API_USER_ROLES.md) |
-| **架构师** | [Monorepo架构](docs/project/setup/MONOREPO.md) → [RBAC设计](docs/project/features/RBAC_REDESIGN.md) → [Backend架构](docs/backend/architecture/) |
-| **运维人员** | [Supabase配置](docs/project/setup/SUPABASE_SETUP.md) → [数据库迁移](docs/backend/migrations/MIGRATION_GUIDE.md) |
+| 角色           | 推荐阅读路径                                                                                                                                                                |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **新开发人员** | [快速开始](docs/project/setup/QUICKSTART.md) → [Supabase配置](docs/project/setup/SUPABASE_SETUP.md) → [RBAC权限](docs/project/features/RBAC_GUIDE.md)                       |
+| **后端开发**   | [API规范](docs/backend/architecture/API_NAMING_CONVENTION.md) → [业务状态码](docs/backend/architecture/BUSINESS_CODES.md) → [CMS指南](docs/backend/guides/CMS_API_GUIDE.md) |
+| **前端开发**   | [Apifox导入](docs/project/api-tools/APIFOX_IMPORT_GUIDE.md) → [CMS API](docs/backend/guides/CMS_API_GUIDE.md) → [用户角色API](docs/backend/guides/API_USER_ROLES.md)        |
+| **架构师**     | [Monorepo架构](docs/project/setup/MONOREPO.md) → [RBAC设计](docs/project/features/RBAC_REDESIGN.md) → [Backend架构](docs/backend/architecture/)                             |
+| **运维人员**   | [Supabase配置](docs/project/setup/SUPABASE_SETUP.md) → [数据库迁移](docs/backend/migrations/MIGRATION_GUIDE.md)                                                             |
 
 ---
 
@@ -1159,6 +1263,6 @@ CMD ["node", "dist/main"]
 
 **⭐ 如果这个项目对您有帮助，请给个 Star！**
 
-Made with ❤️ by [Your Name]
+Made with ❤️ by [myltx]
 
 </div>
