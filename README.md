@@ -54,18 +54,18 @@
 
 ```mermaid
 graph TD
-    User[用户 / 客户端] -->|HTTP 请求| Guards[守卫 (Auth/Roles)]
+    User["用户 / 客户端"] -->|HTTP 请求| Guards["守卫 (Auth/Roles)"]
 
     subgraph Application [NestJS 应用]
-        Guards -->|通过| Interceptors[拦截器 (Logging/Transform)]
-        Interceptors --> Pipes[管道 (Validation)]
-        Pipes --> Controller[控制器层]
-        Controller --> Service[服务层 (Business Logic)]
+        Guards -->|通过| Interceptors["拦截器 (Logging/Transform)"]
+        Interceptors --> Pipes["管道 (Validation)"]
+        Pipes --> Controller["控制器层"]
+        Controller --> Service["服务层 (Business Logic)"]
     end
 
     subgraph Infrastructure [基础设施]
         Service -->|Prisma Client| ORM[Prisma ORM]
-        ORM -->|TCP Connection| DB[(Supabase / PostgreSQL)]
+        ORM -->|TCP Connection| DB[("Supabase / PostgreSQL")]
     end
 
     style User fill:#f9fafb,stroke:#374151
