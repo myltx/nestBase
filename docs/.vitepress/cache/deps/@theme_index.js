@@ -1,66 +1,66 @@
 import {
   useMediaQuery
-} from "./chunk-WX2ITIWH.js";
+} from "./chunk-SVVZYRQO.js";
 import {
   computed,
   ref,
   shallowRef,
   watch
-} from "./chunk-EZ7BNVI3.js";
+} from "./chunk-HVCH4CBC.js";
 
-// node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/index.js
-import "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/styles/fonts.css";
+// node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/index.js
+import "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/styles/fonts.css";
 
-// node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/without-fonts.js
-import "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/styles/vars.css";
-import "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/styles/base.css";
-import "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/styles/icons.css";
-import "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/styles/utils.css";
-import "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/styles/components/custom-block.css";
-import "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/styles/components/vp-code.css";
-import "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/styles/components/vp-code-group.css";
-import "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/styles/components/vp-doc.css";
-import "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/styles/components/vp-sponsor.css";
-import VPBadge from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/components/VPBadge.vue";
-import Layout from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/Layout.vue";
-import { default as default2 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/components/VPBadge.vue";
-import { default as default3 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/components/VPButton.vue";
-import { default as default4 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/components/VPDocAsideSponsors.vue";
-import { default as default5 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/components/VPFeatures.vue";
-import { default as default6 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/components/VPHomeContent.vue";
-import { default as default7 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/components/VPHomeFeatures.vue";
-import { default as default8 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/components/VPHomeHero.vue";
-import { default as default9 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/components/VPHomeSponsors.vue";
-import { default as default10 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/components/VPImage.vue";
-import { default as default11 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/components/VPLink.vue";
-import { default as default12 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/components/VPNavBarSearch.vue";
-import { default as default13 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/components/VPSocialLink.vue";
-import { default as default14 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/components/VPSocialLinks.vue";
-import { default as default15 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/components/VPSponsors.vue";
-import { default as default16 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/components/VPTeamMembers.vue";
-import { default as default17 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/components/VPTeamPage.vue";
-import { default as default18 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/components/VPTeamPageSection.vue";
-import { default as default19 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/components/VPTeamPageTitle.vue";
+// node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/without-fonts.js
+import "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/styles/vars.css";
+import "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/styles/base.css";
+import "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/styles/icons.css";
+import "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/styles/utils.css";
+import "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/styles/components/custom-block.css";
+import "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/styles/components/vp-code.css";
+import "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/styles/components/vp-code-group.css";
+import "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/styles/components/vp-doc.css";
+import "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/styles/components/vp-sponsor.css";
+import VPBadge from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/components/VPBadge.vue";
+import Layout from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/Layout.vue";
+import { default as default2 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/components/VPBadge.vue";
+import { default as default3 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/components/VPButton.vue";
+import { default as default4 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/components/VPDocAsideSponsors.vue";
+import { default as default5 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/components/VPFeatures.vue";
+import { default as default6 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/components/VPHomeContent.vue";
+import { default as default7 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/components/VPHomeFeatures.vue";
+import { default as default8 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/components/VPHomeHero.vue";
+import { default as default9 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/components/VPHomeSponsors.vue";
+import { default as default10 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/components/VPImage.vue";
+import { default as default11 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/components/VPLink.vue";
+import { default as default12 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/components/VPNavBarSearch.vue";
+import { default as default13 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/components/VPSocialLink.vue";
+import { default as default14 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/components/VPSocialLinks.vue";
+import { default as default15 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/components/VPSponsors.vue";
+import { default as default16 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/components/VPTeamMembers.vue";
+import { default as default17 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/components/VPTeamPage.vue";
+import { default as default18 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/components/VPTeamPageSection.vue";
+import { default as default19 } from "/Users/mayunlong/自己的/code/小玩意/nestbase/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/components/VPTeamPageTitle.vue";
 
-// node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/composables/local-nav.js
+// node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/composables/local-nav.js
 import { onContentUpdated } from "vitepress";
 
-// node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/composables/outline.js
+// node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/composables/outline.js
 import { getScrollOffset } from "vitepress";
 
-// node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/support/utils.js
+// node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/support/utils.js
 import { withBase } from "vitepress";
 
-// node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/composables/data.js
+// node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/composables/data.js
 import { useData as useData$ } from "vitepress";
 var useData = useData$;
 
-// node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/support/utils.js
+// node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/support/utils.js
 function ensureStartingSlash(path) {
   return path.startsWith("/") ? path : `/${path}`;
 }
 
-// node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/support/sidebar.js
+// node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/support/sidebar.js
 function getSidebar(_sidebar, path) {
   if (Array.isArray(_sidebar))
     return addBase(_sidebar);
@@ -103,7 +103,7 @@ function addBase(items, _base) {
   });
 }
 
-// node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/composables/sidebar.js
+// node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/composables/sidebar.js
 function useSidebar() {
   const { frontmatter, page, theme: theme2 } = useData();
   const is960 = useMediaQuery("(min-width: 960px)");
@@ -160,7 +160,7 @@ function useSidebar() {
   };
 }
 
-// node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/composables/outline.js
+// node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/composables/outline.js
 var ignoreRE = /\b(?:VPBadge|header-anchor|footnote-ref|ignore-header)\b/;
 var resolvedHeaders = [];
 function getHeaders(range) {
@@ -225,7 +225,7 @@ function buildTree(data, min, max) {
   return result;
 }
 
-// node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/composables/local-nav.js
+// node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/composables/local-nav.js
 function useLocalNav() {
   const { theme: theme2, frontmatter } = useData();
   const headers = shallowRef([]);
@@ -241,7 +241,7 @@ function useLocalNav() {
   };
 }
 
-// node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_@types+node@20.19.25_postcss@8.5.6_search_0fc96ee5aafddcef44108237cd853134/node_modules/vitepress/dist/client/theme-default/without-fonts.js
+// node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.46.2_search-insights@2.17.3_typescript@5.9.2/node_modules/vitepress/dist/client/theme-default/without-fonts.js
 var theme = {
   Layout,
   enhanceApp: ({ app }) => {
