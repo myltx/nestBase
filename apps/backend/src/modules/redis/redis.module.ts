@@ -24,7 +24,8 @@ import { RedisService } from './redis.service';
 
         const connectionUrl = configService.get<string>('REDIS_URL');
         const tlsMode = (configService.get<string>('REDIS_TLS', 'auto') || 'auto').toLowerCase();
-        const rejectUnauthorized = configService.get<string>('REDIS_TLS_REJECT_UNAUTHORIZED', 'true') !== 'false';
+        const rejectUnauthorized =
+          configService.get<string>('REDIS_TLS_REJECT_UNAUTHORIZED', 'true') !== 'false';
         const caFile = configService.get<string>('REDIS_TLS_CA_FILE');
         const commonOptions: RedisOptions = {
           keyPrefix: configService.get<string>('REDIS_KEY_PREFIX', 'nestbase:'),

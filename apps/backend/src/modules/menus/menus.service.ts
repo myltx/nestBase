@@ -9,6 +9,7 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMenuDto, UpdateMenuDto, QueryMenuDto } from './dto';
@@ -119,15 +120,7 @@ export class MenusService {
    * 查询所有菜单（支持分页和树形结构）
    */
   async findAll(queryDto: QueryMenuDto) {
-    const {
-      search,
-      rootOnly,
-      activeOnly,
-      parentId,
-      current,
-      size,
-      format,
-    } = queryDto;
+    const { search, rootOnly, activeOnly, parentId, current, size, format } = queryDto;
 
     // 构建查询条件
     const where: any = {};
@@ -160,7 +153,7 @@ export class MenusService {
       });
 
       if (format === 'tree' || (!current && !size)) {
-         // 在内存中构建树形结构（递归函数）
+        // 在内存中构建树形结构（递归函数）
         const buildTree = (pid: string | null = null): any[] => {
           const children = allMenus.filter((menu) => menu.parentId === pid);
           return children.map((menu) => ({
@@ -177,7 +170,6 @@ export class MenusService {
       return allMenus;
     }
 
-
     // 以下是分页逻辑（通常用于 list 模式）
     const pageNum = parseInt(current || '1', 10);
     const limitNum = parseInt(size || '10', 10);
@@ -193,7 +185,7 @@ export class MenusService {
 
     // 针对只查询顶层菜单的分页（rootOnly=true）
     // 或者普通的列表分页
-    
+
     // 查询菜单及总数
     const [menus, total] = await Promise.all([
       this.prisma.menu.findMany({
@@ -214,8 +206,6 @@ export class MenusService {
       totalPages: Math.ceil(total / limitNum),
     };
   }
-
-
 
   /**
    * 转换菜单数据为前端路由格式
@@ -240,7 +230,9 @@ export class MenusService {
         ...(menu.localIcon && { localIcon: menu.localIcon }),
         ...(menu.fixedIndexInTab !== undefined && { fixedIndexInTab: menu.fixedIndexInTab }),
       },
-      children: menu.children ? menu.children.map((child: any) => this.transformMenuToRoute(child)) : [],
+      children: menu.children
+        ? menu.children.map((child: any) => this.transformMenuToRoute(child))
+        : [],
     };
 
     // 如果 href 为 null 则不包含该字段
@@ -320,15 +312,22 @@ export class MenusService {
    * 返回格式：{ routes: [], home: string }
    */
   async findByRoles(roleCodes: string[]) {
+    this.routesCacheTtl;
+    const logger = new Logger('MenusService');
+
     const normalizedRoleCodes = Array.from(new Set(roleCodes?.filter(Boolean) ?? []));
     const cacheKey =
       normalizedRoleCodes.length > 0
         ? `menu:routes:${normalizedRoleCodes.join('|')}`
         : 'menu:routes:guest';
-    const cached = await this.redisService.getJson<{ routes: any[]; home: string }>(cacheKey);
 
-    if (cached) {
-      return cached;
+    try {
+      const cached = await this.redisService.getJson<{ routes: any[]; home: string }>(cacheKey);
+      if (cached) {
+        return cached;
+      }
+    } catch (e) {
+      logger.error('Redis cache error', e);
     }
 
     // 先通过角色 code 查询角色 ID 和 home 字段
@@ -417,7 +416,11 @@ export class MenusService {
       home: roles[0]?.home || '/home',
     };
 
-    await this.redisService.setJson(cacheKey, result, this.routesCacheTtl);
+    try {
+      await this.redisService.setJson(cacheKey, result, this.routesCacheTtl);
+    } catch (e) {
+      logger.error('Failed to set cache', e);
+    }
 
     return result;
   }

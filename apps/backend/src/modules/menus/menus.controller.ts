@@ -44,8 +44,6 @@ export class MenusController {
     return this.menusService.findAll(queryDto);
   }
 
-
-
   @Get('constant-routes')
   @ApiOperation({ summary: '获取常量菜单路由' })
   @Public()

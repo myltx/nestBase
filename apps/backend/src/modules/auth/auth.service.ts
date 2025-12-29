@@ -10,6 +10,7 @@ import {
   UnauthorizedException,
   BadRequestException,
   Inject,
+  Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -24,6 +25,7 @@ import { LoginStatus } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
@@ -38,7 +40,8 @@ export class AuthService {
    * 管理员账户只能通过数据库迁移或管理员手动创建
    */
   async register(registerDto: RegisterDto) {
-    const { email, userName, password, nickName, firstName, lastName, phone, gender, avatar } = registerDto;
+    const { email, userName, password, nickName, firstName, lastName, phone, gender, avatar } =
+      registerDto;
 
     // 检查邮箱是否已存在
     const existingUserByEmail = await this.prisma.user.findUnique({
@@ -168,7 +171,10 @@ export class AuthService {
     const { userName, password } = loginDto;
 
     // 获取请求信息
-    const ip = this.request.ip || (this.request.headers['x-forwarded-for'] as string)?.split(',')[0] || 'unknown';
+    const ip =
+      this.request.ip ||
+      (this.request.headers['x-forwarded-for'] as string)?.split(',')[0] ||
+      'unknown';
     const userAgent = this.request.headers['user-agent'] || 'unknown';
 
     // 查找用户(支持邮箱或用户名登录)
@@ -299,7 +305,7 @@ export class AuthService {
       { sub: user.id, type: 'refresh' },
       {
         expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN', '7d'),
-      }
+      },
     );
 
     return {
@@ -396,9 +402,7 @@ export class AuthService {
     // 3. 提取权限代码（去重 + 只取启用的权限）
     const permissionCodes = [
       ...new Set(
-        rolePermissions
-          .filter((rp) => rp.permission.status === 1)
-          .map((rp) => rp.permission.code)
+        rolePermissions.filter((rp) => rp.permission.status === 1).map((rp) => rp.permission.code),
       ),
     ];
 
