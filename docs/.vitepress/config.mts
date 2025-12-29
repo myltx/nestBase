@@ -121,6 +121,6 @@ export default defineConfig({
       ],
     },
 
-    socialLinks: [{ icon: 'github', link: 'https://github.com/your-repo' }],
+    socialLinks: [{ icon: 'github', link: 'https://github.com/myltx/nestBase' }],
   },
 });
