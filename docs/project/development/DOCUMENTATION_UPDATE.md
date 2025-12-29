@@ -21,7 +21,9 @@
 ## 📄 更新的文档文件
 
 ### 1. **README.md** - 主文档
+
 **更新内容**：
+
 - ✅ 添加了详细的 Supabase 配置指南章节
 - ✅ 区分了 IPv4 和 IPv6 网络的配置方法
 - ✅ 添加了密码 URL 编码说明和对照表
@@ -30,19 +32,24 @@
 - ✅ 更新了数据库初始化步骤，推荐使用 `prisma db push`
 
 **新增章节**：
+
 - 🔧 **Supabase 配置指南**（包含获取连接信息、IPv4 配置、密码编码）
 - 📋 **常见问题**（3 个典型问题及解决方案）
 - 🌍 **环境变量说明**（增强版，包含 `DATABASE_URL` vs `DIRECT_URL` 对比）
 
 ### 2. **QUICKSTART.md** - 快速启动指南
+
 **更新内容**：
+
 - ✅ 更新步骤 2：配置环境变量，提供 Supabase 和本地 PostgreSQL 两种选项
 - ✅ 添加 IPv4 网络特别提示
 - ✅ 更新步骤 3：推荐使用 `prisma db push` 进行开发环境数据库同步
 - ✅ 添加密码编码提示
 
 ### 3. **.env.example** - 环境变量模板
+
 **更新内容**：
+
 - ✅ 完全重写，提供清晰的注释说明
 - ✅ 添加 `DIRECT_URL` 配置项
 - ✅ 提供 Supabase Session Pooler 和本地 PostgreSQL 两种配置示例
@@ -53,9 +60,11 @@
   - 如何生成强随机 JWT_SECRET
 
 ### 4. **SUPABASE_SETUP.md** - 新建专项文档 🆕
+
 **完整的 Supabase 配置指南**，包含：
 
 **主要章节**：
+
 1. 📋 **配置步骤**（从创建项目到获取连接信息的完整流程）
 2. ⚠️ **重要注意事项**（密码编码、连接池配置）
 3. 🔧 **测试连接**（3 种验证方法）
@@ -66,6 +75,7 @@
 8. ✅ **配置检查清单**
 
 **特色内容**：
+
 - 完整的密码 URL 编码对照表（11 种特殊字符）
 - IPv4 vs IPv6 网络配置对比
 - Prisma Schema 配置示例
@@ -76,6 +86,7 @@
 ## 🔑 关键配置更改
 
 ### Prisma Schema
+
 ```prisma
 datasource db {
   provider  = "postgresql"
@@ -85,6 +96,7 @@ datasource db {
 ```
 
 ### 环境变量（IPv4 网络）
+
 ```env
 # Transaction mode (6543) - 应用运行时
 DATABASE_URL="postgresql://postgres.[ref]:[PASSWORD]@aws-x-region.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1"
@@ -94,6 +106,7 @@ DIRECT_URL="postgresql://postgres.[ref]:[PASSWORD]@aws-x-region.pooler.supabase.
 ```
 
 ### 密码 URL 编码
+
 ```
 原密码：ll940223..@@
 编码后：ll940223..%40%40
@@ -130,15 +143,15 @@ DIRECT_URL="postgresql://postgres.[ref]:[PASSWORD]@aws-x-region.pooler.supabase.
 
 ### 改进点
 
-| 改进项 | 改进前 | 改进后 |
-|--------|--------|--------|
-| **Supabase 配置** | 简单提及 | 完整独立章节 + 专项文档 |
-| **IPv4 支持** | 未提及 | 详细说明 + 警告提示 |
-| **密码编码** | 未提及 | 完整对照表 + 示例 |
-| **连接池** | 未区分 | Transaction vs Session 详细对比 |
-| **故障排查** | 无 | 4 个常见问题 + 解决方案 |
-| **环境变量** | 简单列表 | 详细说明 + 最佳实践 |
-| **配置示例** | 模糊 | 清晰的两种选项 |
+| 改进项            | 改进前   | 改进后                          |
+| ----------------- | -------- | ------------------------------- |
+| **Supabase 配置** | 简单提及 | 完整独立章节 + 专项文档         |
+| **IPv4 支持**     | 未提及   | 详细说明 + 警告提示             |
+| **密码编码**      | 未提及   | 完整对照表 + 示例               |
+| **连接池**        | 未区分   | Transaction vs Session 详细对比 |
+| **故障排查**      | 无       | 4 个常见问题 + 解决方案         |
+| **环境变量**      | 简单列表 | 详细说明 + 最佳实践             |
+| **配置示例**      | 模糊     | 清晰的两种选项                  |
 
 ### 新增内容统计
 
@@ -153,6 +166,7 @@ DIRECT_URL="postgresql://postgres.[ref]:[PASSWORD]@aws-x-region.pooler.supabase.
 ## 🎯 文档结构优化
 
 ### 信息层次
+
 ```
 README.md (主文档)
 ├── 快速开始 (简化步骤)
@@ -181,6 +195,7 @@ QUICKSTART.md (快速开始)
 所有文档更新均基于实际配置经验：
 
 ✅ **已验证**：
+
 - IPv4 网络成功连接 Supabase
 - 密码 URL 编码正确工作
 - `prisma db push` 成功同步数据库
@@ -188,6 +203,7 @@ QUICKSTART.md (快速开始)
 - 所有 API 路由正确映射
 
 ✅ **解决的实际问题**：
+
 1. ✅ Prisma Client 未生成 → 添加生成步骤
 2. ✅ 数据库认证失败 → 密码 URL 编码
 3. ✅ 连接超时 → 使用 Session Pooler
@@ -198,12 +214,14 @@ QUICKSTART.md (快速开始)
 ## 📚 文档可用性
 
 ### 面向用户群体
+
 - 🆕 **新手用户**：通过 QUICKSTART.md 4 步快速启动
 - 🔧 **配置用户**：通过 SUPABASE_SETUP.md 深入了解
 - 🐛 **问题排查**：通过常见问题章节快速解决
 - 💼 **生产部署**：通过最佳实践章节安全部署
 
 ### 文档完整性
+
 - ✅ 覆盖所有配置场景（IPv4、IPv6、本地）
 - ✅ 提供多种解决方案（Supabase、PostgreSQL）
 - ✅ 包含实际示例和命令
@@ -232,11 +250,11 @@ QUICKSTART.md (快速开始)
 
 ## 📖 相关链接
 
-- [README.md](README.md) - 主文档
-- [QUICKSTART.md](QUICKSTART.md) - 快速启动
-- [SUPABASE_SETUP.md](SUPABASE_SETUP.md) - Supabase 专项配置
+- [README.md](../../../README.md) - 主文档
+- [QUICKSTART.md](../setup/QUICKSTART.md) - 快速启动
+- [SUPABASE_SETUP.md](../setup/SUPABASE_SETUP.md) - Supabase 专项配置
 - [CODE_CHECK_REPORT.md](CODE_CHECK_REPORT.md) - 代码检查报告
-- [MONOREPO.md](MONOREPO.md) - Monorepo 架构说明
+- [MONOREPO.md](../setup/MONOREPO.md) - Monorepo 架构说明
 
 ---
 
@@ -245,17 +263,20 @@ QUICKSTART.md (快速开始)
 本次文档更新全面提升了项目的可用性和可维护性：
 
 🎯 **核心成果**：
+
 - ✅ 新用户可以按照文档成功配置并启动
 - ✅ IPv4 网络用户有明确的配置指引
 - ✅ 常见问题有详细的解决方案
 - ✅ 生产环境有安全配置建议
 
 📈 **文档质量**：
+
 - 从"能用"提升到"好用"
 - 从"简单"提升到"完整"
 - 从"基础"提升到"专业"
 
 🚀 **项目状态**：
+
 - 应用正常运行 ✅
 - 数据库连接成功 ✅
 - 文档完整准确 ✅

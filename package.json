@@ -10,6 +10,8 @@
     "dev:backend": "pnpm --filter backend dev",
     "build": "pnpm --filter backend build",
     "build:backend": "pnpm --filter backend build",
+    "build:frontend": "pnpm --filter @nestbase/frontend build",
+    "dev:frontend": "pnpm --filter @nestbase/frontend dev",
     "start": "pnpm --filter backend start",
     "start:prod": "pnpm --filter backend start:prod",
     "lint": "pnpm -r lint",
@@ -20,11 +22,16 @@
     "prisma:studio": "pnpm --filter backend prisma:studio",
     "prisma:seed": "pnpm --filter backend prisma:seed",
     "clean": "pnpm -r exec rm -rf node_modules dist",
-    "clean:all": "pnpm clean && rm -rf node_modules"
+    "clean:all": "pnpm clean && rm -rf node_modules",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "devDependencies": {
     "prettier": "^3.1.1",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitepress": "^1.6.4",
+    "vue": "^3.5.26"
   },
   "engines": {
     "node": ">=18.0.0",
