@@ -13,9 +13,10 @@ const { baseURL, otherBaseURL } = getServiceBaseURL(import.meta.env, isHttpProxy
 export const request = createFlatRequest<App.Service.Response, RequestInstanceState>(
   {
     baseURL,
+    timeout: 30000, // 暂时增加超时时间，等待 Redis 优化
     headers: {
-      apifoxToken: 'XL299LiMEDZ0H5h3A29PxwQXdMJqWyY2'
-    }
+      apifoxToken: 'XL299LiMEDZ0H5h3A29PxwQXdMJqWyY2',
+    },
   },
   {
     async onRequest(config) {
@@ -44,7 +45,9 @@ export const request = createFlatRequest<App.Service.Response, RequestInstanceSt
         handleLogout();
         window.removeEventListener('beforeunload', handleLogout);
 
-        request.state.errMsgStack = request.state.errMsgStack.filter(msg => msg !== response.data.msg);
+        request.state.errMsgStack = request.state.errMsgStack.filter(
+          (msg) => msg !== response.data.msg,
+        );
       }
 
       // when the backend response code is in `logoutCodes`, it means the user will be logged out and redirected to login page
@@ -56,7 +59,10 @@ export const request = createFlatRequest<App.Service.Response, RequestInstanceSt
 
       // when the backend response code is in `modalLogoutCodes`, it means the user will be logged out by displaying a modal
       const modalLogoutCodes = import.meta.env.VITE_SERVICE_MODAL_LOGOUT_CODES?.split(',') || [];
-      if (modalLogoutCodes.includes(responseCode) && !request.state.errMsgStack?.includes(response.data.msg)) {
+      if (
+        modalLogoutCodes.includes(responseCode) &&
+        !request.state.errMsgStack?.includes(response.data.msg)
+      ) {
         request.state.errMsgStack = [...(request.state.errMsgStack || []), response.data.msg];
 
         // prevent the user from refreshing the page
@@ -73,7 +79,7 @@ export const request = createFlatRequest<App.Service.Response, RequestInstanceSt
           },
           onClose() {
             logoutAndCleanup();
-          }
+          },
         });
 
         return null;
@@ -116,18 +122,21 @@ export const request = createFlatRequest<App.Service.Response, RequestInstanceSt
       // 🔥 跳过某些特殊 code 的错误提示（如 modal、token 过期）
       const modalLogoutCodes = import.meta.env.VITE_SERVICE_MODAL_LOGOUT_CODES?.split(',') || [];
       const expiredTokenCodes = import.meta.env.VITE_SERVICE_EXPIRED_TOKEN_CODES?.split(',') || [];
-      if (modalLogoutCodes.includes(backendErrorCode) || expiredTokenCodes.includes(backendErrorCode)) {
+      if (
+        modalLogoutCodes.includes(backendErrorCode) ||
+        expiredTokenCodes.includes(backendErrorCode)
+      ) {
         return;
       }
 
       showErrorMsg(request.state, message);
-    }
-  }
+    },
+  },
 );
 
 export const demoRequest = createRequest<App.Service.DemoResponse>(
   {
-    baseURL: otherBaseURL.demo
+    baseURL: otherBaseURL.demo,
   },
   {
     async onRequest(config) {
@@ -163,6 +172,6 @@ export const demoRequest = createRequest<App.Service.DemoResponse>(
       }
 
       window.$message?.error(message);
-    }
-  }
+    },
+  },
 );

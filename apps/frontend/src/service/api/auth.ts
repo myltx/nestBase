@@ -23,9 +23,13 @@ export function fetchGetUserInfo() {
   return request<Api.Auth.User>({ url: `${ServicePrefixEnum.AUTH}/profile` });
 }
 
-/** Get User Permission List */
 export function fetchGetUserPermissionList() {
   return request<Api.Auth.UserPermission[]>({ url: `${ServicePrefixEnum.AUTH}/permissions` });
+}
+
+/** Get Bootstrap Data (User + Permissions + Menus) */
+export function fetchBootstrap() {
+  return request<Api.Auth.BootstrapData>({ url: `${ServicePrefixEnum.AUTH}/bootstrap` });
 }
 
 /**

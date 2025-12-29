@@ -330,64 +330,46 @@ export class MenusService {
       logger.error('Redis cache error', e);
     }
 
-    // 先通过角色 code 查询角色 ID 和 home 字段
+    // 优化：一次查询获取角色信息和关联的菜单
+    // 替代了之前的：查角色 -> 查关联 -> 查菜单 (3次往返)
     const roles = await this.prisma.role.findMany({
       where: {
-        code: {
-          in: roleCodes,
-        },
+        code: { in: normalizedRoleCodes },
+        status: 1, // 确保角色是启用的
       },
       select: {
         id: true,
         home: true,
+        roleMenus: {
+          select: {
+            menu: {
+              select: this.menuSelect,
+            },
+          },
+        },
       },
     });
 
-    const roleIds = roles.map((role) => role.id);
-
-    if (roleIds.length === 0) {
+    if (roles.length === 0) {
       const result = {
         routes: [],
-        home: '/home', // 默认首页
+        home: '/home',
       };
       await this.redisService.setJson(cacheKey, result, this.routesCacheTtl);
       return result;
     }
 
-    // 查询角色拥有的菜单 ID
-    const roleMenus = await this.prisma.roleMenu.findMany({
-      where: {
-        roleId: {
-          in: roleIds,
-        },
-      },
-      select: {
-        menuId: true,
-      },
+    // 聚合所有角色的菜单并去重
+    const menuMap = new Map<string, any>();
+    roles.forEach((role) => {
+      role.roleMenus.forEach((rm) => {
+        if (rm.menu && rm.menu.status === 1) {
+          menuMap.set(rm.menu.id, rm.menu);
+        }
+      });
     });
 
-    const menuIds = [...new Set(roleMenus.map((rm) => rm.menuId))];
-
-    if (menuIds.length === 0) {
-      const result = {
-        routes: [],
-        home: roles[0]?.home || '/home', // 使用第一个角色的 home 或默认值
-      };
-      await this.redisService.setJson(cacheKey, result, this.routesCacheTtl);
-      return result;
-    }
-
-    // 查询菜单详情
-    const menus = await this.prisma.menu.findMany({
-      where: {
-        id: {
-          in: menuIds,
-        },
-        status: 1,
-      },
-      select: this.menuSelect,
-      orderBy: { order: 'asc' },
-    });
+    const menus = Array.from(menuMap.values()).sort((a, b) => (a.order || 0) - (b.order || 0));
 
     // 构建树形结构
     const buildTree = (parentId: string | null = null): any[] => {

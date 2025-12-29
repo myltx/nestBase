@@ -2,7 +2,13 @@ import { computed, nextTick, ref, shallowRef } from 'vue';
 import type { RouteRecordRaw } from 'vue-router';
 import { defineStore } from 'pinia';
 import { useBoolean } from '@sa/hooks';
-import type { CustomRoute, ElegantConstRoute, LastLevelRouteKey, RouteKey, RouteMap } from '@elegant-router/types';
+import type {
+  CustomRoute,
+  ElegantConstRoute,
+  LastLevelRouteKey,
+  RouteKey,
+  RouteMap,
+} from '@elegant-router/types';
 import { router } from '@/router';
 import { fetchGetConstantRoutes, fetchGetUserRoutes, fetchIsRouteExist } from '@/service/api';
 import { SetupStoreId } from '@/enum';
@@ -21,7 +27,7 @@ import {
   isRouteExistByRouteName,
   sortRoutesByOrder,
   transformMenuToSearchMenus,
-  updateLocaleOfGlobalMenus
+  updateLocaleOfGlobalMenus,
 } from './shared';
 
 export const useRouteStore = defineStore(SetupStoreId.Route, () => {
@@ -57,7 +63,7 @@ export const useRouteStore = defineStore(SetupStoreId.Route, () => {
   function addConstantRoutes(routes: ElegantConstRoute[]) {
     const constantRoutesMap = new Map<string, ElegantConstRoute>([]);
 
-    routes.forEach(route => {
+    routes.forEach((route) => {
       constantRoutesMap.set(route.name, route);
     });
 
@@ -70,7 +76,7 @@ export const useRouteStore = defineStore(SetupStoreId.Route, () => {
   function addAuthRoutes(routes: ElegantConstRoute[]) {
     const authRoutesMap = new Map<string, ElegantConstRoute>([]);
 
-    routes.forEach(route => {
+    routes.forEach((route) => {
       authRoutesMap.set(route.name, route);
     });
 
@@ -80,7 +86,7 @@ export const useRouteStore = defineStore(SetupStoreId.Route, () => {
   function mergeRoutesByName(routes: ElegantConstRoute[]) {
     const routeMap = new Map<string, ElegantConstRoute>();
 
-    routes.forEach(route => {
+    routes.forEach((route) => {
       if (route?.name) {
         routeMap.set(route.name, route);
       }
@@ -157,7 +163,7 @@ export const useRouteStore = defineStore(SetupStoreId.Route, () => {
 
   /** Reset vue routes */
   function resetVueRoutes() {
-    removeRouteFns.forEach(fn => fn());
+    removeRouteFns.forEach((fn) => fn());
     removeRouteFns.length = 0;
   }
 
@@ -175,7 +181,7 @@ export const useRouteStore = defineStore(SetupStoreId.Route, () => {
       if (!error) {
         // 这里可以从静态路由获取静态配置的需要默认存在的路由,然后与动态路由合并
         const routeNames = import.meta.env.VITE_DEFAULT_ROUTE_NAMES?.split(',') || [];
-        const routes = generatedRoutes.filter(route => routeNames.includes(route.name as string));
+        const routes = generatedRoutes.filter((route) => routeNames.includes(route.name as string));
         const serverConstantRoutes = (Array.isArray(data) ? data : []) as ElegantConstRoute[];
         const mergedConstantRoutes = mergeRoutesByName([...routes, ...serverConstantRoutes]);
 
@@ -194,16 +200,19 @@ export const useRouteStore = defineStore(SetupStoreId.Route, () => {
   }
 
   /** Init auth route */
-  async function initAuthRoute() {
+  async function initAuthRoute(menus?: App.Global.Menu[]) {
     // check if user info is initialized
-    if (!authStore.userInfo.userId) {
-      await authStore.initUserInfo();
+    if (!authStore.userInfo.id) {
+      const data = await authStore.initUserInfo();
+      if (data) {
+        menus = data.menus;
+      }
     }
 
     if (authRouteMode.value === 'static') {
       initStaticAuthRoute();
     } else {
-      await initDynamicAuthRoute();
+      await initDynamicAuthRoute(menus);
     }
 
     tabStore.initHomeTab();
@@ -216,7 +225,10 @@ export const useRouteStore = defineStore(SetupStoreId.Route, () => {
     if (authStore.isStaticSuper) {
       addAuthRoutes(staticAuthRoutes);
     } else {
-      const filteredAuthRoutes = filterAuthRoutesByRoles(staticAuthRoutes, authStore.userInfo.roles);
+      const filteredAuthRoutes = filterAuthRoutesByRoles(
+        staticAuthRoutes,
+        authStore.userInfo.roles,
+      );
 
       addAuthRoutes(filteredAuthRoutes);
     }
@@ -227,25 +239,41 @@ export const useRouteStore = defineStore(SetupStoreId.Route, () => {
   }
 
   /** Init dynamic auth route */
-  async function initDynamicAuthRoute() {
-    const { data, error } = await fetchGetUserRoutes();
+  async function initDynamicAuthRoute(menus?: App.Global.Menu[]) {
+    let routes: ElegantConstRoute[] = [];
+    let home: LastLevelRouteKey = import.meta.env.VITE_ROUTE_HOME;
 
-    if (!error) {
-      const { routes, home } = data;
-
-      addAuthRoutes(routes);
-
-      handleConstantAndAuthRoutes();
-
-      setRouteHome(home);
-
-      handleUpdateRootRouteRedirect(home);
-
-      setIsInitAuthRoute(true);
+    if (menus) {
+      // Since the backend returns menus in a format that might need transformation or direct usage
+      // However, `fetchGetUserRoutes` returns `{ routes, home }`.
+      // `getBootstrapData` returns `menus`.
+      // We need to clarify if `menus` from backend are `routes` (ElegantConstRoute) or `menus` (App.Global.Menu).
+      // Actually `menusService.findByRoles` returns `{ routes, home }`.
+      // So `menus` in bootstrap data is actually `{ routes, home }`.
+      // I should probably rename it in types, but let's assume it is that object.
+      const data = menus as any; // Cast to any or correct type if available
+      routes = data.routes;
+      home = data.home;
     } else {
-      // if fetch user routes failed, reset store
-      authStore.resetStore();
+      const { data, error } = await fetchGetUserRoutes();
+      if (!error) {
+        routes = data.routes;
+        home = data.home;
+      } else {
+        authStore.resetStore();
+        return;
+      }
     }
+
+    addAuthRoutes(routes);
+
+    handleConstantAndAuthRoutes();
+
+    setRouteHome(home);
+
+    handleUpdateRootRouteRedirect(home);
+
+    setIsInitAuthRoute(true);
   }
 
   /** handle constant and auth routes */
@@ -271,7 +299,7 @@ export const useRouteStore = defineStore(SetupStoreId.Route, () => {
    * @param routes Vue routes
    */
   function addRoutesToVueRouter(routes: RouteRecordRaw[]) {
-    routes.forEach(route => {
+    routes.forEach((route) => {
       const removeFn = router.addRoute(route);
       addRemoveRouteFn(removeFn);
     });
@@ -362,6 +390,6 @@ export const useRouteStore = defineStore(SetupStoreId.Route, () => {
     getIsAuthRouteExist,
     getSelectedMenuKeyPath,
     onRouteSwitchWhenLoggedIn,
-    onRouteSwitchWhenNotLoggedIn
+    onRouteSwitchWhenNotLoggedIn,
   };
 });

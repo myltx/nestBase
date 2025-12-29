@@ -124,6 +124,18 @@ declare namespace Api {
       type: 'button' | 'menu';
       permission: string;
     }
+
+    /**
+     * Bootstrap Data
+     */
+    interface BootstrapData {
+      user: User;
+      permissions: string[];
+      menus: {
+        routes: import('@elegant-router/types').ElegantConstRoute[];
+        home: import('@elegant-router/types').LastLevelRouteKey;
+      };
+    }
   }
 
   /**

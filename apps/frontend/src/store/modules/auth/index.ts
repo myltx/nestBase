@@ -2,7 +2,7 @@ import { computed, reactive, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { defineStore } from 'pinia';
 import { useLoading } from '@sa/hooks';
-import { fetchGetUserInfo, fetchGetUserPermissionList, fetchLogin } from '@/service/api/auth';
+import { fetchBootstrap, fetchLogin } from '@/service/api/auth';
 import { useRouterPush } from '@/hooks/common/router';
 import { localStg } from '@/utils/storage';
 import { SetupStoreId } from '@/enum';
@@ -28,7 +28,7 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
     buttons: [],
     firstName: '',
     lastName: '',
-    email: ''
+    email: '',
   });
 
   /** is super role in static route */
@@ -121,7 +121,7 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
         window.$notification?.success({
           title: $t('page.login.common.loginSuccess'),
           content: $t('page.login.common.welcomeBack', { userName: userInfo.userName }),
-          duration: 4500
+          duration: 4500,
         });
       }
     } else {
@@ -136,11 +136,14 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
     localStg.set('token', loginToken.accessToken);
     localStg.set('refreshToken', loginToken.accessToken);
 
-    // 2. get user info
-    const pass = await getUserInfo();
+    // 2. get user info (bootstrap)
+    const bootstrapData = await getUserInfo();
 
-    if (pass) {
+    if (bootstrapData) {
       token.value = loginToken.accessToken;
+
+      // Initialize routes with the fetched menus (routes)
+      await routeStore.initAuthRoute(bootstrapData.menus);
 
       return true;
     }
@@ -149,33 +152,41 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
   }
 
   async function getUserInfo() {
-    const { data: info, error } = await fetchGetUserInfo();
+    const { data: bootstrapData, error } = await fetchBootstrap();
 
     if (!error) {
       // update store
-      Object.assign(userInfo, info);
-      // 3. get user permission
-      const { data: permissionList, error: permissionError } = (await fetchGetUserPermissionList()) as any;
+      Object.assign(userInfo, bootstrapData.user);
 
-      if (!permissionError) {
-        localStg.set('permissionList', permissionList.permissions);
-      }
-      return true;
+      // update permissions
+      localStg.set('permissionList', bootstrapData.permissions);
+
+      // We need to pass menus to route store, but we can't easily access route store action if it's not exposed
+      // or we can store it in authStore temporarily or update routeStore directly if possible.
+      // Better approach: Let routeStore handle menu initialization using passed data.
+      // But initAuthRoute calls getUserInfo if not userId.
+
+      // Let's store menus for route store to pick up
+      return bootstrapData;
     }
 
-    return false;
+    return null;
   }
 
   async function initUserInfo() {
     const hasToken = getToken();
 
     if (hasToken) {
-      const pass = await getUserInfo();
+      const bootstrapData = await getUserInfo();
 
-      if (!pass) {
+      if (!bootstrapData) {
         resetStore();
+      } else {
+        // Return data for usage
+        return bootstrapData;
       }
     }
+    return null;
   }
 
   return {
@@ -186,6 +197,6 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
     loginLoading,
     resetStore,
     login,
-    initUserInfo
+    initUserInfo,
   };
 });
