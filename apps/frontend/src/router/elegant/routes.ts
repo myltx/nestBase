@@ -14,8 +14,8 @@ export const generatedRoutes: GeneratedRoute[] = [
       title: '403',
       i18nKey: 'route.403',
       constant: true,
-      hideInMenu: true
-    }
+      hideInMenu: true,
+    },
   },
   {
     name: '404',
@@ -25,8 +25,8 @@ export const generatedRoutes: GeneratedRoute[] = [
       title: '404',
       i18nKey: 'route.404',
       constant: true,
-      hideInMenu: true
-    }
+      hideInMenu: true,
+    },
   },
   {
     name: '500',
@@ -36,8 +36,8 @@ export const generatedRoutes: GeneratedRoute[] = [
       title: '500',
       i18nKey: 'route.500',
       constant: true,
-      hideInMenu: true
-    }
+      hideInMenu: true,
+    },
   },
   {
     name: 'home',
@@ -47,8 +47,8 @@ export const generatedRoutes: GeneratedRoute[] = [
       title: 'home',
       i18nKey: 'route.home',
       icon: 'mdi:monitor-dashboard',
-      order: 1
-    }
+      order: 1,
+    },
   },
   {
     name: 'home-portal',
@@ -59,8 +59,8 @@ export const generatedRoutes: GeneratedRoute[] = [
       i18nKey: 'route.home-portal',
       icon: 'mdi:view-dashboard-edit',
       order: 1.5,
-      roles: ['ADMIN', 'EDITOR', 'AUTHOR']
-    }
+      roles: ['ADMIN', 'EDITOR', 'AUTHOR'],
+    },
   },
   {
     name: 'iframe-page',
@@ -72,8 +72,8 @@ export const generatedRoutes: GeneratedRoute[] = [
       i18nKey: 'route.iframe-page',
       constant: true,
       hideInMenu: true,
-      keepAlive: true
-    }
+      keepAlive: true,
+    },
   },
   {
     name: 'login',
@@ -84,8 +84,8 @@ export const generatedRoutes: GeneratedRoute[] = [
       title: 'login',
       i18nKey: 'route.login',
       constant: true,
-      hideInMenu: true
-    }
+      hideInMenu: true,
+    },
   },
   {
     name: 'manage',
@@ -95,7 +95,7 @@ export const generatedRoutes: GeneratedRoute[] = [
       roles: ['ADMIN'],
       title: 'manage',
       i18nKey: 'route.manage',
-      order: 2
+      order: 2,
     },
     children: [
       {
@@ -104,8 +104,8 @@ export const generatedRoutes: GeneratedRoute[] = [
         component: 'view.manage_category',
         meta: {
           title: 'manage_category',
-          i18nKey: 'route.manage_category'
-        }
+          i18nKey: 'route.manage_category',
+        },
       },
       {
         name: 'manage_content',
@@ -113,8 +113,8 @@ export const generatedRoutes: GeneratedRoute[] = [
         component: 'view.manage_content',
         meta: {
           title: 'manage_content',
-          i18nKey: 'route.manage_content'
-        }
+          i18nKey: 'route.manage_content',
+        },
       },
       {
         name: 'manage_menu',
@@ -122,8 +122,8 @@ export const generatedRoutes: GeneratedRoute[] = [
         component: 'view.manage_menu',
         meta: {
           title: 'manage_menu',
-          i18nKey: 'route.manage_menu'
-        }
+          i18nKey: 'route.manage_menu',
+        },
       },
       {
         name: 'manage_project',
@@ -131,8 +131,8 @@ export const generatedRoutes: GeneratedRoute[] = [
         component: 'view.manage_project',
         meta: {
           title: 'manage_project',
-          i18nKey: 'route.manage_project'
-        }
+          i18nKey: 'route.manage_project',
+        },
       },
       {
         name: 'manage_role',
@@ -140,8 +140,8 @@ export const generatedRoutes: GeneratedRoute[] = [
         component: 'view.manage_role',
         meta: {
           title: 'manage_role',
-          i18nKey: 'route.manage_role'
-        }
+          i18nKey: 'route.manage_role',
+        },
       },
       {
         name: 'manage_tag',
@@ -149,8 +149,8 @@ export const generatedRoutes: GeneratedRoute[] = [
         component: 'view.manage_tag',
         meta: {
           title: 'manage_tag',
-          i18nKey: 'route.manage_tag'
-        }
+          i18nKey: 'route.manage_tag',
+        },
       },
       {
         name: 'manage_user',
@@ -158,8 +158,8 @@ export const generatedRoutes: GeneratedRoute[] = [
         component: 'view.manage_user',
         meta: {
           title: 'manage_user',
-          i18nKey: 'route.manage_user'
-        }
+          i18nKey: 'route.manage_user',
+        },
       },
       {
         name: 'manage_user-detail',
@@ -168,9 +168,9 @@ export const generatedRoutes: GeneratedRoute[] = [
         meta: {
           title: 'manage_user-detail',
           i18nKey: 'route.manage_user-detail',
-          hideInMenu: true
-        }
-      }
-    ]
-  }
+          hideInMenu: true,
+        },
+      },
+    ],
+  },
 ];
