@@ -78,18 +78,21 @@ nestbase/                          # 项目根目录
 ## 📊 技术栈
 
 ### 核心框架
+
 - **NestJS** 10.x - 后端框架
 - **Prisma** 5.x - ORM
 - **Supabase** 2.x - 数据库服务
 - **TypeScript** 5.x - 类型安全
 
 ### 开发工具
+
 - **pnpm** 8.x - 包管理器（Monorepo）
 - **ESLint** - 代码检查
 - **Prettier** - 代码格式化
 - **Jest** - 单元测试
 
 ### 认证授权
+
 - **JWT** - Token 认证
 - **Passport.js** - 认证策略
 - **bcrypt** - 密码加密
@@ -137,18 +140,21 @@ pnpm dev
 ## 📂 项目统计
 
 ### 文件数量
+
 - **总文件数**：约 55 个
 - **TypeScript 源文件**：31 个
 - **配置文件**：15 个
 - **文档文件**：9 个
 
 ### 代码行数（估算）
+
 - **TypeScript 代码**：~2500 行
 - **配置文件**：~500 行
 - **文档**：~1500 行
 - **总计**：~4500 行
 
 ### 模块结构
+
 ```
 apps/backend/src/
 ├── common/       # 公共模块（17 个文件）
@@ -192,46 +198,49 @@ apps/backend/src/
 
 ### 认证模块（/api/auth）
 
-| 方法 | 路径 | 说明 | 权限 |
-|------|------|------|------|
-| POST | /register | 用户注册 | 公开 |
-| POST | /login | 用户登录 | 公开 |
-| GET | /profile | 获取当前用户 | 需认证 |
+| 方法 | 路径      | 说明         | 权限   |
+| ---- | --------- | ------------ | ------ |
+| POST | /register | 用户注册     | 公开   |
+| POST | /login    | 用户登录     | 公开   |
+| GET  | /profile  | 获取当前用户 | 需认证 |
 
 ### 用户模块（/api/users）
 
-| 方法 | 路径 | 说明 | 权限 |
-|------|------|------|------|
-| GET | / | 查询所有用户 | 需认证 |
-| GET | /:id | 查询单个用户 | 需认证 |
-| POST | / | 创建用户 | 仅管理员 |
-| PATCH | /:id | 更新用户 | 仅管理员 |
-| DELETE | /:id | 删除用户 | 仅管理员 |
+| 方法   | 路径 | 说明         | 权限     |
+| ------ | ---- | ------------ | -------- |
+| GET    | /    | 查询所有用户 | 需认证   |
+| GET    | /:id | 查询单个用户 | 需认证   |
+| POST   | /    | 创建用户     | 仅管理员 |
+| PATCH  | /:id | 更新用户     | 仅管理员 |
+| DELETE | /:id | 删除用户     | 仅管理员 |
 
 ---
 
 ## 🔑 测试账户
 
-| 角色 | 邮箱 | 用户名 | 密码 |
-|------|------|--------|------|
-| 管理员 | admin@example.com | admin | admin123 |
-| 普通用户 | user@example.com | testuser | user123 |
+| 角色     | 邮箱              | 用户名   | 密码     |
+| -------- | ----------------- | -------- | -------- |
+| 管理员   | admin@example.com | admin    | admin123 |
+| 普通用户 | user@example.com  | testuser | user123  |
 
 ---
 
 ## 📚 文档清单
 
 ### 核心文档
+
 - ✅ `README.md` - 完整项目文档（含 Monorepo 说明）
 - ✅ `QUICKSTART.md` - 快速启动指南（Monorepo 版本）
 - ✅ `MONOREPO.md` - Monorepo 架构详解
 
 ### 专项文档
+
 - ✅ `DELIVERY.md` - 项目交付清单
 - ✅ `FILE_LIST.md` - 完整文件清单
 - ✅ `apps/frontend/README.md` - 前端集成指南
 
 ### 工具文件
+
 - ✅ `postman_collection.json` - API 测试集合
 - ✅ `setup.sh` - 自动化初始化脚本
 - ✅ `.vscode/` - VSCode 配置
@@ -245,12 +254,14 @@ apps/backend/src/
 可集成以下任一前端框架：
 
 1. **React + Vite**
+
    ```bash
    cd apps/frontend
    pnpm create vite . --template react-ts
    ```
 
 2. **Next.js 14**
+
    ```bash
    cd apps/frontend
    pnpx create-next-app@latest . --typescript --tailwind --app
@@ -273,6 +284,7 @@ pnpm init
 ```
 
 在前后端共享：
+
 - 数据传输对象（DTO）
 - API 响应类型
 - 工具函数
@@ -366,10 +378,10 @@ pnpm clean        # 清理缓存
 
 ### 文档链接
 
-- [完整文档](README.md)
-- [快速指南](QUICKSTART.md)
-- [Monorepo 说明](MONOREPO.md)
-- [前端集成](apps/frontend/README.md)
+- [完整文档](../../../README.md)
+- [快速指南](../setup/QUICKSTART.md)
+- [Monorepo 说明](../setup/MONOREPO.md)
+- [前端集成](../../../apps/frontend/README.md)
 
 ---
 
