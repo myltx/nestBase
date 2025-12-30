@@ -83,7 +83,10 @@ export class ContentsService {
 
     // 自动解析 Markdown（如果是 Markdown 或 Upload 模式）
     const editorType = contentData.editorType || EditorType.MARKDOWN;
-    if ((editorType === EditorType.MARKDOWN || editorType === EditorType.UPLOAD) && contentData.contentMd) {
+    if (
+      (editorType === EditorType.MARKDOWN || editorType === EditorType.UPLOAD) &&
+      contentData.contentMd
+    ) {
       contentData.contentHtml = await parseMarkdown(contentData.contentMd);
     }
 
@@ -93,9 +96,12 @@ export class ContentsService {
         ...contentData,
         authorId,
         editorType,
-        tags: tagIds && tagIds.length > 0 ? {
-          create: tagIds.map((tagId) => ({ tagId })),
-        } : undefined,
+        tags:
+          tagIds && tagIds.length > 0
+            ? {
+                create: tagIds.map((tagId) => ({ tagId })),
+              }
+            : undefined,
       },
       include: {
         author: {
@@ -124,6 +130,7 @@ export class ContentsService {
   async findAll(queryDto: QueryContentDto) {
     const {
       search,
+      title,
       status,
       editorType,
       categoryId,
@@ -132,6 +139,8 @@ export class ContentsService {
       isTop,
       isRecommend,
       slug,
+      startPublishedAt,
+      endPublishedAt,
       current = '1',
       size = '10',
     } = queryDto;
@@ -157,6 +166,11 @@ export class ContentsService {
         { title: { contains: search, mode: 'insensitive' } },
         { summary: { contains: search, mode: 'insensitive' } },
       ];
+    }
+
+    // 标题筛选
+    if (title) {
+      where.title = { contains: title, mode: 'insensitive' };
     }
 
     // Slug 筛选
@@ -203,6 +217,17 @@ export class ContentsService {
       where.isRecommend = isRecommend === 'true';
     }
 
+    // 发布时间范围筛选
+    if (startPublishedAt || endPublishedAt) {
+      where.publishedAt = {};
+      if (startPublishedAt) {
+        where.publishedAt.gte = new Date(startPublishedAt);
+      }
+      if (endPublishedAt) {
+        where.publishedAt.lte = new Date(endPublishedAt);
+      }
+    }
+
     // 查询内容
     const [contents, total] = await Promise.all([
       this.prisma.content.findMany({
@@ -222,7 +247,7 @@ export class ContentsService {
           tags: {
             include: {
               tag: true,
-              },
+            },
           },
         },
         orderBy: [
@@ -394,7 +419,10 @@ export class ContentsService {
     }
 
     // 自动填充作者名称
-    if (contentData.authorName === '' || (contentData.authorName === undefined && !existingContent.authorName)) {
+    if (
+      contentData.authorName === '' ||
+      (contentData.authorName === undefined && !existingContent.authorName)
+    ) {
       const author = await this.prisma.user.findUnique({
         where: { id: existingContent.authorId },
         select: { nickName: true, userName: true },
@@ -424,7 +452,8 @@ export class ContentsService {
     const editorType = contentData.editorType || existingContent.editorType;
     const shouldParseMarkdown =
       (editorType === EditorType.MARKDOWN || editorType === EditorType.UPLOAD) &&
-      (contentData.contentMd || (contentData.status === ContentStatus.PUBLISHED && !existingContent.contentHtml));
+      (contentData.contentMd ||
+        (contentData.status === ContentStatus.PUBLISHED && !existingContent.contentHtml));
 
     if (shouldParseMarkdown) {
       const md = contentData.contentMd || existingContent.contentMd;
@@ -438,10 +467,13 @@ export class ContentsService {
       where: { id },
       data: {
         ...dataToUpdate,
-        tags: tagIds !== undefined ? {
-          deleteMany: {},
-          create: tagIds.map((tagId) => ({ tagId })),
-        } : undefined,
+        tags:
+          tagIds !== undefined
+            ? {
+                deleteMany: {},
+                create: tagIds.map((tagId) => ({ tagId })),
+              }
+            : undefined,
       },
       include: {
         author: {

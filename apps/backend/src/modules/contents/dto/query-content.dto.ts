@@ -22,12 +22,20 @@ export class QueryContentDto {
   @IsOptional()
   search?: string;
 
-  @ApiPropertyOptional({ description: '内容状态', enum: ContentStatus, example: ContentStatus.PUBLISHED })
+  @ApiPropertyOptional({
+    description: '内容状态',
+    enum: ContentStatus,
+    example: ContentStatus.PUBLISHED,
+  })
   @IsEnum(ContentStatus)
   @IsOptional()
   status?: ContentStatus;
 
-  @ApiPropertyOptional({ description: '编辑器类型', enum: EditorType, example: EditorType.MARKDOWN })
+  @ApiPropertyOptional({
+    description: '编辑器类型',
+    enum: EditorType,
+    example: EditorType.MARKDOWN,
+  })
   @IsEnum(EditorType)
   @IsOptional()
   editorType?: EditorType;
@@ -63,4 +71,19 @@ export class QueryContentDto {
   @IsString()
   @IsOptional()
   slug?: string;
+
+  @ApiPropertyOptional({ description: '标题筛选', example: 'NestJS' })
+  @IsString()
+  @IsOptional()
+  title?: string;
+
+  @ApiPropertyOptional({ description: '发布开始时间', example: '2023-01-01 00:00:00' })
+  @IsString()
+  @IsOptional()
+  startPublishedAt?: string;
+
+  @ApiPropertyOptional({ description: '发布结束时间', example: '2023-12-31 23:59:59' })
+  @IsString()
+  @IsOptional()
+  endPublishedAt?: string;
 }

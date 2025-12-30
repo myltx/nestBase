@@ -69,11 +69,15 @@ export class TagsService {
    * 查询标签列表（支持分页、搜索、排序）
    */
   async findAll(queryDto?: QueryTagDto) {
-    const { search, sort, current, size } = queryDto || {};
+    const { search, name, sort, current, size } = queryDto || {};
 
     const where: any = {};
     if (search) {
       where.name = { contains: search, mode: 'insensitive' };
+    }
+
+    if (name) {
+      where.name = { contains: name, mode: 'insensitive' };
     }
 
     const orderBy: any = {};
@@ -118,8 +122,6 @@ export class TagsService {
     // Default: find all (no paging)
     return this.prisma.tag.findMany({ where, orderBy, include });
   }
-
-
 
   /**
    * 根据 ID 查询标签
