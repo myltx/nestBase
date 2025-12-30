@@ -4,7 +4,7 @@ const local: App.I18n.Schema = {
     updateTitle: '系统版本更新通知',
     updateContent: '检测到系统有新版本发布，是否立即刷新页面？',
     updateConfirm: '立即刷新',
-    updateCancel: '稍后再说'
+    updateCancel: '稍后再说',
   },
   common: {
     login: '登录',
@@ -47,8 +47,8 @@ const local: App.I18n.Schema = {
     userCenter: '个人中心',
     yesOrNo: {
       yes: '是',
-      no: '否'
-    }
+      no: '否',
+    },
   },
   request: {
     logout: '请求失败后登出用户',
@@ -56,14 +56,14 @@ const local: App.I18n.Schema = {
     logoutWithModal: '请求失败后弹出模态框再登出用户',
     logoutWithModalMsg: '用户状态失效，请重新登录',
     refreshToken: '请求的token已过期，刷新token',
-    tokenExpired: 'token已过期'
+    tokenExpired: 'token已过期',
   },
   theme: {
     themeSchema: {
       title: '主题模式',
       light: '亮色模式',
       dark: '暗黑模式',
-      auto: '跟随系统'
+      auto: '跟随系统',
     },
     grayscale: '灰色模式',
     colourWeakness: '色弱模式',
@@ -73,7 +73,7 @@ const local: App.I18n.Schema = {
       'vertical-mix': '左侧菜单混合模式',
       horizontal: '顶部菜单模式',
       'horizontal-mix': '顶部菜单混合模式',
-      reverseHorizontalMix: '一级菜单与子级菜单位置反转'
+      reverseHorizontalMix: '一级菜单与子级菜单位置反转',
     },
     recommendColor: '应用推荐算法的颜色',
     recommendColorDesc: '推荐颜色的算法参照',
@@ -84,12 +84,12 @@ const local: App.I18n.Schema = {
       success: '成功色',
       warning: '警告色',
       error: '错误色',
-      followPrimary: '跟随主色'
+      followPrimary: '跟随主色',
     },
     scrollMode: {
       title: '滚动模式',
       wrapper: '外层滚动',
-      content: '主体滚动'
+      content: '主体滚动',
     },
     page: {
       animate: '页面切换动画',
@@ -101,22 +101,22 @@ const local: App.I18n.Schema = {
         'fade-scale': '缩放消退',
         'zoom-fade': '渐变',
         'zoom-out': '闪现',
-        none: '无'
-      }
+        none: '无',
+      },
     },
     fixedHeaderAndTab: '固定头部和标签栏',
     header: {
       height: '头部高度',
       breadcrumb: {
         visible: '显示面包屑',
-        showIcon: '显示面包屑图标'
+        showIcon: '显示面包屑图标',
       },
       multilingual: {
-        visible: '显示多语言按钮'
+        visible: '显示多语言按钮',
       },
       globalSearch: {
-        visible: '显示全局搜索按钮'
-      }
+        visible: '显示全局搜索按钮',
+      },
     },
     tab: {
       visible: '显示标签栏',
@@ -125,8 +125,8 @@ const local: App.I18n.Schema = {
       mode: {
         title: '标签栏风格',
         chrome: '谷歌风格',
-        button: '按钮风格'
-      }
+        button: '按钮风格',
+      },
     },
     sider: {
       inverted: '深色侧边栏',
@@ -134,32 +134,32 @@ const local: App.I18n.Schema = {
       collapsedWidth: '侧边栏折叠宽度',
       mixWidth: '混合布局侧边栏宽度',
       mixCollapsedWidth: '混合布局侧边栏折叠宽度',
-      mixChildMenuWidth: '混合布局子菜单宽度'
+      mixChildMenuWidth: '混合布局子菜单宽度',
     },
     footer: {
       visible: '显示底部',
       fixed: '固定底部',
       height: '底部高度',
-      right: '底部局右'
+      right: '底部局右',
     },
     watermark: {
       visible: '显示全屏水印',
       text: '水印文本',
-      enableUserName: '启用用户名水印'
+      enableUserName: '启用用户名水印',
     },
     themeDrawerTitle: '主题配置',
     pageFunTitle: '页面功能',
     resetCacheStrategy: {
       title: '重置缓存策略',
       close: '关闭页面',
-      refresh: '刷新页面'
+      refresh: '刷新页面',
     },
     configOperation: {
       copyConfig: '复制配置',
       copySuccessMsg: '复制成功，请替换 src/theme/settings.ts 中的变量 themeSettings',
       resetConfig: '重置配置',
-      resetSuccessMsg: '重置成功'
-    }
+      resetSuccessMsg: '重置成功',
+    },
   },
   route: {
     login: '登录',
@@ -177,7 +177,7 @@ const local: App.I18n.Schema = {
     manage_project: '项目管理',
     manage_content: '内容管理',
     manage_category: '分类管理',
-    manage_tag: '标签管理'
+    manage_tag: '标签管理',
   },
   page: {
     login: {
@@ -193,7 +193,7 @@ const local: App.I18n.Schema = {
         back: '返回',
         validateSuccess: '验证成功',
         loginSuccess: '登录成功',
-        welcomeBack: '欢迎回来，{userName} ！'
+        welcomeBack: '欢迎回来，{userName} ！',
       },
       pwdLogin: {
         title: '密码登录',
@@ -204,27 +204,27 @@ const local: App.I18n.Schema = {
         otherLoginMode: '其他登录方式',
         superAdmin: '超级管理员',
         admin: '管理员',
-        user: '普通用户'
+        user: '普通用户',
       },
       codeLogin: {
         title: '验证码登录',
         getCode: '获取验证码',
         reGetCode: '{time}秒后重新获取',
         sendCodeSuccess: '验证码发送成功',
-        imageCodePlaceholder: '请输入图片验证码'
+        imageCodePlaceholder: '请输入图片验证码',
       },
       register: {
         title: '注册账号',
         agreement: '我已经仔细阅读并接受',
         protocol: '《用户协议》',
-        policy: '《隐私权政策》'
+        policy: '《隐私权政策》',
       },
       resetPwd: {
-        title: '重置密码'
+        title: '重置密码',
       },
       bindWeChat: {
-        title: '绑定微信'
-      }
+        title: '绑定微信',
+      },
     },
     home: {
       branchDesc:
@@ -251,22 +251,22 @@ const local: App.I18n.Schema = {
         desc2: 'Yanbowe 向 soybean-admin 提交了一个bug，多标签栏不会自适应。',
         desc3: 'Soybean 准备为 soybean-admin 的发布做充分的准备工作!',
         desc4: 'Soybean 正在忙于为soybean-admin写项目说明文档！',
-        desc5: 'Soybean 刚才把工作台页面随便写了一些，凑合能看了！'
+        desc5: 'Soybean 刚才把工作台页面随便写了一些，凑合能看了！',
       },
-      creativity: '创意'
+      creativity: '创意',
     },
     homePortal: {
       greeting: '欢迎回来，{userName}，这里是你的内容工作台。',
       subtitle: '快速掌握内容生产进度，并高效进入日常操作。',
       actions: {
-        create: '立即创作'
+        create: '立即创作',
       },
       metrics: {
         totalArticle: '文章总数',
         published: '已发布',
         draft: '草稿箱',
         category: '分类数量',
-        tag: '标签数量'
+        tag: '标签数量',
       },
       quickLinks: {
         title: '快捷入口',
@@ -277,25 +277,25 @@ const local: App.I18n.Schema = {
         manageCategory: '分类管理',
         manageCategoryDesc: '维护内容分类结构',
         manageTag: '标签管理',
-        manageTagDesc: '统一更新标签体系'
+        manageTagDesc: '统一更新标签体系',
       },
       latest: {
         title: '最新内容动态',
-        viewAll: '前往文章列表'
+        viewAll: '前往文章列表',
       },
       taxonomy: {
         title: '内容资产',
         category: '分类数量',
         tag: '标签数量',
-        manage: '去管理'
-      }
+        manage: '去管理',
+      },
     },
     manage: {
       common: {
         status: {
           enable: '启用',
-          disable: '禁用'
-        }
+          disable: '禁用',
+        },
       },
       content: {
         title: '文章列表',
@@ -311,7 +311,7 @@ const local: App.I18n.Schema = {
         editTypeMap: {
           markdown: 'Markdown 编辑器',
           richtext: '富文本编辑器',
-          upload: '上传 .md 文件'
+          upload: '上传 .md 文件',
         },
         content: '正文内容',
         statusTitle: '文章状态',
@@ -331,7 +331,7 @@ const local: App.I18n.Schema = {
         status: {
           draft: '草稿',
           published: '已发布',
-          offline: '已下线'
+          offline: '已下线',
         },
         search: {
           title: '请输入文章标题',
@@ -340,7 +340,7 @@ const local: App.I18n.Schema = {
           editType: '请选择编辑类型',
           isTop: '请选择是否置顶',
           isRecommend: '请选择是否推荐',
-          publishTime: '请选择发布时间范围'
+          publishTime: '请选择发布时间范围',
         },
         form: {
           title: '请输入文章标题',
@@ -355,12 +355,12 @@ const local: App.I18n.Schema = {
           coverImage: '请输入封面地址',
           tagIds: '请选择标签',
           content: '请输入文章内容',
-          uploadTip: '上传 .md/.markdown/.txt 文件，系统会自动读取内容'
+          uploadTip: '上传 .md/.markdown/.txt 文件，系统会自动读取内容',
         },
         uploadSuccess: '文件读取成功',
         uploadFailed: '文件读取失败，请重试',
         uploadButton: '上传 Markdown 文件',
-        uploading: '上传中...'
+        uploading: '上传中...',
       },
       category: {
         title: '分类管理',
@@ -378,8 +378,8 @@ const local: App.I18n.Schema = {
           name: '请输入分类名称',
           slug: '请输入分类别名',
           description: '请输入分类描述',
-          order: '请输入排序'
-        }
+          order: '请输入排序',
+        },
       },
       tag: {
         title: '标签管理',
@@ -391,8 +391,8 @@ const local: App.I18n.Schema = {
         form: {
           name: '请输入标签名称',
           slug: '请输入标签别名',
-          description: '请输入标签描述'
-        }
+          description: '请输入标签描述',
+        },
       },
       role: {
         title: '角色列表',
@@ -407,11 +407,11 @@ const local: App.I18n.Schema = {
           roleName: '请输入角色名称',
           roleCode: '请输入角色编码',
           roleStatus: '请选择角色状态',
-          roleDesc: '请输入角色描述'
+          roleDesc: '请输入角色描述',
         },
         addRole: '新增角色',
         editRole: '编辑角色',
-        resourcesAuth: '资源'
+        resourcesAuth: '资源',
       },
       user: {
         title: '用户列表',
@@ -420,6 +420,7 @@ const local: App.I18n.Schema = {
         nickName: '昵称',
         userPhone: '手机号',
         email: '邮箱',
+        userEmail: '邮箱',
         userStatus: '用户状态',
         userRole: '用户角色',
         form: {
@@ -429,15 +430,18 @@ const local: App.I18n.Schema = {
           userPhone: '请输入手机号',
           userEmail: '请输入邮箱',
           userStatus: '请选择用户状态',
-          userRole: '请选择用户角色'
+          userRole: '请选择用户角色',
         },
         addUser: '新增用户',
         editUser: '编辑用户',
+        common: {
+          user: '普通用户',
+        },
         gender: {
           male: '男',
           female: '女',
-          unknown: '未知'
-        }
+          unknown: '未知',
+        },
       },
       menu: {
         home: '首页',
@@ -493,55 +497,55 @@ const local: App.I18n.Schema = {
           button: '请选择是否按钮',
           buttonCode: '请输入按钮编码',
           buttonDesc: '请输入按钮描述',
-          menuStatus: '请选择菜单状态'
+          menuStatus: '请选择菜单状态',
         },
         addMenu: '新增菜单',
         editMenu: '编辑菜单',
         addChildMenu: '新增子菜单',
         type: {
           directory: '目录',
-          menu: '菜单'
+          menu: '菜单',
         },
         iconType: {
           iconify: 'iconify图标',
-          local: '本地图标'
-        }
-      }
-    }
+          local: '本地图标',
+        },
+      },
+    },
   },
   form: {
     required: '不能为空',
     userName: {
       required: '请输入用户名',
-      invalid: '用户名格式不正确'
+      invalid: '用户名格式不正确',
     },
     phone: {
       required: '请输入手机号',
-      invalid: '手机号格式不正确'
+      invalid: '手机号格式不正确',
     },
     pwd: {
       required: '请输入密码',
-      invalid: '密码格式不正确，6-18位字符，包含字母、数字、下划线'
+      invalid: '密码格式不正确，6-18位字符，包含字母、数字、下划线',
     },
     confirmPwd: {
       required: '请输入确认密码',
-      invalid: '两次输入密码不一致'
+      invalid: '两次输入密码不一致',
     },
     code: {
       required: '请输入验证码',
-      invalid: '验证码格式不正确'
+      invalid: '验证码格式不正确',
     },
     email: {
       required: '请输入邮箱',
-      invalid: '邮箱格式不正确'
-    }
+      invalid: '邮箱格式不正确',
+    },
   },
   dropdown: {
     closeCurrent: '关闭',
     closeOther: '关闭其它',
     closeLeft: '关闭左侧',
     closeRight: '关闭右侧',
-    closeAll: '关闭所有'
+    closeAll: '关闭所有',
   },
   icon: {
     themeConfig: '主题配置',
@@ -553,11 +557,11 @@ const local: App.I18n.Schema = {
     collapse: '折叠菜单',
     expand: '展开菜单',
     pin: '固定',
-    unpin: '取消固定'
+    unpin: '取消固定',
   },
   datatable: {
-    itemCount: '共 {total} 条'
-  }
+    itemCount: '共 {total} 条',
+  },
 };
 
 export default local;

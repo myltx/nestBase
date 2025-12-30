@@ -197,4 +197,19 @@ export class CreateMenuDto {
   })
   @IsOptional()
   query?: any;
+
+  @ApiPropertyOptional({
+    description: '菜单按钮权限',
+    example: [{ code: 'user:add', desc: '新增用户' }],
+  })
+  @IsOptional()
+  buttons?: MenuButtonDto[];
+}
+
+export class MenuButtonDto {
+  @IsString()
+  code: string;
+
+  @IsString()
+  desc: string;
 }

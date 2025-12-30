@@ -17,6 +17,22 @@ export class QueryRoleDto {
   search?: string;
 
   @ApiPropertyOptional({
+    description: '角色代码',
+    example: 'ADMIN',
+  })
+  @IsOptional()
+  @IsString()
+  code?: string;
+
+  @ApiPropertyOptional({
+    description: '角色名称',
+    example: '管理员',
+  })
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @ApiPropertyOptional({
     description: '是否为系统角色',
     example: 'true',
   })

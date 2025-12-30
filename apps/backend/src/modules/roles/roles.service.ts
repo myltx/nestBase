@@ -39,7 +39,7 @@ export class RolesService {
    * 获取所有角色列表（支持分页和筛选）
    */
   async findAll(queryDto: QueryRoleDto) {
-    const { search, isSystem, status, current, size } = queryDto;
+    const { search, code, name, isSystem, status, current, size } = queryDto;
 
     // 构建查询条件
     const where: any = {};
@@ -50,6 +50,14 @@ export class RolesService {
         { code: { contains: search, mode: 'insensitive' } },
         { name: { contains: search, mode: 'insensitive' } },
       ];
+    }
+
+    if (code) {
+      where.code = { contains: code, mode: 'insensitive' };
+    }
+
+    if (name) {
+      where.name = { contains: name, mode: 'insensitive' };
     }
 
     // 是否为系统角色
@@ -599,6 +607,91 @@ export class RolesService {
     } catch (error) {
       this.logger.error(`批量移除角色用户失败: ${error.message}`, error.stack);
       throw new InternalServerErrorException('批量移除角色用户失败');
+    }
+  }
+  /**
+   * 更新角色下的用户列表（覆盖）
+   */
+  async updateRoleUsers(roleId: string, userIds: string[], actorId?: string) {
+    if (!Array.isArray(userIds)) {
+      throw new BadRequestException('用户列表必须是数组');
+    }
+
+    if (userIds.length > 500) {
+      throw new BadRequestException('最多支持 500 个用户的批量操作');
+    }
+
+    const role = await this.prisma.role.findUnique({
+      where: { id: roleId },
+    });
+
+    if (!role) {
+      throw new NotFoundException('角色不存在');
+    }
+
+    // 检查用户是否存在
+    if (userIds.length > 0) {
+      const users = await this.prisma.user.findMany({
+        where: { id: { in: userIds } },
+        select: { id: true },
+      });
+
+      if (users.length !== userIds.length) {
+        const foundIds = users.map((u) => u.id);
+        const missingIds = userIds.filter((id) => !foundIds.includes(id));
+        throw new BadRequestException(`以下用户不存在: ${missingIds.join(', ')}`);
+      }
+    }
+
+    try {
+      const result = await this.prisma.$transaction(async (tx) => {
+        // 1. 删除现有关联
+        await tx.userRole.deleteMany({
+          where: { roleId },
+        });
+
+        // 2. 创建新关联
+        if (userIds.length > 0) {
+          await tx.userRole.createMany({
+            data: userIds.map((userId) => ({
+              userId,
+              roleId,
+            })),
+          });
+        }
+
+        return userIds.length;
+      });
+
+      await this.audit.log({
+        event: 'role.users.update',
+        userId: actorId,
+        resource: 'Role',
+        resourceId: roleId,
+        action: 'UPDATE',
+        payload: {
+          actorId,
+          roleId,
+          userIds,
+          count: result,
+        },
+      });
+
+      // 失效相关缓存
+      // 这里比较难精确失效，简化起见，可以失效该角色相关的所有权限缓存
+      // 或者如果系统允许，可以不立刻失效，依赖 TTL
+      // 为了安全，建议尽可能失效
+      // 这里简单处理：失效新列表中的用户权限缓存
+      await this.invalidatePermissionCache(userIds);
+
+      return {
+        roleId,
+        count: result,
+        message: `成功更新角色用户列表，当前共 ${result} 个用户`,
+      };
+    } catch (error) {
+      this.logger.error(`更新角色用户列表失败: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('更新角色用户列表失败');
     }
   }
 }

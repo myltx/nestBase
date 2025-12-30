@@ -21,6 +21,7 @@ declare module 'vue' {
     IconGridiconsFullscreen: typeof import('~icons/gridicons/fullscreen')['default']
     IconGridiconsFullscreenExit: typeof import('~icons/gridicons/fullscreen-exit')['default']
     'IconIc:roundPlus': typeof import('~icons/ic/round-plus')['default']
+    'IconIc:roundSearch': typeof import('~icons/ic/round-search')['default']
     IconIcRoundCloudUpload: typeof import('~icons/ic/round-cloud-upload')['default']
     IconIcRoundDelete: typeof import('~icons/ic/round-delete')['default']
     IconIcRoundPlus: typeof import('~icons/ic/round-plus')['default']

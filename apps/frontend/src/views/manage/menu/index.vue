@@ -20,11 +20,28 @@ const wrapperRef = ref<HTMLElement | null>(null);
 
 const { columns, columnChecks, data, loading, pagination, getData, getDataByPage } = useTable({
   apiFn: fetchGetMenuList,
+  apiParams: {
+    format: 'tree',
+    size: 1000, // Ensure getting all items for tree structure
+  },
+  transformer: (res) => {
+    // The request utility returns response.data.data (the payload)
+    // When format=tree, the payload is an Array [ ... ]
+    // The previous transformer tried to access res.data, which works if res is the wrapper,
+    // but here res IS the data array.
+    const records = (Array.isArray(res) ? res : res.data) || [];
+    return {
+      data: records as Api.SystemManage.Menu[],
+      pageNum: 1,
+      pageSize: 1000,
+      total: records.length,
+    };
+  },
   columns: () => [
     {
       type: 'selection',
       align: 'center',
-      width: 48
+      width: 48,
     },
     {
       key: 'id',
@@ -32,44 +49,45 @@ const { columns, columnChecks, data, loading, pagination, getData, getDataByPage
       align: 'center',
       width: 420,
       ellipsis: {
-        tooltip: true
-      }
+        tooltip: true,
+      },
     },
     {
       key: 'menuType',
       title: $t('page.manage.menu.menuType'),
       align: 'center',
       width: 80,
-      render: row => {
+      render: (row) => {
         const tagMap: Record<Api.SystemManage.MenuType, NaiveUI.ThemeColor> = {
           1: 'default',
-          2: 'primary'
+          2: 'primary',
         };
 
         const label = $t(menuTypeRecord[row.menuType]);
 
         return <NTag type={tagMap[row.menuType]}>{label}</NTag>;
-      }
+      },
     },
     {
       key: 'menuName',
       title: $t('page.manage.menu.menuName'),
-      align: 'center',
+      align: 'left', // Align left for tree structure
       minWidth: 120,
-      render: row => {
+      render: (row) => {
         const { i18nKey, menuName } = row;
 
         const label = i18nKey ? $t(i18nKey) : menuName;
 
         return <span>{label}</span>;
-      }
+      },
     },
+    // ... existing columns ...
     {
       key: 'icon',
       title: $t('page.manage.menu.icon'),
       align: 'center',
       width: 60,
-      render: row => {
+      render: (row) => {
         const icon = row.iconType === 1 ? row.icon : undefined;
 
         const localIcon = row.iconType === 2 ? row.icon : undefined;
@@ -79,76 +97,76 @@ const { columns, columnChecks, data, loading, pagination, getData, getDataByPage
             <SvgIcon icon={icon} localIcon={localIcon} class="text-icon" />
           </div>
         );
-      }
+      },
     },
     {
       key: 'routeName',
       title: $t('page.manage.menu.routeName'),
       align: 'center',
-      minWidth: 120
+      minWidth: 120,
     },
     {
       key: 'routePath',
       title: $t('page.manage.menu.routePath'),
       align: 'center',
-      minWidth: 120
+      minWidth: 120,
     },
     {
       key: 'status',
       title: $t('page.manage.menu.menuStatus'),
       align: 'center',
       width: 80,
-      render: row => {
+      render: (row) => {
         if (row.status === null) {
           return null;
         }
 
         const tagMap: Record<Api.Common.EnableStatus, NaiveUI.ThemeColor> = {
           1: 'success',
-          2: 'warning'
+          2: 'warning',
         };
 
         const label = $t(enableStatusRecord[row.status]);
 
         return <NTag type={tagMap[row.status]}>{label}</NTag>;
-      }
+      },
     },
     {
       key: 'hideInMenu',
       title: $t('page.manage.menu.hideInMenu'),
       align: 'center',
       width: 80,
-      render: row => {
+      render: (row) => {
         const hide: CommonType.YesOrNo = row.hideInMenu ? 'Y' : 'N';
 
         const tagMap: Record<CommonType.YesOrNo, NaiveUI.ThemeColor> = {
           Y: 'error',
-          N: 'default'
+          N: 'default',
         };
 
         const label = $t(yesOrNoRecord[hide]);
 
         return <NTag type={tagMap[hide]}>{label}</NTag>;
-      }
+      },
     },
     {
       key: 'parentId',
       title: $t('page.manage.menu.parentId'),
       width: 90,
-      align: 'center'
+      align: 'center',
     },
     {
       key: 'order',
       title: $t('page.manage.menu.order'),
       align: 'center',
-      width: 60
+      width: 60,
     },
     {
       key: 'operate',
       title: $t('common.operate'),
       align: 'center',
       width: 230,
-      render: row => (
+      render: (row) => (
         <div class="flex-center justify-end gap-8px">
           {row.menuType === 1 && (
             <NButton type="primary" ghost size="small" onClick={() => handleAddChildMenu(row)}>
@@ -165,13 +183,13 @@ const { columns, columnChecks, data, loading, pagination, getData, getDataByPage
                 <NButton type="error" ghost size="small">
                   {$t('common.delete')}
                 </NButton>
-              )
+              ),
             }}
           </NPopconfirm>
         </div>
-      )
-    }
-  ]
+      ),
+    },
+  ],
 });
 
 const { checkedRowKeys, onBatchDeleted, onDeleted } = useTableOperate(data, getData);
@@ -189,7 +207,7 @@ async function handleBatchDelete() {
   onBatchDeleted();
 }
 
-async function handleDelete(id: number) {
+async function handleDelete(id: string) {
   // request
   console.log(id);
   const { error } = await deleteMenu(id);
@@ -233,7 +251,12 @@ init();
 
 <template>
   <div ref="wrapperRef" class="flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
-    <NCard :title="$t('page.manage.menu.title')" :bordered="false" size="small" class="card-wrapper sm:flex-1-hidden">
+    <NCard
+      :title="$t('page.manage.menu.title')"
+      :bordered="false"
+      size="small"
+      class="card-wrapper sm:flex-1-hidden"
+    >
       <template #header-extra>
         <TableHeaderOperation
           v-model:columns="columnChecks"
@@ -252,9 +275,7 @@ init();
         :flex-height="!appStore.isMobile"
         :scroll-x="1088"
         :loading="loading"
-        :row-key="row => row.id"
-        remote
-        :pagination="pagination"
+        :row-key="(row) => row.id"
         class="sm:h-full"
       />
       <MenuOperateModal

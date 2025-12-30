@@ -6,7 +6,14 @@ export class QueryTagDto {
   @ApiPropertyOptional({ description: '搜索关键词（标签名称）', example: 'NestJS' })
   @IsString()
   @IsOptional()
+  @IsString()
+  @IsOptional()
   search?: string;
+
+  @ApiPropertyOptional({ description: '标签名称', example: 'NestJS' })
+  @IsString()
+  @IsOptional()
+  name?: string;
 
   @ApiPropertyOptional({ description: '排序方式', example: 'popular', enum: ['latest', 'popular'] })
   @IsString()

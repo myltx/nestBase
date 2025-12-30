@@ -21,6 +21,7 @@ import {
   UpdateRoleDto,
   QueryRoleDto,
   BatchDeleteRolesDto,
+  RoleUsersDto,
 } from './dto';
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { RolesGuard } from '@common/guards/roles.guard';
@@ -45,8 +46,7 @@ export class RolesController {
   @Roles('ADMIN')
   @ApiOperation({ summary: '获取角色详情' })
   findOne(@Param('id') id: string, @Query('include') include?: string) {
-    const includeRelations =
-      include?.includes('menus') || include?.includes('permissions');
+    const includeRelations = include?.includes('menus') || include?.includes('permissions');
     return this.rolesService.findOne(id, includeRelations);
   }
 
@@ -78,11 +78,56 @@ export class RolesController {
   @RequirePermissions('role.delete')
   @ApiOperation({ summary: '批量删除角色' })
   @ApiResponse({ status: 200, description: '删除成功' })
-  async batchRemove(
-    @Body() dto: BatchDeleteRolesDto,
-    @CurrentUser() currentUser: any,
-  ) {
+  async batchRemove(@Body() dto: BatchDeleteRolesDto, @CurrentUser() currentUser: any) {
     const actorId = currentUser?.id;
     return this.rolesService.batchRemove(dto.ids, actorId);
+  }
+
+  @Get(':id/users')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: '获取角色下的用户列表' })
+  async getUsersByRole(
+    @Param('id') id: string,
+    @Query('current') current?: number,
+    @Query('size') size?: number,
+    @Query('search') search?: string,
+  ) {
+    return this.rolesService.getUsersByRole(id, current, size, search);
+  }
+
+  @Post(':id/users')
+  @Roles('ADMIN')
+  @RequirePermissions('role.update')
+  @ApiOperation({ summary: '批量添加用户到角色' })
+  async addUsersToRole(
+    @Param('id') id: string,
+    @Body() dto: RoleUsersDto,
+    @CurrentUser() currentUser: any,
+  ) {
+    return this.rolesService.addUsersToRole(id, dto.userIds, currentUser?.id);
+  }
+
+  @Delete(':id/users')
+  @Roles('ADMIN')
+  @RequirePermissions('role.update')
+  @ApiOperation({ summary: '批量从角色移除用户' })
+  async removeUsersFromRole(
+    @Param('id') id: string,
+    @Body() dto: RoleUsersDto,
+    @CurrentUser() currentUser: any,
+  ) {
+    return this.rolesService.removeUsersFromRole(id, dto.userIds, currentUser?.id);
+  }
+
+  @Patch(':id/users')
+  @Roles('ADMIN')
+  @RequirePermissions('role.update')
+  @ApiOperation({ summary: '更新角色下的用户列表（覆盖）' })
+  async updateRoleUsers(
+    @Param('id') id: string,
+    @Body() dto: RoleUsersDto,
+    @CurrentUser() currentUser: any,
+  ) {
+    return this.rolesService.updateRoleUsers(id, dto.userIds, currentUser?.id);
   }
 }

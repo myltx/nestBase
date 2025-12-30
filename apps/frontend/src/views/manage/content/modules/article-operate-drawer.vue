@@ -169,7 +169,7 @@ async function handleSubmit() {
       categoryId: model.value.categoryId,
       tagIds: model.value.tagIds || [],
       authorName: model.value.authorName,
-      publishTime: model.value.publishTime,
+      publishedAt: model.value.publishTime ? new Date(model.value.publishTime).toISOString() : undefined,
       isTop: model.value.isTop,
       isRecommend: model.value.isRecommend
     };

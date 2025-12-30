@@ -13,11 +13,11 @@ import {
   getPathParamFromRoutePath,
   getRoutePathByRouteName,
   getRoutePathWithParam,
-  transformLayoutAndPageToComponent
+  transformLayoutAndPageToComponent,
 } from './shared';
 
 defineOptions({
-  name: 'MenuOperateModal'
+  name: 'MenuOperateModal',
 });
 
 export type OperateType = NaiveUI.TableOperateType | 'addChild';
@@ -40,7 +40,7 @@ interface Emits {
 const emit = defineEmits<Emits>();
 
 const visible = defineModel<boolean>('visible', {
-  default: false
+  default: false,
 });
 
 const { formRef, validate, restoreValidation } = useNaiveForm();
@@ -52,7 +52,7 @@ const title = computed(() => {
   const titles: Record<OperateType, string> = {
     add: $t('page.manage.menu.addMenu'),
     addChild: $t('page.manage.menu.addChildMenu'),
-    edit: $t('page.manage.menu.editMenu')
+    edit: $t('page.manage.menu.editMenu'),
   };
   return titles[props.operateType];
 });
@@ -79,7 +79,7 @@ type Model = Pick<
   | 'fixedIndexInTab'
 > & {
   // query: NonNullable<Api.SystemManage.Menu['query']>;
-  // buttons: NonNullable<Api.SystemManage.Menu['buttons']>;
+  buttons: NonNullable<Api.SystemManage.Menu['buttons']>;
   layout: string;
   page: string;
   pathParam: string;
@@ -109,9 +109,9 @@ function createDefaultModel(): Model {
     hideInMenu: false,
     activeMenu: null,
     multiTab: false,
-    fixedIndexInTab: null
+    fixedIndexInTab: null,
     // query: []
-    // buttons: []
+    buttons: [],
   };
 }
 
@@ -121,20 +121,20 @@ const rules: Record<RuleKey, App.Global.FormRule> = {
   menuName: defaultRequiredRule,
   status: defaultRequiredRule,
   routeName: defaultRequiredRule,
-  routePath: defaultRequiredRule
+  routePath: defaultRequiredRule,
 };
 
 const disabledMenuType = computed(() => props.operateType === 'edit');
 
 const localIcons = getLocalIcons();
-const localIconOptions = localIcons.map<SelectOption>(item => ({
+const localIconOptions = localIcons.map<SelectOption>((item) => ({
   label: () => (
     <div class="flex-y-center gap-16px">
       <SvgIcon localIcon={item} class="text-icon" />
       <span>{item}</span>
     </div>
   ),
-  value: item
+  value: item,
 }));
 
 const showLayout = computed(() => model.value.parentId === 0);
@@ -148,9 +148,9 @@ const pageOptions = computed(() => {
     allPages.unshift(model.value.routeName);
   }
 
-  const opts: CommonType.Option[] = allPages.map(page => ({
+  const opts: CommonType.Option[] = allPages.map((page) => ({
     label: page,
-    value: page
+    value: page,
   }));
 
   return opts;
@@ -159,12 +159,12 @@ const pageOptions = computed(() => {
 const layoutOptions: CommonType.Option[] = [
   {
     label: 'base',
-    value: 'base'
+    value: 'base',
   },
   {
     label: 'blank',
-    value: 'blank'
-  }
+    value: 'blank',
+  },
 ];
 
 /** the enabled role options */
@@ -174,9 +174,9 @@ async function getRoleOptions() {
   const { error, data } = await fetchGetAllRoles();
 
   if (!error) {
-    const options = data.map(item => ({
+    const options = data.map((item) => ({
       label: item.name,
-      value: item.code
+      value: item.code,
     }));
 
     roleOptions.value = [...options];
@@ -206,9 +206,9 @@ function handleInitModel() {
   // if (!model.value.query) {
   //   model.value.query = [];
   // }
-  // if (!model.value.buttons) {
-  //   model.value.buttons = [];
-  // }
+  if (!model.value.buttons) {
+    model.value.buttons = [];
+  }
 }
 
 function closeDrawer() {
@@ -231,14 +231,14 @@ function handleUpdateI18nKeyByRouteName() {
   }
 }
 
-// function handleCreateButton() {
-//   const buttonItem: Api.SystemManage.MenuButton = {
-//     code: '',
-//     desc: ''
-//   };
+function handleCreateButton() {
+  const buttonItem: Api.SystemManage.MenuButton = {
+    code: '',
+    desc: '',
+  };
 
-//   return buttonItem;
-// }
+  return buttonItem;
+}
 
 function getSubmitParams(): Api.SystemManage.CreateMenu {
   const { layout, page, pathParam, ...params } = model.value;
@@ -280,7 +280,7 @@ watch(
   () => {
     handleUpdateRoutePathByRouteName();
     handleUpdateI18nKeyByRouteName();
-  }
+  },
 );
 </script>
 
@@ -291,29 +291,57 @@ watch(
         <NGrid responsive="screen" item-responsive>
           <NFormItemGi span="24 m:12" :label="$t('page.manage.menu.menuType')" path="menuType">
             <NRadioGroup v-model:value="model.menuType" :disabled="disabledMenuType">
-              <NRadio v-for="item in menuTypeOptions" :key="item.value" :value="item.value" :label="$t(item.label)" />
+              <NRadio
+                v-for="item in menuTypeOptions"
+                :key="item.value"
+                :value="item.value"
+                :label="$t(item.label)"
+              />
             </NRadioGroup>
           </NFormItemGi>
           <NFormItemGi span="24 m:12" :label="$t('page.manage.menu.menuName')" path="menuName">
-            <NInput v-model:value="model.menuName" :placeholder="$t('page.manage.menu.form.menuName')" />
+            <NInput
+              v-model:value="model.menuName"
+              :placeholder="$t('page.manage.menu.form.menuName')"
+            />
           </NFormItemGi>
           <NFormItemGi span="24 m:12" :label="$t('page.manage.menu.routeName')" path="routeName">
-            <NInput v-model:value="model.routeName" :placeholder="$t('page.manage.menu.form.routeName')" />
+            <NInput
+              v-model:value="model.routeName"
+              :placeholder="$t('page.manage.menu.form.routeName')"
+            />
           </NFormItemGi>
           <NFormItemGi span="24 m:12" :label="$t('page.manage.menu.routePath')" path="routePath">
-            <NInput v-model:value="model.routePath" disabled :placeholder="$t('page.manage.menu.form.routePath')" />
+            <NInput
+              v-model:value="model.routePath"
+              disabled
+              :placeholder="$t('page.manage.menu.form.routePath')"
+            />
           </NFormItemGi>
           <NFormItemGi span="24 m:12" :label="$t('page.manage.menu.pathParam')" path="pathParam">
-            <NInput v-model:value="model.pathParam" :placeholder="$t('page.manage.menu.form.pathParam')" />
+            <NInput
+              v-model:value="model.pathParam"
+              :placeholder="$t('page.manage.menu.form.pathParam')"
+            />
           </NFormItemGi>
-          <NFormItemGi v-if="showLayout" span="24 m:12" :label="$t('page.manage.menu.layout')" path="layout">
+          <NFormItemGi
+            v-if="showLayout"
+            span="24 m:12"
+            :label="$t('page.manage.menu.layout')"
+            path="layout"
+          >
             <NSelect
               v-model:value="model.layout"
               :options="layoutOptions"
               :placeholder="$t('page.manage.menu.form.layout')"
             />
           </NFormItemGi>
-          <NFormItemGi v-if="showPage" span="24 m:12" :label="$t('page.manage.menu.page')" path="page">
+          <NFormItemGi
+            v-if="showPage"
+            span="24 m:12"
+            :label="$t('page.manage.menu.page')"
+            path="page"
+          >
             <NSelect
               v-model:value="model.page"
               :options="pageOptions"
@@ -321,10 +349,17 @@ watch(
             />
           </NFormItemGi>
           <NFormItemGi span="24 m:12" :label="$t('page.manage.menu.i18nKey')" path="i18nKey">
-            <NInput v-model:value="model.i18nKey" :placeholder="$t('page.manage.menu.form.i18nKey')" />
+            <NInput
+              v-model:value="model.i18nKey"
+              :placeholder="$t('page.manage.menu.form.i18nKey')"
+            />
           </NFormItemGi>
           <NFormItemGi span="24 m:12" :label="$t('page.manage.menu.order')" path="order">
-            <NInputNumber v-model:value="model.order" class="w-full" :placeholder="$t('page.manage.menu.form.order')" />
+            <NInputNumber
+              v-model:value="model.order"
+              class="w-full"
+              :placeholder="$t('page.manage.menu.form.order')"
+            />
           </NFormItemGi>
           <NFormItemGi span="24 m:12" :label="$t('page.manage.menu.iconTypeTitle')" path="iconType">
             <NRadioGroup v-model:value="model.iconType">
@@ -338,7 +373,11 @@ watch(
           </NFormItemGi>
           <NFormItemGi span="24 m:12" :label="$t('page.manage.menu.icon')" path="icon">
             <template v-if="model.iconType === 1">
-              <NInput v-model:value="model.icon" :placeholder="$t('page.manage.menu.form.icon')" class="flex-1">
+              <NInput
+                v-model:value="model.icon"
+                :placeholder="$t('page.manage.menu.form.icon')"
+                class="flex-1"
+              >
                 <template #suffix>
                   <SvgIcon v-if="model.icon" :icon="model.icon" class="text-icon" />
                 </template>
@@ -402,7 +441,11 @@ watch(
               <NRadio :value="false" :label="$t('common.yesOrNo.no')" />
             </NRadioGroup>
           </NFormItemGi>
-          <NFormItemGi span="24 m:12" :label="$t('page.manage.menu.fixedIndexInTab')" path="fixedIndexInTab">
+          <NFormItemGi
+            span="24 m:12"
+            :label="$t('page.manage.menu.fixedIndexInTab')"
+            path="fixedIndexInTab"
+          >
             <NInputNumber
               v-model:value="model.fixedIndexInTab"
               class="w-full"
@@ -432,14 +475,13 @@ watch(
           </NFormItemGi>
 -->
 
-          <!--
- <NFormItemGi span="24" :label="$t('page.manage.menu.button')">
+          <NFormItemGi span="24" :label="$t('page.manage.menu.button')">
             <NDynamicInput v-model:value="model.buttons" :on-create="handleCreateButton">
               <template #default="{ value }">
                 <div class="ml-8px flex-y-center flex-1 gap-12px">
                   <NInput
                     v-model:value="value.code"
-                    :placeholder="$t('page.manage.menu.form.buttonCode')"
+                    :placeholder="$t('page.manage.menu.form.buttonCode') + ' (如: system:user:add)'"
                     class="flex-1"
                   />
                   <NInput
@@ -461,14 +503,15 @@ watch(
               </template>
             </NDynamicInput>
           </NFormItemGi>
--->
         </NGrid>
       </NForm>
     </NScrollbar>
     <template #footer>
       <NSpace justify="end" :size="16">
         <NButton @click="closeDrawer">{{ $t('common.cancel') }}</NButton>
-        <NButton type="primary" :loading="loading" @click="handleSubmit">{{ $t('common.confirm') }}</NButton>
+        <NButton type="primary" :loading="loading" @click="handleSubmit">{{
+          $t('common.confirm')
+        }}</NButton>
       </NSpace>
     </template>
   </NModal>

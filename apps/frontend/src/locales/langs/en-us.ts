@@ -2,9 +2,10 @@ const local: App.I18n.Schema = {
   system: {
     title: 'NestBaseAdmin',
     updateTitle: 'System Version Update Notification',
-    updateContent: 'A new version of the system has been detected. Do you want to refresh the page immediately?',
+    updateContent:
+      'A new version of the system has been detected. Do you want to refresh the page immediately?',
     updateConfirm: 'Refresh immediately',
-    updateCancel: 'Later'
+    updateCancel: 'Later',
   },
   common: {
     login: 'Login',
@@ -47,8 +48,8 @@ const local: App.I18n.Schema = {
     userCenter: 'User Center',
     yesOrNo: {
       yes: 'Yes',
-      no: 'No'
-    }
+      no: 'No',
+    },
   },
   request: {
     logout: 'Logout user after request failed',
@@ -56,14 +57,14 @@ const local: App.I18n.Schema = {
     logoutWithModal: 'Pop up modal after request failed and then log out user',
     logoutWithModalMsg: 'User status is invalid, please log in again',
     refreshToken: 'The requested token has expired, refresh the token',
-    tokenExpired: 'The requested token has expired'
+    tokenExpired: 'The requested token has expired',
   },
   theme: {
     themeSchema: {
       title: 'Theme Schema',
       light: 'Light',
       dark: 'Dark',
-      auto: 'Follow System'
+      auto: 'Follow System',
     },
     grayscale: 'Grayscale',
     colourWeakness: 'Colour Weakness',
@@ -73,7 +74,7 @@ const local: App.I18n.Schema = {
       horizontal: 'Horizontal Menu Mode',
       'vertical-mix': 'Vertical Mix Menu Mode',
       'horizontal-mix': 'Horizontal Mix menu Mode',
-      reverseHorizontalMix: 'Reverse first level menus and child level menus position'
+      reverseHorizontalMix: 'Reverse first level menus and child level menus position',
     },
     recommendColor: 'Apply Recommended Color Algorithm',
     recommendColorDesc: 'The recommended color algorithm refers to',
@@ -84,12 +85,12 @@ const local: App.I18n.Schema = {
       success: 'Success',
       warning: 'Warning',
       error: 'Error',
-      followPrimary: 'Follow Primary'
+      followPrimary: 'Follow Primary',
     },
     scrollMode: {
       title: 'Scroll Mode',
       wrapper: 'Wrapper',
-      content: 'Content'
+      content: 'Content',
     },
     page: {
       animate: 'Page Animate',
@@ -101,22 +102,22 @@ const local: App.I18n.Schema = {
         'fade-scale': 'Fade Scale',
         'zoom-fade': 'Zoom Fade',
         'zoom-out': 'Zoom Out',
-        none: 'None'
-      }
+        none: 'None',
+      },
     },
     fixedHeaderAndTab: 'Fixed Header And Tab',
     header: {
       height: 'Header Height',
       breadcrumb: {
         visible: 'Breadcrumb Visible',
-        showIcon: 'Breadcrumb Icon Visible'
+        showIcon: 'Breadcrumb Icon Visible',
       },
       multilingual: {
-        visible: 'Display multilingual button'
+        visible: 'Display multilingual button',
       },
       globalSearch: {
-        visible: 'Display GlobalSearch button'
-      }
+        visible: 'Display GlobalSearch button',
+      },
     },
     tab: {
       visible: 'Tab Visible',
@@ -125,8 +126,8 @@ const local: App.I18n.Schema = {
       mode: {
         title: 'Tab Mode',
         chrome: 'Chrome',
-        button: 'Button'
-      }
+        button: 'Button',
+      },
     },
     sider: {
       inverted: 'Dark Sider',
@@ -134,32 +135,33 @@ const local: App.I18n.Schema = {
       collapsedWidth: 'Sider Collapsed Width',
       mixWidth: 'Mix Sider Width',
       mixCollapsedWidth: 'Mix Sider Collapse Width',
-      mixChildMenuWidth: 'Mix Child Menu Width'
+      mixChildMenuWidth: 'Mix Child Menu Width',
     },
     footer: {
       visible: 'Footer Visible',
       fixed: 'Fixed Footer',
       height: 'Footer Height',
-      right: 'Right Footer'
+      right: 'Right Footer',
     },
     watermark: {
       visible: 'Watermark Full Screen Visible',
       text: 'Watermark Text',
-      enableUserName: 'Enable User Name Watermark'
+      enableUserName: 'Enable User Name Watermark',
     },
     themeDrawerTitle: 'Theme Configuration',
     pageFunTitle: 'Page Function',
     resetCacheStrategy: {
       title: 'Reset Cache Strategy',
       close: 'Close Page',
-      refresh: 'Refresh Page'
+      refresh: 'Refresh Page',
     },
     configOperation: {
       copyConfig: 'Copy Config',
-      copySuccessMsg: 'Copy Success, Please replace the variable "themeSettings" in "src/theme/settings.ts"',
+      copySuccessMsg:
+        'Copy Success, Please replace the variable "themeSettings" in "src/theme/settings.ts"',
       resetConfig: 'Reset Config',
-      resetSuccessMsg: 'Reset Success'
-    }
+      resetSuccessMsg: 'Reset Success',
+    },
   },
   route: {
     login: 'Login',
@@ -177,7 +179,7 @@ const local: App.I18n.Schema = {
     manage_project: 'Project Manage',
     manage_content: 'Content Manage',
     manage_category: 'Category Manage',
-    manage_tag: 'Tag Manage'
+    manage_tag: 'Tag Manage',
   },
   page: {
     login: {
@@ -193,7 +195,7 @@ const local: App.I18n.Schema = {
         back: 'Back',
         validateSuccess: 'Verification passed',
         loginSuccess: 'Login successfully',
-        welcomeBack: 'Welcome back, {userName} !'
+        welcomeBack: 'Welcome back, {userName} !',
       },
       pwdLogin: {
         title: 'Password Login',
@@ -204,27 +206,27 @@ const local: App.I18n.Schema = {
         otherLoginMode: 'Other Login Mode',
         superAdmin: 'Super Admin',
         admin: 'Admin',
-        user: 'User'
+        user: 'User',
       },
       codeLogin: {
         title: 'Verification Code Login',
         getCode: 'Get verification code',
         reGetCode: 'Reacquire after {time}s',
         sendCodeSuccess: 'Verification code sent successfully',
-        imageCodePlaceholder: 'Please enter image verification code'
+        imageCodePlaceholder: 'Please enter image verification code',
       },
       register: {
         title: 'Register',
         agreement: 'I have read and agree to',
         protocol: '《User Agreement》',
-        policy: '《Privacy Policy》'
+        policy: '《Privacy Policy》',
       },
       resetPwd: {
-        title: 'Reset Password'
+        title: 'Reset Password',
       },
       bindWeChat: {
-        title: 'Bind WeChat'
-      }
+        title: 'Bind WeChat',
+      },
     },
     home: {
       branchDesc:
@@ -251,22 +253,22 @@ const local: App.I18n.Schema = {
         desc2: 'Yanbowe submitted a bug to soybean-admin, the multi-tab bar will not adapt.',
         desc3: 'Soybean is ready to do sufficient preparation for the release of soybean-admin!',
         desc4: 'Soybean is busy writing project documentation for soybean-admin!',
-        desc5: 'Soybean just wrote some of the workbench pages casually, and it was enough to see!'
+        desc5: 'Soybean just wrote some of the workbench pages casually, and it was enough to see!',
       },
-      creativity: 'Creativity'
+      creativity: 'Creativity',
     },
     homePortal: {
       greeting: 'Welcome back, {userName}. Here is your content workspace.',
       subtitle: 'Track publishing progress and jump into daily actions quickly.',
       actions: {
-        create: 'Create Article'
+        create: 'Create Article',
       },
       metrics: {
         totalArticle: 'Total Articles',
         published: 'Published',
         draft: 'Drafts',
         category: 'Categories',
-        tag: 'Tags'
+        tag: 'Tags',
       },
       quickLinks: {
         title: 'Quick Links',
@@ -277,25 +279,25 @@ const local: App.I18n.Schema = {
         manageCategory: 'Manage Categories',
         manageCategoryDesc: 'Keep the taxonomy clean and organized',
         manageTag: 'Manage Tags',
-        manageTagDesc: 'Update the tagging system consistently'
+        manageTagDesc: 'Update the tagging system consistently',
       },
       latest: {
         title: 'Latest Updates',
-        viewAll: 'Go to article list'
+        viewAll: 'Go to article list',
       },
       taxonomy: {
         title: 'Content Assets',
         category: 'Categories',
         tag: 'Tags',
-        manage: 'Manage'
-      }
+        manage: 'Manage',
+      },
     },
     manage: {
       common: {
         status: {
           enable: 'Enable',
-          disable: 'Disable'
-        }
+          disable: 'Disable',
+        },
       },
       content: {
         title: 'Article List',
@@ -311,7 +313,7 @@ const local: App.I18n.Schema = {
         editTypeMap: {
           markdown: 'Markdown',
           richtext: 'Rich Text',
-          upload: 'Upload file'
+          upload: 'Upload file',
         },
         content: 'Content',
         publishTime: 'Publish Time',
@@ -323,7 +325,7 @@ const local: App.I18n.Schema = {
         status: {
           draft: 'Draft',
           published: 'Published',
-          offline: 'Offline'
+          offline: 'Offline',
         },
         addArticle: 'Create Article',
         editArticle: 'Edit Article',
@@ -332,7 +334,8 @@ const local: App.I18n.Schema = {
         offlineAction: 'Offline',
         setTop: 'Pin to top',
         cancelTop: 'Unpin',
-        publishedReadonlyTip: 'Published articles cannot be edited or deleted. Please offline them first.',
+        publishedReadonlyTip:
+          'Published articles cannot be edited or deleted. Please offline them first.',
         search: {
           title: 'Please enter article title',
           category: 'Please select category',
@@ -340,7 +343,7 @@ const local: App.I18n.Schema = {
           editType: 'Please select editor type',
           isTop: 'Select pinned state',
           isRecommend: 'Select recommend state',
-          publishTime: 'Please select publish time range'
+          publishTime: 'Please select publish time range',
         },
         form: {
           title: 'Please enter article title',
@@ -355,12 +358,12 @@ const local: App.I18n.Schema = {
           isRecommend: 'Select whether recommended',
           publishTime: 'Please select publish time',
           content: 'Please enter article content',
-          uploadTip: 'Upload .md/.markdown/.txt file, the content will be parsed automatically'
+          uploadTip: 'Upload .md/.markdown/.txt file, the content will be parsed automatically',
         },
         uploadSuccess: 'File parsed successfully',
         uploadFailed: 'Failed to read file',
         uploadButton: 'Upload Markdown',
-        uploading: 'Uploading...'
+        uploading: 'Uploading...',
       },
       category: {
         title: 'Category Manage',
@@ -378,8 +381,8 @@ const local: App.I18n.Schema = {
           name: 'Please enter category name',
           slug: 'Please enter slug',
           description: 'Please enter description',
-          order: 'Please enter order'
-        }
+          order: 'Please enter order',
+        },
       },
       tag: {
         title: 'Tag Manage',
@@ -391,8 +394,8 @@ const local: App.I18n.Schema = {
         form: {
           name: 'Please enter tag name',
           slug: 'Please enter slug',
-          description: 'Please enter description'
-        }
+          description: 'Please enter description',
+        },
       },
       role: {
         title: 'Role List',
@@ -407,11 +410,11 @@ const local: App.I18n.Schema = {
           roleName: 'Please enter role name',
           roleCode: 'Please enter role code',
           roleStatus: 'Please select role status',
-          roleDesc: 'Please enter role description'
+          roleDesc: 'Please enter role description',
         },
         addRole: 'Add Role',
         editRole: 'Edit Role',
-        resourcesAuth: 'Resources Auth'
+        resourcesAuth: 'Resources Auth',
       },
       user: {
         title: 'User List',
@@ -420,6 +423,7 @@ const local: App.I18n.Schema = {
         nickName: 'Nick Name',
         userPhone: 'Phone Number',
         email: 'Email',
+        userEmail: 'Email',
         userStatus: 'User Status',
         userRole: 'User Role',
         form: {
@@ -429,15 +433,18 @@ const local: App.I18n.Schema = {
           userPhone: 'Please enter phone number',
           userEmail: 'Please enter email',
           userStatus: 'Please select user status',
-          userRole: 'Please select user role'
+          userRole: 'Please select user role',
         },
         addUser: 'Add User',
         editUser: 'Edit User',
+        common: {
+          user: 'User',
+        },
         gender: {
           male: 'Male',
           female: 'Female',
-          unknown: 'Unknown'
-        }
+          unknown: 'Unknown',
+        },
       },
       menu: {
         home: 'Home',
@@ -493,55 +500,55 @@ const local: App.I18n.Schema = {
           button: 'Please select whether it is a button',
           buttonCode: 'Please enter button code',
           buttonDesc: 'Please enter button description',
-          menuStatus: 'Please select menu status'
+          menuStatus: 'Please select menu status',
         },
         addMenu: 'Add Menu',
         editMenu: 'Edit Menu',
         addChildMenu: 'Add Child Menu',
         type: {
           directory: 'Directory',
-          menu: 'Menu'
+          menu: 'Menu',
         },
         iconType: {
           iconify: 'Iconify Icon',
-          local: 'Local Icon'
-        }
-      }
-    }
+          local: 'Local Icon',
+        },
+      },
+    },
   },
   form: {
     required: 'Cannot be empty',
     userName: {
       required: 'Please enter user name',
-      invalid: 'User name format is incorrect'
+      invalid: 'User name format is incorrect',
     },
     phone: {
       required: 'Please enter phone number',
-      invalid: 'Phone number format is incorrect'
+      invalid: 'Phone number format is incorrect',
     },
     pwd: {
       required: 'Please enter password',
-      invalid: '6-18 characters, including letters, numbers, and underscores'
+      invalid: '6-18 characters, including letters, numbers, and underscores',
     },
     confirmPwd: {
       required: 'Please enter password again',
-      invalid: 'The two passwords are inconsistent'
+      invalid: 'The two passwords are inconsistent',
     },
     code: {
       required: 'Please enter verification code',
-      invalid: 'Verification code format is incorrect'
+      invalid: 'Verification code format is incorrect',
     },
     email: {
       required: 'Please enter email',
-      invalid: 'Email format is incorrect'
-    }
+      invalid: 'Email format is incorrect',
+    },
   },
   dropdown: {
     closeCurrent: 'Close Current',
     closeOther: 'Close Other',
     closeLeft: 'Close Left',
     closeRight: 'Close Right',
-    closeAll: 'Close All'
+    closeAll: 'Close All',
   },
   icon: {
     themeConfig: 'Theme Configuration',
@@ -553,11 +560,11 @@ const local: App.I18n.Schema = {
     collapse: 'Collapse Menu',
     expand: 'Expand Menu',
     pin: 'Pin',
-    unpin: 'Unpin'
+    unpin: 'Unpin',
   },
   datatable: {
-    itemCount: 'Total {total} items'
-  }
+    itemCount: 'Total {total} items',
+  },
 };
 
 export default local;

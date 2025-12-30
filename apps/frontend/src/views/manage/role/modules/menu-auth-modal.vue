@@ -1,22 +1,24 @@
 <script setup lang="ts">
 import { computed, ref, shallowRef, watch } from 'vue';
 import { fetchGetMenuTree, getMenuRouteNameList } from '@/service/api/menu';
-import { getRoleMenuList, updateRoleMenuList } from '@/service/api/role';
+import { fetchGetRole, updateRole } from '@/service/api/role';
 import { $t } from '@/locales';
 
 defineOptions({
-  name: 'MenuAuthModal'
+  name: 'MenuAuthModal',
 });
 
 interface Props {
   /** the roleId */
-  roleId: number;
+  roleId: string;
+  /** the menu tree data */
+  menuTree?: Api.SystemManage.MenuTree[];
 }
 
 const props = defineProps<Props>();
 
 const visible = defineModel<boolean>('visible', {
-  default: false
+  default: false,
 });
 const loading = ref(false);
 
@@ -28,15 +30,7 @@ const title = computed(() => $t('common.edit') + $t('page.manage.role.menuAuth')
 
 const home = shallowRef('');
 
-async function getHome() {
-  console.log(props.roleId);
-
-  home.value = 'home';
-}
-
-async function updateHome(val: string) {
-  // request
-
+function updateHome(val: string) {
   home.value = val;
 }
 
@@ -51,9 +45,9 @@ async function getPages() {
 }
 
 const pageSelectOptions = computed(() => {
-  const opts: CommonType.Option[] = pages.value.map(page => ({
+  const opts: CommonType.Option[] = pages.value.map((page) => ({
     label: page,
-    value: page
+    value: page,
   }));
 
   return opts;
@@ -62,29 +56,33 @@ const pageSelectOptions = computed(() => {
 const tree = shallowRef<Api.SystemManage.MenuTree[]>([]);
 
 async function getTree() {
-  const { error, data } = await fetchGetMenuTree(false);
+  if (props.menuTree) {
+    tree.value = props.menuTree;
+    return;
+  }
+  const { error, data } = await fetchGetMenuTree();
 
   if (!error) {
     tree.value = data;
   }
 }
 
-const checks = shallowRef<number[]>([]);
+const checks = shallowRef<string[]>([]);
 
 async function getChecks() {
-  const { error, data } = (await getRoleMenuList(props.roleId)) as any;
+  const { error, data } = await fetchGetRole(props.roleId, { include: 'menus' });
   if (!error) {
-    checks.value = data?.menus.map((item: Api.SystemManage.MenuTree) => item.id);
-    home.value = data?.home;
+    checks.value = data.menuIds || [];
+    home.value = data.home;
   }
 }
 
 async function handleSubmit() {
   loading.value = true;
-  const { error } = await updateRoleMenuList({
+  const { error } = await updateRole({
     id: props.roleId,
     menuIds: checks.value,
-    home: home.value
+    home: home.value,
   });
   loading.value = false;
   if (!error) {
@@ -95,13 +93,12 @@ async function handleSubmit() {
 }
 
 function init() {
-  // getHome();
   getPages();
   getTree();
   getChecks();
 }
 
-watch(visible, val => {
+watch(visible, (val) => {
   if (val) {
     init();
   }
@@ -109,10 +106,22 @@ watch(visible, val => {
 </script>
 
 <template>
-  <NModal v-model:show="visible" :title="title" preset="card" class="w-480px" :mask-closable="false">
+  <NModal
+    v-model:show="visible"
+    :title="title"
+    preset="card"
+    class="w-480px"
+    :mask-closable="false"
+  >
     <div class="flex-y-center gap-16px pb-12px">
       <div>{{ $t('page.manage.menu.home') }}</div>
-      <NSelect :value="home" :options="pageSelectOptions" size="small" class="w-160px" @update:value="updateHome" />
+      <NSelect
+        :value="home"
+        :options="pageSelectOptions"
+        size="small"
+        class="w-160px"
+        @update:value="updateHome"
+      />
     </div>
     <NTree
       v-model:checked-keys="checks"
@@ -130,7 +139,13 @@ watch(visible, val => {
         <NButton size="small" class="mt-16px" @click="closeModal">
           {{ $t('common.cancel') }}
         </NButton>
-        <NButton type="primary" size="small" class="mt-16px" :loading="loading" @click="handleSubmit">
+        <NButton
+          type="primary"
+          size="small"
+          class="mt-16px"
+          :loading="loading"
+          @click="handleSubmit"
+        >
           {{ $t('common.confirm') }}
         </NButton>
       </NSpace>

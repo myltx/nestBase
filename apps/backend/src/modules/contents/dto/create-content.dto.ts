@@ -104,4 +104,9 @@ export class CreateContentDto {
   @IsBoolean()
   @IsOptional()
   isRecommend?: boolean;
+
+  @ApiPropertyOptional({ description: '发布时间', example: '2023-01-01T00:00:00.000Z' })
+  @IsString()
+  @IsOptional()
+  publishedAt?: string;
 }

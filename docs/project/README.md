@@ -26,13 +26,14 @@ docs/root-docs/
 
 快速开始和环境配置相关文档。
 
-| 文档 | 说明 | 重要程度 |
-|------|---------|---------|
-| [QUICKSTART.md](./setup/QUICKSTART.md) | 快速开始指南（4步启动） | ⭐⭐⭐⭐⭐ |
-| [SUPABASE_SETUP.md](./setup/SUPABASE_SETUP.md) | Supabase 数据库配置详解 | ⭐⭐⭐⭐⭐ |
-| [CLAUDE.md](./setup/CLAUDE.md) | Claude Code 开发环境配置 | ⭐⭐⭐⭐ |
-| [MONOREPO.md](./setup/MONOREPO.md) | Monorepo 架构说明 | ⭐⭐⭐⭐ |
-| [AGENTS.md](./setup/AGENTS.md) | 代码规范和开发指南 | ⭐⭐⭐ |
+| 文档                                                 | 说明                     | 重要程度   |
+| ---------------------------------------------------- | ------------------------ | ---------- |
+| [QUICKSTART.md](./setup/QUICKSTART.md)               | 快速开始指南（4步启动）  | ⭐⭐⭐⭐⭐ |
+| [SUPABASE_SETUP.md](./setup/SUPABASE_SETUP.md)       | Supabase 数据库配置详解  | ⭐⭐⭐⭐⭐ |
+| [CLAUDE.md](./setup/CLAUDE.md)                       | Claude Code 开发环境配置 | ⭐⭐⭐⭐   |
+| [MONOREPO.md](./setup/MONOREPO.md)                   | Monorepo 架构说明        | ⭐⭐⭐⭐   |
+| [DEPLOYMENT_GUIDE.md](../guides/DEPLOYMENT_GUIDE.md) | 生产环境部署指南         | ⭐⭐⭐⭐⭐ |
+| [AGENTS.md](./setup/AGENTS.md)                       | 代码规范和开发指南       | ⭐⭐⭐     |
 
 **适用人群**: 新开发人员、环境配置人员
 
@@ -42,12 +43,12 @@ docs/root-docs/
 
 开发过程中的变更记录和维护文档。
 
-| 文档 | 说明 | 最后更新 |
-|------|---------|---------|
-| [CHANGELOG.md](./development/CHANGELOG.md) | 完整版本更新日志 | 2025-10-17 |
-| [CODE_CHECK_REPORT.md](./development/CODE_CHECK_REPORT.md) | 代码检查和修复报告 | 2025-01-15 |
-| [DOCUMENTATION_UPDATE.md](./development/DOCUMENTATION_UPDATE.md) | 文档更新记录 | 2025-10-15 |
-| [DOCS_UPDATE_CHECKLIST.md](./development/DOCS_UPDATE_CHECKLIST.md) | 文档更新检查清单 | 2025-10-16 |
+| 文档                                                               | 说明               | 最后更新   |
+| ------------------------------------------------------------------ | ------------------ | ---------- |
+| [CHANGELOG.md](./development/CHANGELOG.md)                         | 完整版本更新日志   | 2025-10-17 |
+| [CODE_CHECK_REPORT.md](./development/CODE_CHECK_REPORT.md)         | 代码检查和修复报告 | 2025-01-15 |
+| [DOCUMENTATION_UPDATE.md](./development/DOCUMENTATION_UPDATE.md)   | 文档更新记录       | 2025-10-15 |
+| [DOCS_UPDATE_CHECKLIST.md](./development/DOCS_UPDATE_CHECKLIST.md) | 文档更新检查清单   | 2025-10-16 |
 
 **适用人群**: 所有开发人员、维护人员
 
@@ -57,10 +58,10 @@ docs/root-docs/
 
 主要功能的实现方案和系统级设计文档。
 
-| 文档 | 功能 | 状态 |
-|------|------|------|
-| [RBAC_GUIDE.md](./features/RBAC_GUIDE.md) | RBAC 权限系统完整使用指南（含前后端） | ✅ 已完成 |
-| [RBAC_REDESIGN.md](./features/RBAC_REDESIGN.md) | RBAC 权限系统架构重新设计方案 | 📋 设计文档 |
+| 文档                                            | 功能                                  | 状态        |
+| ----------------------------------------------- | ------------------------------------- | ----------- |
+| [RBAC_GUIDE.md](./features/RBAC_GUIDE.md)       | RBAC 权限系统完整使用指南（含前后端） | ✅ 已完成   |
+| [RBAC_REDESIGN.md](./features/RBAC_REDESIGN.md) | RBAC 权限系统架构重新设计方案         | 📋 设计文档 |
 
 **适用人群**: 架构师、技术负责人
 
@@ -72,11 +73,11 @@ docs/root-docs/
 
 API 文档导出、工具集成相关文档。
 
-| 文档 | 说明 | 用途 |
-|------|------|------|
-| [APIFOX_IMPORT_GUIDE.md](./api-tools/APIFOX_IMPORT_GUIDE.md) | Apifox 自动导入 API 文档指南 | 导入工具 |
-| [OPENAPI_IMPLEMENTATION.md](./api-tools/OPENAPI_IMPLEMENTATION.md) | OpenAPI 文档导出实现说明 | 技术实现 |
-| [OPENAPI_UPDATE_SUMMARY.md](./api-tools/OPENAPI_UPDATE_SUMMARY.md) | OpenAPI 功能更新总结 | 更新记录 |
+| 文档                                                               | 说明                         | 用途     |
+| ------------------------------------------------------------------ | ---------------------------- | -------- |
+| [APIFOX_IMPORT_GUIDE.md](./api-tools/APIFOX_IMPORT_GUIDE.md)       | Apifox 自动导入 API 文档指南 | 导入工具 |
+| [OPENAPI_IMPLEMENTATION.md](./api-tools/OPENAPI_IMPLEMENTATION.md) | OpenAPI 文档导出实现说明     | 技术实现 |
+| [OPENAPI_UPDATE_SUMMARY.md](./api-tools/OPENAPI_UPDATE_SUMMARY.md) | OpenAPI 功能更新总结         | 更新记录 |
 
 **适用人群**: API 使用者、前端开发人员、测试人员
 
@@ -86,12 +87,12 @@ API 文档导出、工具集成相关文档。
 
 项目交付、总结和管理相关文档。
 
-| 文档 | 说明 | 日期 |
-|------|------|------|
+| 文档                                                            | 说明             | 日期       |
+| --------------------------------------------------------------- | ---------------- | ---------- |
 | [PROJECT_DELIVERY.md](./project-management/PROJECT_DELIVERY.md) | 项目交付完整报告 | 2025-10-15 |
-| [DELIVERY.md](./project-management/DELIVERY.md) | 项目交付清单 | 2025-10-15 |
-| [PROJECT_SUMMARY.md](./project-management/PROJECT_SUMMARY.md) | 项目技术总结 | 2025-10-15 |
-| [FILE_LIST.md](./project-management/FILE_LIST.md) | 项目文件列表 | 2025-10-15 |
+| [DELIVERY.md](./project-management/DELIVERY.md)                 | 项目交付清单     | 2025-10-15 |
+| [PROJECT_SUMMARY.md](./project-management/PROJECT_SUMMARY.md)   | 项目技术总结     | 2025-10-15 |
+| [FILE_LIST.md](./project-management/FILE_LIST.md)               | 项目文件列表     | 2025-10-15 |
 
 **适用人群**: 项目经理、技术负责人
 
@@ -128,25 +129,33 @@ API 文档导出、工具集成相关文档。
 ### 按角色查看
 
 #### 🏗️ 架构师 / 技术负责人
+
 推荐阅读：
+
 - `setup/` 目录 - 了解项目架构
 - `features/` 目录 - 核心功能设计
 - `project-management/PROJECT_DELIVERY.md` - 项目交付报告
 
 #### 💻 后端开发人员
+
 推荐阅读：
+
 - `setup/QUICKSTART.md` - 快速启动
 - `setup/AGENTS.md` - 开发规范
 - `features/RBAC_GUIDE.md` - 权限系统
 - `development/CHANGELOG.md` - 版本历史
 
 #### 🎨 前端开发人员
+
 推荐阅读：
+
 - `api-tools/APIFOX_IMPORT_GUIDE.md` - API 导入
 - `features/RBAC_GUIDE.md` - 前端权限控制
 
 #### 📦 DevOps / 运维人员
+
 推荐阅读：
+
 - `setup/SUPABASE_SETUP.md` - 数据库配置
 - `setup/MONOREPO.md` - 部署架构
 
@@ -156,18 +165,19 @@ API 文档导出、工具集成相关文档。
 
 ### 按主题查找
 
-| 主题 | 相关文档 |
-|------|---------|
-| **快速开始** | `setup/QUICKSTART.md`, `setup/CLAUDE.md` |
-| **数据库配置** | `setup/SUPABASE_SETUP.md` |
-| **权限系统** | `features/RBAC_GUIDE.md`, `features/RBAC_REDESIGN.md`, `features/ROLE_MIGRATION.md` |
-| **API 工具** | `api-tools/APIFOX_IMPORT_GUIDE.md`, `api-tools/OPENAPI_*.md` |
-| **版本历史** | `development/CHANGELOG.md` |
-| **项目交付** | `project-management/PROJECT_DELIVERY.md`, `project-management/DELIVERY.md` |
+| 主题           | 相关文档                                                                            |
+| -------------- | ----------------------------------------------------------------------------------- |
+| **快速开始**   | `setup/QUICKSTART.md`, `setup/CLAUDE.md`                                            |
+| **数据库配置** | `setup/SUPABASE_SETUP.md`                                                           |
+| **权限系统**   | `features/RBAC_GUIDE.md`, `features/RBAC_REDESIGN.md`, `features/ROLE_MIGRATION.md` |
+| **API 工具**   | `api-tools/APIFOX_IMPORT_GUIDE.md`, `api-tools/OPENAPI_*.md`                        |
+| **版本历史**   | `development/CHANGELOG.md`                                                          |
+| **项目交付**   | `project-management/PROJECT_DELIVERY.md`, `project-management/DELIVERY.md`          |
 
 ### 按时间查找
 
 最新文档（按更新日期排序）：
+
 1. `development/CHANGELOG.md` - 2025-10-17
 2. `development/DOCS_UPDATE_CHECKLIST.md` - 2025-10-16
 3. `development/DOCUMENTATION_UPDATE.md` - 2025-10-15

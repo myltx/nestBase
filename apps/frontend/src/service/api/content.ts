@@ -17,7 +17,7 @@ export function fetchGetArticleList(params?: Api.SystemManage.ArticleSearchParam
   return request<Api.SystemManage.ArticleList>({
     url: `${ServicePrefixEnum.CONTENT}`,
     method: RequestEnum.GET,
-    params: query
+    params: query,
   });
 }
 
@@ -26,7 +26,7 @@ export function createArticle(data: Api.SystemManage.CreateArticle) {
   return request<Api.CommonResponse<number>>({
     url: `${ServicePrefixEnum.CONTENT}`,
     method: RequestEnum.POST,
-    data
+    data,
   });
 }
 
@@ -36,7 +36,7 @@ export function updateArticle(data: Api.SystemManage.UpdateArticle) {
   return request<Api.CommonResponse<number>>({
     url: `${ServicePrefixEnum.CONTENT}/${id}`,
     method: RequestEnum.PATCH,
-    data: rest
+    data: rest,
   });
 }
 
@@ -44,34 +44,34 @@ export function updateArticle(data: Api.SystemManage.UpdateArticle) {
 export function deleteArticle(id: number) {
   return request<Api.CommonResponse<null>>({
     url: `${ServicePrefixEnum.CONTENT}/${id}`,
-    method: RequestEnum.DELETE
+    method: RequestEnum.DELETE,
   });
 }
 
 /** 更新文章状态 */
 export function updateArticleStatus(id: number, status: Api.SystemManage.ArticleStatus) {
   return request<Api.CommonResponse<null>>({
-    url: `${ServicePrefixEnum.CONTENT}/${id}/status`,
+    url: `${ServicePrefixEnum.CONTENT}/${id}`,
     method: RequestEnum.PATCH,
-    data: { status }
+    data: { status },
   });
 }
 
 /** 更新文章置顶状态 */
 export function updateArticleTop(id: number, isTop: boolean) {
   return request<Api.CommonResponse<null>>({
-    url: `${ServicePrefixEnum.CONTENT}/${id}/top`,
+    url: `${ServicePrefixEnum.CONTENT}/${id}`,
     method: RequestEnum.PATCH,
-    data: { isTop }
+    data: { isTop },
   });
 }
 
 /** 更新文章推荐状态 */
 export function updateArticleRecommend(id: number, isRecommend: boolean) {
   return request<Api.CommonResponse<null>>({
-    url: `${ServicePrefixEnum.CONTENT}/${id}/recommend`,
+    url: `${ServicePrefixEnum.CONTENT}/${id}`,
     method: RequestEnum.PATCH,
-    data: { isRecommend }
+    data: { isRecommend },
   });
 }
 
@@ -79,6 +79,6 @@ export function updateArticleRecommend(id: number, isRecommend: boolean) {
 export function fetchArticleDetail(id: number | string) {
   return request<Api.SystemManage.Article>({
     url: `${ServicePrefixEnum.CONTENT}/${id}`,
-    method: RequestEnum.GET
+    method: RequestEnum.GET,
   });
 }
