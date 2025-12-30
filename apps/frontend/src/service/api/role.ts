@@ -53,7 +53,7 @@ export function fetchGetAllRoles() {
 /** get role list */
 export function fetchGetRoleList(params?: Api.SystemManage.RoleSearchParams) {
   return request<Api.SystemManage.RoleList>({
-    url: `${ServicePrefixEnum.ROLE}/page`,
+    url: `${ServicePrefixEnum.ROLE}`,
     method: RequestEnum.GET,
     params,
   });
