@@ -138,5 +138,10 @@ export default withMermaid(
 
       socialLinks: [{ icon: 'github', link: 'https://github.com/myltx/nestBase' }],
     },
+    vite: {
+      optimizeDeps: {
+        include: ['@braintree/sanitize-url'],
+      },
+    },
   }),
 );
