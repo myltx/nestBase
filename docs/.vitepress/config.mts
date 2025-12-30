@@ -140,7 +140,19 @@ export default withMermaid(
     },
     vite: {
       optimizeDeps: {
-        include: ['@braintree/sanitize-url'],
+        include: ['mermaid', 'dayjs', '@braintree/sanitize-url'],
+      },
+      resolve: {
+        alias: {
+          'dayjs/plugin/advancedFormat': 'dayjs/plugin/advancedFormat',
+          'dayjs/plugin/customParseFormat': 'dayjs/plugin/customParseFormat',
+          'dayjs/plugin/isoWeek': 'dayjs/plugin/isoWeek',
+        },
+      },
+      server: {
+        fs: {
+          strict: false,
+        },
       },
     },
   }),
