@@ -3,18 +3,18 @@ import { computed, shallowRef } from 'vue';
 import { $t } from '@/locales';
 
 defineOptions({
-  name: 'UserAuthModal'
+  name: 'UserAuthModal',
 });
 
 interface Props {
   /** the roleId */
-  roleId: number;
+  roleId: string;
 }
 
 const props = defineProps<Props>();
 
 const visible = defineModel<boolean>('visible', {
-  default: false
+  default: false,
 });
 
 function closeModal() {
@@ -43,7 +43,7 @@ async function getAllButtons() {
     { id: 7, label: 'button7', code: 'code7' },
     { id: 8, label: 'button8', code: 'code8' },
     { id: 9, label: 'button9', code: 'code9' },
-    { id: 10, label: 'button10', code: 'code10' }
+    { id: 10, label: 'button10', code: 'code10' },
   ];
 }
 

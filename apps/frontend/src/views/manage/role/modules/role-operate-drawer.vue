@@ -10,7 +10,7 @@ import ButtonAuthModal from './button-auth-modal.vue';
 import UserAuthModal from './user-auth-modal.vue';
 
 defineOptions({
-  name: 'RoleOperateDrawer'
+  name: 'RoleOperateDrawer',
 });
 
 interface Props {
@@ -30,7 +30,7 @@ const emit = defineEmits<Emits>();
 
 const loading = ref(false);
 const visible = defineModel<boolean>('visible', {
-  default: false
+  default: false,
 });
 
 const { formRef, validate, restoreValidation } = useNaiveForm();
@@ -42,12 +42,12 @@ const { bool: userAuthVisible, setTrue: openUserAuthModal } = useBoolean();
 const title = computed(() => {
   const titles: Record<NaiveUI.TableOperateType, string> = {
     add: $t('page.manage.role.addRole'),
-    edit: $t('page.manage.role.editRole')
+    edit: $t('page.manage.role.editRole'),
   };
   return titles[props.operateType];
 });
 
-type Model = Pick<Api.SystemManage.Role, 'name' | 'code' | 'description' | 'status'>;
+type Model = Pick<Api.SystemManage.Role, 'name' | 'code' | 'description' | 'status' | 'home'>;
 
 const model = ref(createDefaultModel());
 
@@ -56,7 +56,8 @@ function createDefaultModel(): Model {
     name: '',
     code: '',
     description: '',
-    status: 1
+    status: 1,
+    home: 'home',
   };
 }
 
@@ -66,10 +67,11 @@ const rules: Record<RuleKey, App.Global.FormRule> = {
   name: defaultRequiredRule,
   code: defaultRequiredRule,
   status: defaultRequiredRule,
-  description: {}
+  description: {},
+  home: {},
 };
 
-const roleId = computed(() => props.rowData?.id || -1);
+const roleId = computed(() => props.rowData?.id || '');
 
 const isEdit = computed(() => props.operateType === 'edit');
 
@@ -97,7 +99,7 @@ async function handleSubmit() {
       if (!props.rowData?.id) throw new Error('缺少角色 ID');
       const params: Api.SystemManage.UpdateRole = {
         ...model.value,
-        id: props.rowData.id
+        id: props.rowData.id,
       };
       const { error } = await updateRole(params);
       if (!error) {
@@ -146,7 +148,12 @@ watch(visible, () => {
         </NFormItem>
         <NFormItem :label="$t('page.manage.role.roleStatus')" path="status">
           <NRadioGroup v-model:value="model.status">
-            <NRadio v-for="item in enableStatusOptions" :key="item.value" :value="item.value" :label="$t(item.label)" />
+            <NRadio
+              v-for="item in enableStatusOptions"
+              :key="item.value"
+              :value="item.value"
+              :label="$t(item.label)"
+            />
           </NRadioGroup>
         </NFormItem>
         <NFormItem :label="$t('page.manage.role.roleDesc')" path="description">
@@ -168,7 +175,9 @@ watch(visible, () => {
       <template #footer>
         <NSpace :size="16">
           <NButton @click="closeDrawer">{{ $t('common.cancel') }}</NButton>
-          <NButton type="primary" :loading="loading" @click="handleSubmit">{{ $t('common.confirm') }}</NButton>
+          <NButton type="primary" :loading="loading" @click="handleSubmit">{{
+            $t('common.confirm')
+          }}</NButton>
         </NSpace>
       </template>
     </NDrawerContent>

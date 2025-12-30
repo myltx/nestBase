@@ -16,6 +16,12 @@ declare namespace Api {
       /** role description */
       description: string;
       isSystem: boolean;
+      /** role home route */
+      home: string;
+      /** menu id collection */
+      menuIds?: string[];
+      /** permission id collection */
+      permissionIds?: string[];
     }>;
 
     /** role search params */
@@ -59,7 +65,10 @@ declare namespace Api {
 
     /** user search params */
     type UserSearchParams = CommonType.RecordNullable<
-      Pick<Api.SystemManage.User, 'userName' | 'gender' | 'nickName' | 'phone' | 'email' | 'status'> &
+      Pick<
+        Api.SystemManage.User,
+        'userName' | 'gender' | 'nickName' | 'phone' | 'email' | 'status'
+      > &
         CommonSearchParams & {
           /** search keyword for general search */
           search?: string;
@@ -164,17 +173,23 @@ declare namespace Api {
     type MenuList = Common.PaginatingQueryRecord<Menu>;
 
     type MenuTree = {
-      id: number;
+      id: string;
       label: string;
-      pId: number;
+      pId: string;
       children?: MenuTree[];
     };
 
     /** create role */
-    type CreateRole = Pick<Api.SystemManage.Role, 'name' | 'code' | 'description'>;
+    type CreateRole = Pick<
+      Api.SystemManage.Role,
+      'name' | 'code' | 'description' | 'home' | 'status'
+    > & {
+      menuIds?: string[];
+      permissionIds?: string[];
+    };
 
     /** update role */
-    type UpdateRole = Pick<Api.SystemManage.Role, 'name' | 'code' | 'description'> & { id: number };
+    type UpdateRole = Partial<CreateRole> & { id: string };
 
     /** article status */
     type ArticleStatus = 'DRAFT' | 'PUBLISHED' | 'OFFLINE';
