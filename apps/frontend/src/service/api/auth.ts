@@ -13,8 +13,8 @@ export function fetchLogin(userName: string, password: string) {
     method: 'post',
     data: {
       userName,
-      password
-    }
+      password,
+    },
   });
 }
 
@@ -23,9 +23,13 @@ export function fetchGetUserInfo() {
   return request<Api.Auth.User>({ url: `${ServicePrefixEnum.AUTH}/profile` });
 }
 
-/** Get User Permission List */
 export function fetchGetUserPermissionList() {
   return request<Api.Auth.UserPermission[]>({ url: `${ServicePrefixEnum.AUTH}/permissions` });
+}
+
+/** Get Bootstrap Data (User + Permissions + Menus) */
+export function fetchBootstrap() {
+  return request<Api.Auth.BootstrapData>({ url: `${ServicePrefixEnum.AUTH}/bootstrap` });
 }
 
 /**
@@ -38,8 +42,8 @@ export function fetchRefreshToken(refreshToken: string) {
     url: `${ServicePrefixEnum.AUTH}/refreshToken`,
     method: 'post',
     data: {
-      refreshToken
-    }
+      refreshToken,
+    },
   });
 }
 

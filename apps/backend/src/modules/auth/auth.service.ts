@@ -10,6 +10,7 @@ import {
   UnauthorizedException,
   BadRequestException,
   Inject,
+  Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -21,14 +22,17 @@ import { RegisterDto, LoginDto } from './dto';
 import { BusinessCode } from '@common/constants/business-codes';
 import { LogsService } from '../logs/logs.service';
 import { LoginStatus } from '@prisma/client';
+import { MenusService } from '../menus/menus.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
     private configService: ConfigService,
     private logsService: LogsService,
+    private menusService: MenusService,
     @Inject(REQUEST) private request: Request,
   ) {}
 
@@ -38,7 +42,8 @@ export class AuthService {
    * 管理员账户只能通过数据库迁移或管理员手动创建
    */
   async register(registerDto: RegisterDto) {
-    const { email, userName, password, nickName, firstName, lastName, phone, gender, avatar } = registerDto;
+    const { email, userName, password, nickName, firstName, lastName, phone, gender, avatar } =
+      registerDto;
 
     // 检查邮箱是否已存在
     const existingUserByEmail = await this.prisma.user.findUnique({
@@ -168,7 +173,10 @@ export class AuthService {
     const { userName, password } = loginDto;
 
     // 获取请求信息
-    const ip = this.request.ip || (this.request.headers['x-forwarded-for'] as string)?.split(',')[0] || 'unknown';
+    const ip =
+      this.request.ip ||
+      (this.request.headers['x-forwarded-for'] as string)?.split(',')[0] ||
+      'unknown';
     const userAgent = this.request.headers['user-agent'] || 'unknown';
 
     // 查找用户(支持邮箱或用户名登录)
@@ -299,7 +307,7 @@ export class AuthService {
       { sub: user.id, type: 'refresh' },
       {
         expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN', '7d'),
-      }
+      },
     );
 
     return {
@@ -396,9 +404,7 @@ export class AuthService {
     // 3. 提取权限代码（去重 + 只取启用的权限）
     const permissionCodes = [
       ...new Set(
-        rolePermissions
-          .filter((rp) => rp.permission.status === 1)
-          .map((rp) => rp.permission.code)
+        rolePermissions.filter((rp) => rp.permission.status === 1).map((rp) => rp.permission.code),
       ),
     ];
 
@@ -512,6 +518,102 @@ export class AuthService {
 
     return {
       message: '退出登录成功',
+    };
+  }
+
+  /**
+   * 获取启动数据（聚合用户信息、权限、菜单）
+   * @param userId 用户ID
+   */
+  async getBootstrapData(userId: string) {
+    // 1. 获取用户信息，并同时获取角色和权限信息 (深度嵌套查询，减少 DB 交互次数)
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        userName: true,
+        nickName: true,
+        firstName: true,
+        lastName: true,
+        phone: true,
+        gender: true,
+        avatar: true,
+        status: true,
+        createdAt: true,
+        userRoles: {
+          include: {
+            role: {
+              select: {
+                code: true,
+                name: true,
+                rolePermissions: {
+                  include: {
+                    permission: {
+                      select: {
+                        code: true,
+                        status: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException({
+        message: '用户不存在',
+        code: BusinessCode.USER_NOT_FOUND,
+      });
+    }
+
+    // 2. 在内存中提取角色 Code 和权限 Code
+    const roles: string[] = [];
+    const permissionSet = new Set<string>();
+
+    user.userRoles.forEach((ur) => {
+      // 收集角色
+      if (ur.role && ur.role.code) {
+        roles.push(ur.role.code);
+
+        // 收集该角色下的权限
+        if (ur.role.rolePermissions) {
+          ur.role.rolePermissions.forEach((rp) => {
+            if (rp.permission && rp.permission.status === 1) {
+              permissionSet.add(rp.permission.code);
+            }
+          });
+        }
+      }
+    });
+
+    const permissions = Array.from(permissionSet);
+
+    // 3. 获取菜单（基于角色）
+    // MenusService.findByRoles 已经优化为单次查询
+    const menus = await this.menusService.findByRoles(roles);
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        userName: user.userName,
+        nickName: user.nickName,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone,
+        gender: user.gender,
+        avatar: user.avatar,
+        status: user.status,
+        createdAt: user.createdAt,
+        roles,
+      },
+      permissions,
+      menus,
     };
   }
 }

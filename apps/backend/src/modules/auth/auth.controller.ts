@@ -45,6 +45,16 @@ export class AuthController {
     return user;
   }
 
+  @Get('bootstrap')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '获取启动数据(用户信息/权限/菜单)' })
+  @ApiResponse({ status: 200, description: '获取成功' })
+  @ApiResponse({ status: 401, description: '未授权' })
+  async getBootstrap(@CurrentUser() user: any) {
+    return this.authService.getBootstrapData(user.id);
+  }
+
   @Get('permissions')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -58,10 +68,10 @@ export class AuthController {
         permissions: {
           type: 'array',
           items: { type: 'string' },
-          example: ['user.create', 'user.read', 'user.update', 'user.delete']
-        }
-      }
-    }
+          example: ['user.create', 'user.read', 'user.update', 'user.delete'],
+        },
+      },
+    },
   })
   @ApiResponse({ status: 401, description: '未授权' })
   async getUserPermissions(@CurrentUser() user: any) {
@@ -85,19 +95,19 @@ export class AuthController {
             id: { type: 'string' },
             email: { type: 'string' },
             userName: { type: 'string' },
-            roles: { type: 'array', items: { type: 'string' } }
-          }
+            roles: { type: 'array', items: { type: 'string' } },
+          },
         },
         token: {
           type: 'object',
           properties: {
             accessToken: { type: 'string' },
             refreshToken: { type: 'string' },
-            expiresIn: { type: 'string' }
-          }
-        }
-      }
-    }
+            expiresIn: { type: 'string' },
+          },
+        },
+      },
+    },
   })
   @ApiResponse({ status: 401, description: 'Refresh Token 无效或已过期' })
   async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
@@ -115,9 +125,9 @@ export class AuthController {
     schema: {
       type: 'object',
       properties: {
-        message: { type: 'string', example: '退出登录成功' }
-      }
-    }
+        message: { type: 'string', example: '退出登录成功' },
+      },
+    },
   })
   @ApiResponse({ status: 401, description: '未授权' })
   async logout(@CurrentUser() user: any) {

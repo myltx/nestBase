@@ -20,6 +20,8 @@ export class RedisService implements OnModuleDestroy {
 
     if (this.useFallback) {
       this.logger.warn('Redis 未启用或连接失败，回退到进程内缓存（仅适合开发环境）');
+    } else {
+      this.logger.log('Redis 客户端已启用');
     }
   }
 
@@ -47,8 +49,7 @@ export class RedisService implements OnModuleDestroy {
 
   async set(key: string, value: string, ttlSeconds?: number) {
     if (this.useFallback) {
-      const expireAt =
-        ttlSeconds && ttlSeconds > 0 ? Date.now() + ttlSeconds * 1000 : undefined;
+      const expireAt = ttlSeconds && ttlSeconds > 0 ? Date.now() + ttlSeconds * 1000 : undefined;
       this.fallbackStore.set(key, { value, expireAt });
       return;
     }
