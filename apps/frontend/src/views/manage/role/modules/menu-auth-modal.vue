@@ -11,6 +11,8 @@ defineOptions({
 interface Props {
   /** the roleId */
   roleId: string;
+  /** the menu tree data */
+  menuTree?: Api.SystemManage.MenuTree[];
 }
 
 const props = defineProps<Props>();
@@ -54,7 +56,11 @@ const pageSelectOptions = computed(() => {
 const tree = shallowRef<Api.SystemManage.MenuTree[]>([]);
 
 async function getTree() {
-  const { error, data } = await fetchGetMenuTree(false);
+  if (props.menuTree) {
+    tree.value = props.menuTree;
+    return;
+  }
+  const { error, data } = await fetchGetMenuTree();
 
   if (!error) {
     tree.value = data;
