@@ -71,3 +71,50 @@ export function fetchGetRole(id: string, params?: { include?: string }) {
     params,
   });
 }
+
+/**
+ * Get users by role
+ */
+export function fetchGetUsersByRole(
+  roleId: string,
+  params?: Api.SystemManage.CommonSearchParams & { search?: string },
+) {
+  return request<Api.SystemManage.UserList>({
+    url: `${ServicePrefixEnum.ROLE}/${roleId}/users`,
+    method: RequestEnum.GET,
+    params,
+  });
+}
+
+/**
+ * Add users to role
+ */
+export function addUsersToRole(roleId: string, userIds: string[]) {
+  return request<Api.CommonResponse<any>>({
+    url: `${ServicePrefixEnum.ROLE}/${roleId}/users`,
+    method: RequestEnum.POST,
+    data: { userIds },
+  });
+}
+
+/**
+ * Remove users from role
+ */
+export function removeUsersFromRole(roleId: string, userIds: string[]) {
+  return request<Api.CommonResponse<any>>({
+    url: `${ServicePrefixEnum.ROLE}/${roleId}/users`,
+    method: RequestEnum.DELETE,
+    data: { userIds },
+  });
+}
+
+/**
+ * Update role's users (overwrite)
+ */
+export function updateUserRoles(roleId: string, userIds: string[]) {
+  return request<Api.CommonResponse<any>>({
+    url: `${ServicePrefixEnum.ROLE}/${roleId}/users`,
+    method: RequestEnum.PATCH,
+    data: { userIds },
+  });
+}

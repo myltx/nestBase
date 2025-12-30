@@ -50,7 +50,7 @@ export function getMenuRouteNameList() {
 
 /** get menu tree */
 export function fetchGetMenuTree() {
-  return request<Api.SystemManage.MenuTree[]>({
+  return request<Api.SystemManage.Menu[]>({
     url: `${ServicePrefixEnum.MENU}`,
     method: 'get',
     params: {

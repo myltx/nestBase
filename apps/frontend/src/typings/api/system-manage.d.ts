@@ -87,6 +87,8 @@ declare namespace Api {
     type MenuType = 1 | 2;
 
     type MenuButton = {
+      /** button id (optional for creation, present in response) */
+      id?: string;
       /**
        * button code
        *

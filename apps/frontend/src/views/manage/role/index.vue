@@ -7,8 +7,30 @@ import { useTable, useTableOperate } from '@/hooks/common/table';
 import { $t } from '@/locales';
 import RoleOperateDrawer from './modules/role-operate-drawer.vue';
 import RoleSearch from './modules/role-search.vue';
+import ButtonAuthModal from './modules/button-auth-modal.vue';
+import UserAuthModal from './modules/user-auth-modal.vue';
+import { useBoolean } from '@sa/hooks';
+import { ref } from 'vue';
 
 const appStore = useAppStore();
+
+const {
+  bool: buttonAuthVisible,
+  setTrue: openButtonAuth,
+  setFalse: closeButtonAuth,
+} = useBoolean();
+const { bool: userAuthVisible, setTrue: openUserAuth, setFalse: closeUserAuth } = useBoolean();
+const roleId = ref<string>('');
+
+function handleButtonAuth(id: string) {
+  roleId.value = String(id);
+  openButtonAuth();
+}
+
+function handleUserAuth(id: string) {
+  roleId.value = String(id);
+  openUserAuth();
+}
 
 const {
   columns,
@@ -19,7 +41,7 @@ const {
   getDataByPage,
   mobilePagination,
   searchParams,
-  resetSearchParams
+  resetSearchParams,
 } = useTable({
   apiFn: fetchGetRoleList,
   apiParams: {
@@ -29,69 +51,80 @@ const {
     // the value can not be undefined, otherwise the property in Form will not be reactive
     status: null,
     name: null,
-    code: null
+    code: null,
   },
   columns: () => [
     {
       type: 'selection',
       align: 'center',
-      width: 48
+      width: 48,
     },
     {
       key: 'index',
       title: $t('common.index'),
       width: 64,
-      align: 'center'
+      align: 'center',
     },
     {
       key: 'name',
       title: $t('page.manage.role.roleName'),
       align: 'center',
-      minWidth: 120
+      minWidth: 120,
     },
     {
       key: 'code',
       title: $t('page.manage.role.roleCode'),
       align: 'center',
-      minWidth: 120
+      minWidth: 120,
     },
     {
       key: 'description',
       title: $t('page.manage.role.roleDesc'),
-      minWidth: 120
+      minWidth: 120,
     },
     {
       key: 'status',
       title: $t('page.manage.role.roleStatus'),
       align: 'center',
       width: 100,
-      render: row => {
+      render: (row) => {
         if (row.status === null) {
           return null;
         }
 
         const tagMap: Record<Api.Common.EnableStatus, NaiveUI.ThemeColor> = {
           1: 'success',
-          2: 'warning'
+          2: 'warning',
         };
 
         const label = $t(enableStatusRecord[row.status]);
 
         return <NTag type={tagMap[row.status]}>{label}</NTag>;
-      }
+      },
     },
     {
       key: 'operate',
       title: $t('common.operate'),
       align: 'center',
-      width: 200,
-      render: row => {
+      width: 280,
+      fixed: 'right',
+      render: (row) => {
         return (
           <div class="flex-center gap-8px">
             {/* 所有人都显示资源授权按钮 */}
             {/* <NButton type="primary" ghost size="small" onClick={() => edit(row.id)}>
               {$t('page.manage.role.resourcesAuth')}
             </NButton> */}
+            {
+              <NButton type="primary" ghost size="small" onClick={() => handleButtonAuth(row.id)}>
+                {$t('page.manage.role.buttonAuth')}
+              </NButton>
+            }
+            {
+              <NButton type="primary" ghost size="small" onClick={() => handleUserAuth(row.id)}>
+                {$t('page.manage.role.userAuth')}
+              </NButton>
+            }
             {
               <NButton type="primary" ghost size="small" onClick={() => edit(row.id)}>
                 {$t('common.edit')}
@@ -107,16 +140,16 @@ const {
                       <NButton type="error" ghost size="small">
                         {$t('common.delete')}
                       </NButton>
-                    )
+                    ),
                   }}
                 </NPopconfirm>
               </>
             )}
           </div>
         );
-      }
-    }
-  ]
+      },
+    },
+  ],
 });
 
 const {
@@ -127,7 +160,7 @@ const {
   handleEdit,
   checkedRowKeys,
   onBatchDeleted,
-  onDeleted
+  onDeleted,
   // closeDrawer
 } = useTableOperate(data, getData);
 
@@ -153,7 +186,12 @@ function edit(id: number) {
 <template>
   <div class="min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
     <RoleSearch v-model:model="searchParams" @reset="resetSearchParams" @search="getDataByPage" />
-    <NCard :title="$t('page.manage.role.title')" :bordered="false" size="small" class="card-wrapper sm:flex-1-hidden">
+    <NCard
+      :title="$t('page.manage.role.title')"
+      :bordered="false"
+      size="small"
+      class="card-wrapper sm:flex-1-hidden"
+    >
       <template #header-extra>
         <TableHeaderOperation
           v-model:columns="columnChecks"
@@ -170,10 +208,10 @@ function edit(id: number) {
         :data="data"
         size="small"
         :flex-height="!appStore.isMobile"
-        :scroll-x="702"
+        :scroll-x="1000"
         :loading="loading"
         remote
-        :row-key="row => row.id"
+        :row-key="(row) => row.id"
         :pagination="mobilePagination"
         class="sm:h-full"
       />
@@ -183,6 +221,8 @@ function edit(id: number) {
         :row-data="editingData"
         @submitted="getDataByPage"
       />
+      <ButtonAuthModal v-model:visible="buttonAuthVisible" :role-id="roleId" />
+      <UserAuthModal v-model:visible="userAuthVisible" :role-id="roleId" />
     </NCard>
   </div>
 </template>

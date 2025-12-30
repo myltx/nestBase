@@ -57,13 +57,14 @@ export class MenusService {
     status: true,
     createdAt: true,
     updatedAt: true,
+    permissions: true,
   };
 
   /**
    * 创建菜单
    */
   async create(createMenuDto: CreateMenuDto) {
-    const { routeName, parentId, menuType, ...rest } = createMenuDto;
+    const { routeName, parentId, menuType, buttons, ...rest } = createMenuDto;
 
     // 验证：目录类型（menuType=1）不能有父菜单
     if (menuType === 1 && parentId) {
@@ -99,18 +100,46 @@ export class MenusService {
       }
     }
 
-    // 创建菜单
+    // 构建权限数据
+    const permissionsData = buttons
+      ? buttons.map((btn) => ({
+          code: btn.code,
+          name: btn.desc, // 使用描述作为名称
+          description: btn.desc,
+          type: 'BUTTON' as const, // PermissionType.BUTTON
+        }))
+      : [];
+
     const menu = await this.prisma.menu.create({
       data: {
         routeName,
         parentId,
         menuType,
         ...rest,
+        permissions: {
+          create: permissionsData,
+        },
       },
       select: this.menuSelect,
     });
 
-    return menu;
+    return this.mapMenuResponse(menu);
+  }
+
+  /**
+   * 映射菜单响应，将 permissions 转换为 buttons
+   */
+  private mapMenuResponse(menu: any) {
+    if (!menu) return menu;
+    const { permissions, ...rest } = menu;
+    return {
+      ...rest,
+      buttons: Array.isArray(permissions)
+        ? permissions
+            .filter((p) => p.type === 'BUTTON')
+            .map((p) => ({ code: p.code, desc: p.name, id: p.id }))
+        : [],
+    };
   }
 
   /**
@@ -146,11 +175,13 @@ export class MenusService {
 
     // 如果请求树形结构，或者没有分页参数且不是 rootOnly，则返回全量数据的树形或列表
     if (format === 'tree' || (!current && !size && !rootOnly)) {
-      const allMenus = await this.prisma.menu.findMany({
+      const dbMenus = await this.prisma.menu.findMany({
         where,
         select: this.menuSelect,
         orderBy: { order: 'asc' },
       });
+
+      const allMenus = dbMenus.map((menu) => this.mapMenuResponse(menu));
 
       if (format === 'tree' || (!current && !size)) {
         // 在内存中构建树形结构（递归函数）
@@ -304,7 +335,7 @@ export class MenusService {
       });
     }
 
-    return menu;
+    return this.mapMenuResponse(menu);
   }
 
   /**
@@ -423,7 +454,7 @@ export class MenusService {
       });
     }
 
-    const { routeName, parentId, menuType, ...rest } = updateMenuDto;
+    const { routeName, parentId, menuType, buttons, ...rest } = updateMenuDto;
 
     // 注意：parentId 创建后不能修改，即使传入也会被忽略
 
@@ -452,6 +483,64 @@ export class MenusService {
       }
     }
 
+    // 如果提供了 buttons，需进行全量同步 (Diff)
+    if (buttons) {
+      // 1. 查询当前菜单下的所有按钮权限
+      const existingPermissions = await this.prisma.permission.findMany({
+        where: {
+          menuId: id,
+          type: 'BUTTON',
+        },
+      });
+
+      // 2. 区分 新增 / 更新 / 删除
+      const existingMap = new Map(existingPermissions.map((p) => [p.code, p]));
+      const newMap = new Map(buttons.map((b) => [b.code, b]));
+
+      const toCreate = buttons.filter((b) => !existingMap.has(b.code));
+      const toUpdate = buttons.filter((b) => existingMap.has(b.code));
+      const toDelete = existingPermissions.filter((p) => !newMap.has(p.code));
+
+      // 3. 执行数据库操作 (使用事务)
+      await this.prisma.$transaction(async (tx) => {
+        // Create
+        if (toCreate.length > 0) {
+          await tx.permission.createMany({
+            data: toCreate.map((btn) => ({
+              code: btn.code,
+              name: btn.desc,
+              description: btn.desc,
+              type: 'BUTTON',
+              menuId: id,
+            })),
+          });
+        }
+
+        // Update
+        for (const btn of toUpdate) {
+          const existing = existingMap.get(btn.code);
+          if (existing && (existing.name !== btn.desc || existing.description !== btn.desc)) {
+            await tx.permission.update({
+              where: { id: existing.id },
+              data: {
+                name: btn.desc,
+                description: btn.desc,
+              },
+            });
+          }
+        }
+
+        // Delete (RolePermission will be deleted via Cascade)
+        if (toDelete.length > 0) {
+          await tx.permission.deleteMany({
+            where: {
+              id: { in: toDelete.map((p) => p.id) },
+            },
+          });
+        }
+      });
+    }
+
     // 更新菜单（parentId 不可修改）
     const menu = await this.prisma.menu.update({
       where: { id },
@@ -464,7 +553,7 @@ export class MenusService {
       select: this.menuSelect,
     });
 
-    return menu;
+    return this.mapMenuResponse(menu);
   }
 
   /**
@@ -501,6 +590,8 @@ export class MenusService {
 
     return { message: '菜单删除成功' };
   }
+
+  // ... (skip getAllRouteNames, isRouteExist) ...
 
   /**
    * 获取所有菜单的路由名称列表

@@ -362,7 +362,10 @@ declare namespace App {
         themeSchema: { title: string } & Record<UnionKey.ThemeScheme, string>;
         grayscale: string;
         colourWeakness: string;
-        layoutMode: { title: string; reverseHorizontalMix: string } & Record<UnionKey.ThemeLayoutMode, string>;
+        layoutMode: { title: string; reverseHorizontalMix: string } & Record<
+          UnionKey.ThemeLayoutMode,
+          string
+        >;
         recommendColor: string;
         recommendColorDesc: string;
         themeColor: {
@@ -567,6 +570,7 @@ declare namespace App {
             nickName: string;
             userPhone: string;
             email: string;
+            userEmail: string;
             userStatus: string;
             userRole: string;
             form: {
@@ -580,6 +584,9 @@ declare namespace App {
             };
             addUser: string;
             editUser: string;
+            common: {
+              user: string;
+            };
             gender: {
               male: string;
               female: string;
@@ -780,7 +787,10 @@ declare namespace App {
       };
     };
 
-    type GetI18nKey<T extends Record<string, unknown>, K extends keyof T = keyof T> = K extends string
+    type GetI18nKey<
+      T extends Record<string, unknown>,
+      K extends keyof T = keyof T,
+    > = K extends string
       ? T[K] extends Record<string, unknown>
         ? `${K}.${GetI18nKey<T[K]>}`
         : K
