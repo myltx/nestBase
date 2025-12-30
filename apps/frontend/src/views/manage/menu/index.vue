@@ -24,6 +24,15 @@ const { columns, columnChecks, data, loading, pagination, getData, getDataByPage
     format: 'tree',
     size: 1000, // Ensure getting all items for tree structure
   },
+  transformer: (res) => {
+    const records = (res.data as unknown as Api.SystemManage.Menu[]) || [];
+    return {
+      data: records,
+      pageNum: 1,
+      pageSize: 1000,
+      total: records.length,
+    };
+  },
   columns: () => [
     {
       type: 'selection',
