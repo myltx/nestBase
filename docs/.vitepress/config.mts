@@ -8,11 +8,21 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: '指南', link: '/guides/USAGE.zh-CN' },
+      { text: '前端', link: '/frontend/README' },
       { text: '后端', link: '/backend/README' },
       { text: '项目管理', link: '/project/README' },
     ],
 
     sidebar: {
+      '/frontend/': [
+        {
+          text: '前端服务',
+          items: [
+            { text: '概览', link: '/frontend/README' },
+            { text: '前后端联调指南', link: '/guides/INTEGRATION.zh-CN' },
+          ],
+        },
+      ],
       '/guides/': [
         {
           text: '指南',
