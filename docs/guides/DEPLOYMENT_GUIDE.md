@@ -86,9 +86,37 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
     }
 }
+    }
+}
 ```
 
-## 4. 环境变量检查清单
+## 4. 文档站点部署
+
+文档站点基于 [VitePress](https://vitepress.dev/) 构建。
+
+### 构建静态资源
+
+```bash
+pnpm docs:build
+# 构建产物位于 docs/.vitepress/dist
+```
+
+### Nginx 配置示例
+
+```nginx
+server {
+    listen 80;
+    server_name docs.your-domain.com;
+
+    location / {
+        root /var/www/nestbase/docs/.vitepress/dist;
+        index index.html;
+        try_files $uri $uri/ =404;
+    }
+}
+```
+
+## 5. 环境变量检查清单
 
 生产环境部署前，请务必检查以下变量：
 
@@ -108,3 +136,64 @@ A: 前端路由模式为 history 时，Nginx 必须配置 `try_files $uri $uri/ 
 
 **Q: 数据库迁移怎么跑？**
 A: 可以在 CI/CD 流程中运行，或在容器启动脚本中添加 `npx prisma migrate deploy`。
+
+## 6. 其他平台部署 (PaaS/Serverless)
+
+### Vercel (推荐前端与文档)
+
+本项目支持直接使用 Vercel 进行部署，特别是前端和文档站点。
+
+**1. 部署前端 (@nestbase/frontend)**
+
+- 在 Vercel 导入 Git 仓库。
+- **Root Directory**: 设置为 `apps/frontend`。
+- **Framework Preset**: 选择 `Vite`。
+- **Environment Variables**: 添加 `.env` 中的变量 (如 `VITE_SERVICE_BASE_URL`)。
+- 点击 Deploy。
+
+**2. 部署文档 (docs)**
+
+- 在 Vercel 导入 Git 仓库（新建项目）。
+- **Root Directory**: 设置为 `docs`。
+- **Framework Preset**: 选择 `VitePress` (或 `Other`，Build command: `pnpm docs:build`, Output: `.vitepress/dist`)。
+- 点击 Deploy。
+
+**3. 部署后端 (backend)**
+
+- 虽然 Vercel 支持 NestJS，但建议使用 Serverless 模式适配。
+- 自带的 `vercel.json` 配置了基础构建命令，但在 Monorepo 下建议为后端单独配置入口 `api/index.ts` 以适配 Vercel Functions。
+- _注意_: 数据库连接池必须支持 Serverless (如 Supabase Transaction Pooler)，否则会耗尽连接。
+
+### GitHub Pages (仅静态站点)
+
+适用于 **文档站点** 或 **纯静态前端**。
+
+1.  在项目根目录创建 `.github/workflows/deploy-docs.yml`:
+
+```yaml
+name: Deploy Docs to Pages
+on:
+  push:
+    branches: [main]
+    paths: ['docs/**']
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm docs:build
+      - uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/.vitepress/dist
+```
+
+2. 提交代码后，GitHub Actions 会自动构建并发布到 `gh-pages` 分支。
+3. 在 GitHub 仓库 Settings -> Pages 中选择 Source 为 `gh-pages` 分支。
