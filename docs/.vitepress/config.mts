@@ -5,6 +5,7 @@ export default withMermaid(
   defineConfig({
     title: 'NestBase',
     description: '现代化全栈应用框架文档',
+    base: '/nestBase/',
     lastUpdated: true,
     ignoreDeadLinks: true,
     mermaid: {
