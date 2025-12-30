@@ -122,6 +122,20 @@ export const request = createFlatRequest<App.Service.Response, RequestInstanceSt
       // 🔥 跳过某些特殊 code 的错误提示（如 modal、token 过期）
       const modalLogoutCodes = import.meta.env.VITE_SERVICE_MODAL_LOGOUT_CODES?.split(',') || [];
       const expiredTokenCodes = import.meta.env.VITE_SERVICE_EXPIRED_TOKEN_CODES?.split(',') || [];
+
+      const logoutCodes = import.meta.env.VITE_SERVICE_LOGOUT_CODES?.split(',') || [];
+
+      // Check if the error is a logout code (either from backend business code or HTTP status)
+      // Standard HTTP 401 also triggers logout
+      if (
+        logoutCodes.includes(backendErrorCode) ||
+        (error.response && error.response.status === 401)
+      ) {
+        const authStore = useAuthStore();
+        authStore.resetStore();
+        return;
+      }
+
       if (
         modalLogoutCodes.includes(backendErrorCode) ||
         expiredTokenCodes.includes(backendErrorCode)
