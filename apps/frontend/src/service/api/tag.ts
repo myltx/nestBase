@@ -4,9 +4,9 @@ import { request } from '../request';
 
 export function fetchGetTagList(params?: Api.SystemManage.TagSearchParams) {
   return request<Api.SystemManage.TagList>({
-    url: `${ServicePrefixEnum.TAG}/page`,
+    url: `${ServicePrefixEnum.TAG}`,
     method: RequestEnum.GET,
-    params
+    params,
   });
 }
 
@@ -14,7 +14,7 @@ export function createTag(data: Api.SystemManage.CreateTag) {
   return request<Api.CommonResponse<string>>({
     url: `${ServicePrefixEnum.TAG}`,
     method: RequestEnum.POST,
-    data
+    data,
   });
 }
 
@@ -23,13 +23,13 @@ export function updateTag(data: Api.SystemManage.UpdateTag) {
   return request<Api.CommonResponse<string>>({
     url: `${ServicePrefixEnum.TAG}/${id}`,
     method: RequestEnum.PATCH,
-    data: rest
+    data: rest,
   });
 }
 
 export function deleteTag(id: string) {
   return request<Api.CommonResponse<null>>({
     url: `${ServicePrefixEnum.TAG}/${id}`,
-    method: RequestEnum.DELETE
+    method: RequestEnum.DELETE,
   });
 }
