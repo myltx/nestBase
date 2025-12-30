@@ -53,3 +53,7 @@ apps/backend/prisma/migrations/*
 *.tmp
 *.temp
 .cache/
+
+# VitePress
+docs/.vitepress/cache/
+docs/.vitepress/dist/
