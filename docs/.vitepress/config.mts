@@ -24,6 +24,7 @@ export default withMermaid(
             text: '前端服务',
             items: [
               { text: '概览', link: '/frontend/README' },
+              { text: '开发指南', link: '/frontend/DEVELOPER_GUIDE' },
               { text: '前后端联调指南', link: '/guides/INTEGRATION.zh-CN' },
             ],
           },
@@ -31,7 +32,13 @@ export default withMermaid(
         '/guides/': [
           {
             text: '指南',
-            items: [{ text: '使用说明', link: '/guides/USAGE.zh-CN' }],
+            items: [
+              { text: '使用说明', link: '/guides/USAGE.zh-CN' },
+              { text: '系统配置详解', link: '/guides/SYSTEM_CONFIG' },
+              { text: '生产部署指南', link: '/guides/DEPLOYMENT_GUIDE' },
+              { text: '内容管理手册', link: '/guides/CMS_MANUAL' },
+              { text: '权限管理手册', link: '/guides/RBAC_MANUAL' },
+            ],
           },
         ],
         '/plans/': [
