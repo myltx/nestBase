@@ -39,7 +39,7 @@ export class RolesService {
    * 获取所有角色列表（支持分页和筛选）
    */
   async findAll(queryDto: QueryRoleDto) {
-    const { search, isSystem, status, current, size } = queryDto;
+    const { search, code, name, isSystem, status, current, size } = queryDto;
 
     // 构建查询条件
     const where: any = {};
@@ -50,6 +50,14 @@ export class RolesService {
         { code: { contains: search, mode: 'insensitive' } },
         { name: { contains: search, mode: 'insensitive' } },
       ];
+    }
+
+    if (code) {
+      where.code = { contains: code, mode: 'insensitive' };
+    }
+
+    if (name) {
+      where.name = { contains: name, mode: 'insensitive' };
     }
 
     // 是否为系统角色

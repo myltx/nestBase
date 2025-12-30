@@ -18,6 +18,22 @@ export class QueryUserDto {
   search?: string;
 
   @ApiPropertyOptional({
+    description: '用户名筛选',
+    example: 'admin',
+  })
+  @IsOptional()
+  @IsString()
+  userName?: string;
+
+  @ApiPropertyOptional({
+    description: '邮箱筛选',
+    example: 'admin@example.com',
+  })
+  @IsOptional()
+  @IsString()
+  email?: string;
+
+  @ApiPropertyOptional({
     description: '昵称筛选（模糊匹配）',
     example: '小明',
   })

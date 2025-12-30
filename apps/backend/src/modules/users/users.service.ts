@@ -89,7 +89,18 @@ export class UsersService {
    * 创建用户
    */
   async create(createUserDto: CreateUserDto) {
-    const { email, userName, password, nickName, firstName, lastName, phone, gender, avatar, roleIds } = createUserDto;
+    const {
+      email,
+      userName,
+      password,
+      nickName,
+      firstName,
+      lastName,
+      phone,
+      gender,
+      avatar,
+      roleIds,
+    } = createUserDto;
 
     // 检查邮箱是否已存在
     const existingUserByEmail = await this.prisma.user.findUnique({
@@ -205,7 +216,8 @@ export class UsersService {
    * 查询所有用户(支持分页和搜索)
    */
   async findAll(queryDto: QueryUserDto) {
-    const { search, nickName, gender, phone, status, role, current, size } = queryDto;
+    const { search, userName, email, nickName, gender, phone, status, role, current, size } =
+      queryDto;
 
     // 构建查询条件
     const where: any = {};
@@ -218,6 +230,16 @@ export class UsersService {
         { firstName: { contains: search, mode: 'insensitive' } },
         { lastName: { contains: search, mode: 'insensitive' } },
       ];
+    }
+
+    // 用户名筛选
+    if (userName) {
+      where.userName = { contains: userName, mode: 'insensitive' };
+    }
+
+    // 邮箱筛选
+    if (email) {
+      where.email = { contains: email, mode: 'insensitive' };
     }
 
     // 昵称筛选（模糊匹配）
@@ -460,8 +482,6 @@ export class UsersService {
 
     return { message: `成功删除 ${result.count} 个用户` };
   }
-
-
 
   /**
    * 格式化用户数据,将 userRoles 转换为 roles 数组
