@@ -25,9 +25,13 @@ const { columns, columnChecks, data, loading, pagination, getData, getDataByPage
     size: 1000, // Ensure getting all items for tree structure
   },
   transformer: (res) => {
-    const records = (res.data as unknown as Api.SystemManage.Menu[]) || [];
+    // The request utility returns response.data.data (the payload)
+    // When format=tree, the payload is an Array [ ... ]
+    // The previous transformer tried to access res.data, which works if res is the wrapper,
+    // but here res IS the data array.
+    const records = (Array.isArray(res) ? res : res.data) || [];
     return {
-      data: records,
+      data: records as Api.SystemManage.Menu[],
       pageNum: 1,
       pageSize: 1000,
       total: records.length,

@@ -32,52 +32,54 @@ export function useTable<A extends NaiveUI.TableApiFn>(config: NaiveUI.NaiveTabl
     getData,
     searchParams,
     updateSearchParams,
-    resetSearchParams
+    resetSearchParams,
   } = useHookTable<A, GetTableData<A>, TableColumn<NaiveUI.TableDataWithIndex<GetTableData<A>>>>({
     apiFn,
     apiParams,
     columns: config.columns,
-    transformer: res => {
-      const { records = [], current = 1, size = 10, total = 0 } = res.data || {};
+    transformer:
+      config.transformer ||
+      ((res) => {
+        const { records = [], current = 1, size = 10, total = 0 } = res.data || {};
 
-      // Ensure that the size is greater than 0, If it is less than 0, it will cause paging calculation errors.
-      const pageSize = size <= 0 ? 10 : size;
+        // Ensure that the size is greater than 0, If it is less than 0, it will cause paging calculation errors.
+        const pageSize = size <= 0 ? 10 : size;
 
-      const recordsWithIndex = records.map((item, index) => {
+        const recordsWithIndex = records.map((item, index) => {
+          return {
+            ...item,
+            index: (current - 1) * pageSize + index + 1,
+          };
+        });
+
         return {
-          ...item,
-          index: (current - 1) * pageSize + index + 1
+          data: recordsWithIndex,
+          pageNum: current,
+          pageSize,
+          total,
         };
-      });
-
-      return {
-        data: recordsWithIndex,
-        pageNum: current,
-        pageSize,
-        total
-      };
-    },
-    getColumnChecks: cols => {
+      }),
+    getColumnChecks: (cols) => {
       const checks: NaiveUI.TableColumnCheck[] = [];
 
-      cols.forEach(column => {
+      cols.forEach((column) => {
         if (isTableColumnHasKey(column)) {
           checks.push({
             key: column.key as string,
             title: column.title!,
-            checked: true
+            checked: true,
           });
         } else if (column.type === 'selection') {
           checks.push({
             key: SELECTION_KEY,
             title: $t('common.check'),
-            checked: true
+            checked: true,
           });
         } else if (column.type === 'expand') {
           checks.push({
             key: EXPAND_KEY,
             title: $t('common.expandColumn'),
-            checked: true
+            checked: true,
           });
         }
       });
@@ -87,7 +89,7 @@ export function useTable<A extends NaiveUI.TableApiFn>(config: NaiveUI.NaiveTabl
     getColumns: (cols, checks) => {
       const columnMap = new Map<string, TableColumn<GetTableData<A>>>();
 
-      cols.forEach(column => {
+      cols.forEach((column) => {
         if (isTableColumnHasKey(column)) {
           columnMap.set(column.key as string, column);
         } else if (column.type === 'selection') {
@@ -98,21 +100,21 @@ export function useTable<A extends NaiveUI.TableApiFn>(config: NaiveUI.NaiveTabl
       });
 
       const filteredColumns = checks
-        .filter(item => item.checked)
-        .map(check => columnMap.get(check.key) as TableColumn<GetTableData<A>>);
+        .filter((item) => item.checked)
+        .map((check) => columnMap.get(check.key) as TableColumn<GetTableData<A>>);
 
       return filteredColumns;
     },
-    onFetched: async transformed => {
+    onFetched: async (transformed) => {
       const { pageNum, pageSize, total } = transformed;
 
       updatePagination({
         page: pageNum,
         pageSize,
-        itemCount: total
+        itemCount: total,
       });
     },
-    immediate
+    immediate,
   });
 
   const pagination: PaginationProps = reactive({
@@ -126,7 +128,7 @@ export function useTable<A extends NaiveUI.TableApiFn>(config: NaiveUI.NaiveTabl
 
       updateSearchParams({
         current: page,
-        size: pagination.pageSize!
+        size: pagination.pageSize!,
       });
 
       getData();
@@ -137,16 +139,16 @@ export function useTable<A extends NaiveUI.TableApiFn>(config: NaiveUI.NaiveTabl
 
       updateSearchParams({
         current: pagination.page,
-        size: pageSize
+        size: pageSize,
       });
 
       getData();
     },
     ...(showTotal
       ? {
-          prefix: page => $t('datatable.itemCount', { total: page.itemCount })
+          prefix: (page) => $t('datatable.itemCount', { total: page.itemCount }),
         }
-      : {})
+      : {}),
   });
 
   // this is for mobile, if the system does not support mobile, you can use `pagination` directly
@@ -154,7 +156,7 @@ export function useTable<A extends NaiveUI.TableApiFn>(config: NaiveUI.NaiveTabl
     const p: PaginationProps = {
       ...pagination,
       pageSlot: isMobile.value ? 3 : 9,
-      prefix: !isMobile.value && showTotal ? pagination.prefix : undefined
+      prefix: !isMobile.value && showTotal ? pagination.prefix : undefined,
     };
 
     return p;
@@ -171,12 +173,12 @@ export function useTable<A extends NaiveUI.TableApiFn>(config: NaiveUI.NaiveTabl
    */
   async function getDataByPage(pageNum: number = 1) {
     updatePagination({
-      page: pageNum
+      page: pageNum,
     });
 
     updateSearchParams({
       current: pageNum,
-      size: pagination.pageSize!
+      size: pagination.pageSize!,
     });
 
     await getData();
@@ -187,7 +189,7 @@ export function useTable<A extends NaiveUI.TableApiFn>(config: NaiveUI.NaiveTabl
       () => appStore.locale,
       () => {
         reloadColumns();
-      }
+      },
     );
   });
 
@@ -209,11 +211,14 @@ export function useTable<A extends NaiveUI.TableApiFn>(config: NaiveUI.NaiveTabl
     getDataByPage,
     searchParams,
     updateSearchParams,
-    resetSearchParams
+    resetSearchParams,
   };
 }
 
-export function useTableOperate<T extends TableData = TableData>(data: Ref<T[]>, getData: () => Promise<void>) {
+export function useTableOperate<T extends TableData = TableData>(
+  data: Ref<T[]>,
+  getData: () => Promise<void>,
+) {
   const { bool: drawerVisible, setTrue: openDrawer, setFalse: closeDrawer } = useBoolean();
 
   const operateType = ref<NaiveUI.TableOperateType>('add');
@@ -228,7 +233,7 @@ export function useTableOperate<T extends TableData = TableData>(data: Ref<T[]>,
 
   function handleEdit(id: T['id']) {
     operateType.value = 'edit';
-    const findItem = data.value.find(item => item.id === id) || null;
+    const findItem = data.value.find((item) => item.id === id) || null;
     editingData.value = jsonClone(findItem);
 
     openDrawer();
@@ -263,7 +268,7 @@ export function useTableOperate<T extends TableData = TableData>(data: Ref<T[]>,
     handleEdit,
     checkedRowKeys,
     onBatchDeleted,
-    onDeleted
+    onDeleted,
   };
 }
 

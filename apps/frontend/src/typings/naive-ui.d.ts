@@ -22,12 +22,17 @@ declare namespace NaiveUI {
 
   type TableData = Api.Common.CommonRecord<object>;
 
-  type TableColumnWithKey<T> = SetTableColumnKey<DataTableBaseColumn<T>, T> | SetTableColumnKey<TableColumnGroup<T>, T>;
+  type TableColumnWithKey<T> =
+    | SetTableColumnKey<DataTableBaseColumn<T>, T>
+    | SetTableColumnKey<TableColumnGroup<T>, T>;
 
-  type TableColumn<T> = TableColumnWithKey<T> | DataTableSelectionColumn<T> | DataTableExpandColumn<T>;
+  type TableColumn<T> =
+    | TableColumnWithKey<T>
+    | DataTableSelectionColumn<T>
+    | DataTableExpandColumn<T>;
 
   type TableApiFn<T = any, R = Api.Common.CommonSearchParams> = (
-    params: R
+    params: R,
   ) => Promise<FlatResponseData<Api.Common.PaginatingQueryRecord<T>>>;
 
   /**
@@ -41,8 +46,12 @@ declare namespace NaiveUI {
   type GetTableData<A extends TableApiFn> = A extends TableApiFn<infer T> ? T : never;
 
   type NaiveTableConfig<A extends TableApiFn> = Pick<
-    import('@sa/hooks').TableConfig<A, GetTableData<A>, TableColumn<TableDataWithIndex<GetTableData<A>>>>,
-    'apiFn' | 'apiParams' | 'columns' | 'immediate'
+    import('@sa/hooks').TableConfig<
+      A,
+      GetTableData<A>,
+      TableColumn<TableDataWithIndex<GetTableData<A>>>
+    >,
+    'apiFn' | 'apiParams' | 'columns' | 'immediate' | 'transformer'
   > & {
     /**
      * whether to display the total items count
