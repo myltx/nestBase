@@ -306,6 +306,35 @@ async function main() {
   });
   console.log('  ✅ 菜单: 项目管理');
 
+  // 5. 字典管理
+  const dictionaryMenu = await prisma.menu.upsert({
+    where: { routeName: 'manage_dictionary' },
+    update: {
+      routePath: '/manage/dictionary',
+      menuName: '字典管理',
+      title: '字典管理',
+      i18nKey: 'route.manage_dictionary',
+      icon: 'mdi:book-alphabet',
+      order: 3,
+      parentId: systemMenu.id,
+      menuType: 2,
+      constant: false,
+    },
+    create: {
+      routeName: 'manage_dictionary',
+      routePath: '/manage/dictionary',
+      menuName: '字典管理',
+      title: '字典管理',
+      i18nKey: 'route.manage_dictionary',
+      icon: 'mdi:book-alphabet',
+      order: 3,
+      parentId: systemMenu.id,
+      menuType: 2,
+      constant: false,
+    },
+  });
+  console.log('  ✅ 菜单: 字典管理');
+
   // ========== 同步角色菜单权限 ==========
   console.log('');
   console.log('🔗 开始同步角色菜单权限...');
@@ -320,7 +349,9 @@ async function main() {
     { roleId: adminRole.id, menuId: systemMenu.id },
     { roleId: adminRole.id, menuId: menuManagementMenu.id },
     { roleId: adminRole.id, menuId: systemSettingsMenu.id },
+    { roleId: adminRole.id, menuId: systemSettingsMenu.id },
     { roleId: adminRole.id, menuId: projectMenu.id },
+    { roleId: adminRole.id, menuId: dictionaryMenu.id },
     // MODERATOR 拥有部分菜单
     { roleId: moderatorRole.id, menuId: homeMenu.id },
     { roleId: moderatorRole.id, menuId: userManagementMenu.id },
@@ -365,34 +396,154 @@ async function main() {
   // 定义系统权限
   const permissions = [
     // 用户权限
-    { code: 'user.create', name: '创建用户', resource: 'user', action: 'create', description: '允许创建新用户' },
-    { code: 'user.read', name: '查看用户', resource: 'user', action: 'read', description: '允许查看用户信息' },
-    { code: 'user.update', name: '更新用户', resource: 'user', action: 'update', description: '允许更新用户信息' },
-    { code: 'user.delete', name: '删除用户', resource: 'user', action: 'delete', description: '允许删除用户' },
+    {
+      code: 'user.create',
+      name: '创建用户',
+      resource: 'user',
+      action: 'create',
+      description: '允许创建新用户',
+    },
+    {
+      code: 'user.read',
+      name: '查看用户',
+      resource: 'user',
+      action: 'read',
+      description: '允许查看用户信息',
+    },
+    {
+      code: 'user.update',
+      name: '更新用户',
+      resource: 'user',
+      action: 'update',
+      description: '允许更新用户信息',
+    },
+    {
+      code: 'user.delete',
+      name: '删除用户',
+      resource: 'user',
+      action: 'delete',
+      description: '允许删除用户',
+    },
 
     // 角色权限
-    { code: 'role.create', name: '创建角色', resource: 'role', action: 'create', description: '允许创建新角色' },
-    { code: 'role.read', name: '查看角色', resource: 'role', action: 'read', description: '允许查看角色信息' },
-    { code: 'role.update', name: '更新角色', resource: 'role', action: 'update', description: '允许更新角色信息' },
-    { code: 'role.delete', name: '删除角色', resource: 'role', action: 'delete', description: '允许删除角色' },
+    {
+      code: 'role.create',
+      name: '创建角色',
+      resource: 'role',
+      action: 'create',
+      description: '允许创建新角色',
+    },
+    {
+      code: 'role.read',
+      name: '查看角色',
+      resource: 'role',
+      action: 'read',
+      description: '允许查看角色信息',
+    },
+    {
+      code: 'role.update',
+      name: '更新角色',
+      resource: 'role',
+      action: 'update',
+      description: '允许更新角色信息',
+    },
+    {
+      code: 'role.delete',
+      name: '删除角色',
+      resource: 'role',
+      action: 'delete',
+      description: '允许删除角色',
+    },
 
     // 菜单权限
-    { code: 'menu.create', name: '创建菜单', resource: 'menu', action: 'create', description: '允许创建新菜单' },
-    { code: 'menu.read', name: '查看菜单', resource: 'menu', action: 'read', description: '允许查看菜单信息' },
-    { code: 'menu.update', name: '更新菜单', resource: 'menu', action: 'update', description: '允许更新菜单信息' },
-    { code: 'menu.delete', name: '删除菜单', resource: 'menu', action: 'delete', description: '允许删除菜单' },
+    {
+      code: 'menu.create',
+      name: '创建菜单',
+      resource: 'menu',
+      action: 'create',
+      description: '允许创建新菜单',
+    },
+    {
+      code: 'menu.read',
+      name: '查看菜单',
+      resource: 'menu',
+      action: 'read',
+      description: '允许查看菜单信息',
+    },
+    {
+      code: 'menu.update',
+      name: '更新菜单',
+      resource: 'menu',
+      action: 'update',
+      description: '允许更新菜单信息',
+    },
+    {
+      code: 'menu.delete',
+      name: '删除菜单',
+      resource: 'menu',
+      action: 'delete',
+      description: '允许删除菜单',
+    },
 
     // 权限管理
-    { code: 'permission.create', name: '创建权限', resource: 'permission', action: 'create', description: '允许创建新权限' },
-    { code: 'permission.read', name: '查看权限', resource: 'permission', action: 'read', description: '允许查看权限信息' },
-    { code: 'permission.update', name: '更新权限', resource: 'permission', action: 'update', description: '允许更新权限信息' },
-    { code: 'permission.delete', name: '删除权限', resource: 'permission', action: 'delete', description: '允许删除权限' },
+    {
+      code: 'permission.create',
+      name: '创建权限',
+      resource: 'permission',
+      action: 'create',
+      description: '允许创建新权限',
+    },
+    {
+      code: 'permission.read',
+      name: '查看权限',
+      resource: 'permission',
+      action: 'read',
+      description: '允许查看权限信息',
+    },
+    {
+      code: 'permission.update',
+      name: '更新权限',
+      resource: 'permission',
+      action: 'update',
+      description: '允许更新权限信息',
+    },
+    {
+      code: 'permission.delete',
+      name: '删除权限',
+      resource: 'permission',
+      action: 'delete',
+      description: '允许删除权限',
+    },
 
     // 项目权限
-    { code: 'project.create', name: '创建项目', resource: 'project', action: 'create', description: '允许创建新项目' },
-    { code: 'project.read', name: '查看项目', resource: 'project', action: 'read', description: '允许查看项目信息' },
-    { code: 'project.update', name: '更新项目', resource: 'project', action: 'update', description: '允许更新项目信息' },
-    { code: 'project.delete', name: '删除项目', resource: 'project', action: 'delete', description: '允许删除项目' },
+    {
+      code: 'project.create',
+      name: '创建项目',
+      resource: 'project',
+      action: 'create',
+      description: '允许创建新项目',
+    },
+    {
+      code: 'project.read',
+      name: '查看项目',
+      resource: 'project',
+      action: 'read',
+      description: '允许查看项目信息',
+    },
+    {
+      code: 'project.update',
+      name: '更新项目',
+      resource: 'project',
+      action: 'update',
+      description: '允许更新项目信息',
+    },
+    {
+      code: 'project.delete',
+      name: '删除项目',
+      resource: 'project',
+      action: 'delete',
+      description: '允许删除项目',
+    },
   ];
 
   // 创建权限

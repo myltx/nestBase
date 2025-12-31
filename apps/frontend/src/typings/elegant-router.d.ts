@@ -27,6 +27,7 @@ declare module "@elegant-router/types" {
     "manage": "/manage";
     "manage_category": "/manage/category";
     "manage_content": "/manage/content";
+    "manage_dictionary": "/manage/dictionary";
     "manage_menu": "/manage/menu";
     "manage_project": "/manage/project";
     "manage_role": "/manage/role";
@@ -97,6 +98,7 @@ declare module "@elegant-router/types" {
     | "home"
     | "manage_category"
     | "manage_content"
+    | "manage_dictionary"
     | "manage_menu"
     | "manage_project"
     | "manage_role"
