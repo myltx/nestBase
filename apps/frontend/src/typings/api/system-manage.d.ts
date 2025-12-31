@@ -317,6 +317,41 @@ declare namespace Api {
     };
 
     type UpdateTag = Partial<CreateTag> & { id: string };
+
+    /** project */
+    type Project = Common.CommonRecord<{
+      /** project title */
+      title: string;
+      /** project description */
+      description: string;
+      /** project url */
+      url?: string | null;
+      /** tech stack */
+      tech: string[];
+      /** github url */
+      github?: string | null;
+      /** demo url */
+      demo?: string | null;
+      /** is featured */
+      featured: boolean;
+    }>;
+
+    type ProjectSearchParams = CommonType.RecordNullable<
+      {
+        search?: string;
+        featured?: boolean;
+        tech?: string;
+      } & CommonSearchParams
+    >;
+
+    type ProjectList = Common.PaginatingQueryRecord<Project>;
+
+    type CreateProject = Pick<
+      Project,
+      'title' | 'description' | 'url' | 'tech' | 'github' | 'demo' | 'featured'
+    >;
+
+    type UpdateProject = Partial<CreateProject> & { id: string };
   }
 
   // 添加一个 通用的接口返回成功的类型
