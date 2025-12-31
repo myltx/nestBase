@@ -352,6 +352,53 @@ declare namespace Api {
     >;
 
     type UpdateProject = Partial<CreateProject> & { id: string };
+
+    /** dictionary */
+    type Dictionary = Common.CommonRecord<{
+      /** dictionary code */
+      code: string;
+      /** dictionary name */
+      name: string;
+      /** description */
+      description?: string | null;
+      /** is active */
+      isActive: boolean;
+    }>;
+
+    type DictionaryList = Common.PaginatingQueryRecord<Dictionary>;
+
+    type CreateDictionary = Pick<Dictionary, 'code' | 'name' | 'description' | 'isActive'>;
+
+    type UpdateDictionary = Partial<CreateDictionary> & { id: string };
+
+    type DictionarySearchParams = CommonType.RecordNullable<
+      {
+        keyword?: string;
+      } & CommonSearchParams
+    >;
+
+    /** dictionary item */
+    type DictionaryItem = Common.CommonRecord<{
+      /** dictionary id */
+      dictionaryId: string;
+      /** item label */
+      label: string;
+      /** item value */
+      value: string;
+      /** sort order */
+      sort: number;
+      /** display color */
+      color?: string | null;
+      /** status */
+      status: boolean;
+    }>;
+
+    type CreateDictionaryItem = Pick<
+      DictionaryItem,
+      'label' | 'value' | 'sort' | 'color' | 'status'
+    >;
+
+    type UpdateDictionaryItem = Partial<CreateDictionaryItem> & { id: string };
   }
 
   // 添加一个 通用的接口返回成功的类型

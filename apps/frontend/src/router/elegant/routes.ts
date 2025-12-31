@@ -117,6 +117,15 @@ export const generatedRoutes: GeneratedRoute[] = [
         }
       },
       {
+        name: 'manage_dictionary',
+        path: '/manage/dictionary',
+        component: 'view.manage_dictionary',
+        meta: {
+          title: 'manage_dictionary',
+          i18nKey: 'route.manage_dictionary'
+        }
+      },
+      {
         name: 'manage_menu',
         path: '/manage/menu',
         component: 'view.manage_menu',
