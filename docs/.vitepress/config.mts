@@ -39,6 +39,7 @@ export default withMermaid(
               { text: '生产部署指南', link: '/guides/DEPLOYMENT_GUIDE' },
               { text: '内容管理手册', link: '/guides/CMS_MANUAL' },
               { text: '权限管理手册', link: '/guides/RBAC_MANUAL' },
+              { text: '面试题库', link: '/guides/INTERVIEW_QA' },
             ],
           },
         ],
