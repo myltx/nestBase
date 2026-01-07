@@ -17,9 +17,19 @@ export default withMermaid(
         { text: '前端', link: '/frontend/README' },
         { text: '后端', link: '/backend/README' },
         { text: '项目管理', link: '/project/README' },
+        { text: '资源', link: '/resources/INTERVIEW_QA' },
       ],
 
       sidebar: {
+        '/resources/': [
+          {
+            text: '技术资源',
+            items: [
+              { text: '面试题库', link: '/resources/INTERVIEW_QA' },
+              { text: 'AI 指令规则', link: '/resources/USER_RULES_EN' },
+            ],
+          },
+        ],
         '/frontend/': [
           {
             text: '前端服务',
@@ -39,7 +49,6 @@ export default withMermaid(
               { text: '生产部署指南', link: '/guides/DEPLOYMENT_GUIDE' },
               { text: '内容管理手册', link: '/guides/CMS_MANUAL' },
               { text: '权限管理手册', link: '/guides/RBAC_MANUAL' },
-              { text: '面试题库', link: '/guides/INTERVIEW_QA' },
             ],
           },
         ],
