@@ -13,29 +13,16 @@ export class DashboardService {
    * 获取系统概览统计
    */
   async getStats() {
-    const [
-      userCount,
-      roleCount,
-      projectCount,
-      contentCount,
-      categoryCount,
-      tagCount,
-    ] = await this.prisma.$transaction([
+    const [userCount, roleCount, menuCount] = await this.prisma.$transaction([
       this.prisma.user.count(),
       this.prisma.role.count(),
-      this.prisma.project.count(),
-      this.prisma.content.count(),
-      this.prisma.category.count(),
-      this.prisma.tag.count(),
+      this.prisma.menu.count(),
     ]);
 
     return {
       users: userCount,
       roles: roleCount,
-      projects: projectCount,
-      contents: contentCount,
-      categories: categoryCount,
-      tags: tagCount,
+      menus: menuCount,
     };
   }
 }

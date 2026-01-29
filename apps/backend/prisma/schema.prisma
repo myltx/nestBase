@@ -43,7 +43,6 @@ model User {
   updatedAt  DateTime    @updatedAt @map("updated_at")
   userRoles  UserRole[] // 用户角色关联
   auditLogs  AuditLog[] // 用户操作的审计日志
-  contents   Content[] // 用户创建的内容
   accessLogs AccessLog[] // 用户访问日志
   loginLogs  LoginLog[] // 用户登录日志
 
@@ -68,22 +67,6 @@ model UserRole {
 
   @@unique([userId, roleId])
   @@map("user_roles")
-}
-
-// 项目模型
-model Project {
-  id          String   @id @default(uuid())
-  title       String
-  description String
-  url         String?
-  tech        String[] // 技术栈数组
-  github      String?
-  demo        String?
-  featured    Boolean  @default(false)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  @@map("projects")
 }
 
 // 菜单模型（仅负责路由和页面展示）
@@ -193,120 +176,26 @@ model AuditLog {
   @@map("audit_logs")
 }
 
-// ==================== 内容管理模块 ====================
-
-// 内容分类模型
-model Category {
-  id          String    @id @default(uuid())
-  name        String    @unique // 分类名称
-  slug        String    @unique // URL友好的标识符
-  description String? // 分类描述
-  parentId    String?   @map("parent_id") // 父分类ID（支持分类层级）
-  parent      Category? @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
-  children    Category[] @relation("CategoryHierarchy")
-  order       Int       @default(0) // 排序
-  status      Int       @default(1) // 状态 (1:启用 2:禁用)
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  contents    Content[] // 该分类下的内容
-
-  @@map("categories")
-}
-
-// 标签模型
-model Tag {
-  id        String       @id @default(uuid())
-  name      String       @unique // 标签名称
-  slug      String       @unique // URL友好的标识符
-  createdAt DateTime     @default(now()) @map("created_at")
-  updatedAt DateTime     @updatedAt @map("updated_at")
-  contents  ContentTag[] // 标签与内容的关联
-
-  @@map("tags")
-}
-
-// 内容模型
-model Content {
-  id             String        @id @default(uuid())
-  title          String // 标题
-  slug           String        @unique // URL友好的标识符
-  summary        String? // 摘要/简介
-  editorType     EditorType    @default(MARKDOWN) @map("editor_type") // 编辑器类型
-  contentMd      String?       @map("content_md") @db.Text // Markdown 原始内容（editorType=MARKDOWN时使用）
-  contentHtml    String?       @map("content_html") @db.Text // HTML 内容（富文本编辑或Markdown解析后）
-  contentRaw     String?       @map("content_raw") @db.Text // 原始内容备份（用于富文本编辑器）
-  coverImage     String?       @map("cover_image") // 封面图片URL
-  authorId       String        @map("author_id") // 作者ID
-  authorName     String?       @map("author_name") // 作者名称（优先使用用户提交的，否则自动从 nickName > userName 获取）
-  author         User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  categoryId     String?       @map("category_id") // 分类ID
-  category       Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  status         ContentStatus @default(DRAFT) // 内容状态
-  viewCount      Int           @default(0) @map("view_count") // 浏览量
-  likeCount      Int           @default(0) @map("like_count") // 点赞数
-  commentCount   Int           @default(0) @map("comment_count") // 评论数
-  isTop          Boolean       @default(false) @map("is_top") // 是否置顶
-  isRecommend    Boolean       @default(false) @map("is_recommend") // 是否推荐
-  publishedAt    DateTime?     @map("published_at") // 发布时间
-  createdAt      DateTime      @default(now()) @map("created_at")
-  updatedAt      DateTime      @updatedAt @map("updated_at")
-  tags           ContentTag[] // 内容与标签的关联
-
-  @@index([authorId])
-  @@index([categoryId])
-  @@index([status])
-  @@index([publishedAt])
-  @@index([editorType])
-  @@map("contents")
-}
-
-// 编辑器类型枚举
-enum EditorType {
-  MARKDOWN // Markdown 编辑器
-  RICHTEXT // 富文本编辑器
-  UPLOAD // 上传 .md 文件
-}
-
-// 内容状态枚举
-enum ContentStatus {
-  DRAFT // 草稿
-  PUBLISHED // 已发布
-  ARCHIVED // 已归档
-}
-
-// 内容标签关联模型（多对多）
-model ContentTag {
-  id        String   @id @default(uuid())
-  contentId String   @map("content_id")
-  tagId     String   @map("tag_id")
-  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
-  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@unique([contentId, tagId])
-  @@map("content_tags")
-}
-
 // ==================== 日志管理模块 ====================
 
 // 访问日志模型
 model AccessLog {
-  id             String    @id @default(uuid())
-  userId         String?   @map("user_id") // 用户ID（可选，未登录用户为null）
-  user           User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
-  method         String // HTTP方法 (GET, POST, PUT, DELETE等)
-  path           String // 请求路径
-  query          String? // 查询参数
-  statusCode     Int       @map("status_code") // 响应状态码
-  ip             String // 客户端IP地址
-  userAgent      String?   @map("user_agent") @db.Text // 用户代理
-  referer        String? // 来源页面
-  responseTime   Int?      @map("response_time") // 响应时间(ms)
-  errorMessage   String?   @map("error_message") @db.Text // 错误信息
-  errorStack     String?   @map("error_stack") @db.Text // 错误堆栈（系统异常）
-  errorLevel     ErrorLevel? @map("error_level") // 错误级别
-  exceptionType  String?   @map("exception_type") // 异常类型（业务异常/系统异常）
-  createdAt      DateTime  @default(now()) @map("created_at")
+  id            String      @id @default(uuid())
+  userId        String?     @map("user_id") // 用户ID（可选，未登录用户为null）
+  user          User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  method        String // HTTP方法 (GET, POST, PUT, DELETE等)
+  path          String // 请求路径
+  query         String? // 查询参数
+  statusCode    Int         @map("status_code") // 响应状态码
+  ip            String // 客户端IP地址
+  userAgent     String?     @map("user_agent") @db.Text // 用户代理
+  referer       String? // 来源页面
+  responseTime  Int?        @map("response_time") // 响应时间(ms)
+  errorMessage  String?     @map("error_message") @db.Text // 错误信息
+  errorStack    String?     @map("error_stack") @db.Text // 错误堆栈（系统异常）
+  errorLevel    ErrorLevel? @map("error_level") // 错误级别
+  exceptionType String?     @map("exception_type") // 异常类型（业务异常/系统异常）
+  createdAt     DateTime    @default(now()) @map("created_at")
 
   @@index([userId])
   @@index([path])
@@ -319,15 +208,15 @@ model AccessLog {
 
 // 登录日志模型
 model LoginLog {
-  id           String    @id @default(uuid())
-  userId       String?   @map("user_id") // 用户ID（登录失败时可能为null）
-  user         User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
-  email        String // 登录使用的邮箱
-  status       LoginStatus // 登录状态
-  ip           String // 客户端IP地址
-  userAgent    String?   @map("user_agent") @db.Text // 用户代理
-  failReason   String?   @map("fail_reason") // 失败原因
-  createdAt    DateTime  @default(now()) @map("created_at")
+  id         String      @id @default(uuid())
+  userId     String?     @map("user_id") // 用户ID（登录失败时可能为null）
+  user       User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email      String // 登录使用的邮箱
+  status     LoginStatus // 登录状态
+  ip         String // 客户端IP地址
+  userAgent  String?     @map("user_agent") @db.Text // 用户代理
+  failReason String?     @map("fail_reason") // 失败原因
+  createdAt  DateTime    @default(now()) @map("created_at")
 
   @@index([userId])
   @@index([email])
@@ -340,13 +229,13 @@ model LoginLog {
 // 登录状态枚举
 enum LoginStatus {
   SUCCESS // 登录成功
-  FAILED  // 登录失败
-  LOGOUT  // 退出登录
+  FAILED // 登录失败
+  LOGOUT // 退出登录
 }
 
 // 错误日志级别枚举
 enum ErrorLevel {
-  WARN  // 业务异常（参数错误、权限不足等）
+  WARN // 业务异常（参数错误、权限不足等）
   ERROR // 系统异常（数据库错误、第三方接口失败等）
   EMAIL // 邮件发送异常
   OTHER // 其他系统异常
@@ -358,8 +247,8 @@ enum ErrorLevel {
 model Dictionary {
   id          String           @id @default(uuid())
   code        String           @unique // 字典编码 (如: user_gender)
-  name        String           // 字典名称 (如: 用户性别)
-  description String?          // 描述
+  name        String // 字典名称 (如: 用户性别)
+  description String? // 描述
   isActive    Boolean          @default(true) @map("is_active") // 是否启用
   createdAt   DateTime         @default(now()) @map("created_at")
   updatedAt   DateTime         @updatedAt @map("updated_at")
@@ -373,10 +262,10 @@ model DictionaryItem {
   id           String     @id @default(uuid())
   dictionaryId String     @map("dictionary_id")
   dictionary   Dictionary @relation(fields: [dictionaryId], references: [id], onDelete: Cascade)
-  label        String     // 显示文本 (如: 男)
-  value        String     // 存储值 (如: 1)
+  label        String // 显示文本 (如: 男)
+  value        String // 存储值 (如: 1)
   sort         Int        @default(0) // 排序
-  color        String?    // 展示颜色 (tag color, e.g. blue, green)
+  color        String? // 展示颜色 (tag color, e.g. blue, green)
   status       Boolean    @default(true) // 状态 (true:启用 false:禁用)
   createdAt    DateTime   @default(now()) @map("created_at")
   updatedAt    DateTime   @updatedAt @map("updated_at")

@@ -14,6 +14,8 @@ build/
 .env.*.local
 **/.env
 **/.env.local
+**/.env.bak
+*.bak
 
 # 日志
 # 只忽略根目录和各应用目录下的 logs 日志文件夹，不忽略源代码中的 logs 模块
@@ -57,3 +59,7 @@ apps/backend/prisma/migrations/*
 # VitePress
 docs/.vitepress/cache/
 docs/.vitepress/dist/
+
+
+# bak
+*.bak

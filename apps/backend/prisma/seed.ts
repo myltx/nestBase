@@ -2,6 +2,7 @@
 // 数据库种子文件 - 仅在数据不存在时创建，不会删除任何现有数据
 
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
@@ -88,7 +89,6 @@ async function main() {
     update: {
       routePath: '/home',
       menuName: '首页',
-      title: '首页',
       i18nKey: 'route.home',
       icon: 'mdi:home',
       order: 1,
@@ -99,7 +99,6 @@ async function main() {
       routeName: 'home',
       routePath: '/home',
       menuName: '首页',
-      title: '首页',
       i18nKey: 'route.home',
       icon: 'mdi:home',
       order: 1,
@@ -115,7 +114,6 @@ async function main() {
     update: {
       routePath: '/user-management',
       menuName: '用户管理',
-      title: '用户管理',
       i18nKey: 'route.user-management',
       icon: 'mdi:account-group',
       order: 2,
@@ -126,7 +124,6 @@ async function main() {
       routeName: 'user-management',
       routePath: '/user-management',
       menuName: '用户管理',
-      title: '用户管理',
       i18nKey: 'route.user-management',
       icon: 'mdi:account-group',
       order: 2,
@@ -142,7 +139,6 @@ async function main() {
     update: {
       routePath: '/user-management/list',
       menuName: '用户列表',
-      title: '用户列表',
       i18nKey: 'route.user-list',
       icon: 'mdi:account-multiple',
       order: 1,
@@ -154,7 +150,6 @@ async function main() {
       routeName: 'user-list',
       routePath: '/user-management/list',
       menuName: '用户列表',
-      title: '用户列表',
       i18nKey: 'route.user-list',
       icon: 'mdi:account-multiple',
       order: 1,
@@ -171,7 +166,6 @@ async function main() {
     update: {
       routePath: '/user-management/roles',
       menuName: '角色管理',
-      title: '角色管理',
       i18nKey: 'route.role-management',
       icon: 'mdi:shield-account',
       order: 2,
@@ -183,7 +177,6 @@ async function main() {
       routeName: 'role-management',
       routePath: '/user-management/roles',
       menuName: '角色管理',
-      title: '角色管理',
       i18nKey: 'route.role-management',
       icon: 'mdi:shield-account',
       order: 2,
@@ -200,7 +193,6 @@ async function main() {
     update: {
       routePath: '/system',
       menuName: '系统管理',
-      title: '系统管理',
       i18nKey: 'route.system',
       icon: 'mdi:cog',
       order: 3,
@@ -211,7 +203,6 @@ async function main() {
       routeName: 'system',
       routePath: '/system',
       menuName: '系统管理',
-      title: '系统管理',
       i18nKey: 'route.system',
       icon: 'mdi:cog',
       order: 3,
@@ -227,7 +218,6 @@ async function main() {
     update: {
       routePath: '/system/menus',
       menuName: '菜单管理',
-      title: '菜单管理',
       i18nKey: 'route.menu-management',
       icon: 'mdi:menu',
       order: 1,
@@ -239,7 +229,6 @@ async function main() {
       routeName: 'menu-management',
       routePath: '/system/menus',
       menuName: '菜单管理',
-      title: '菜单管理',
       i18nKey: 'route.menu-management',
       icon: 'mdi:menu',
       order: 1,
@@ -256,7 +245,6 @@ async function main() {
     update: {
       routePath: '/system/settings',
       menuName: '系统设置',
-      title: '系统设置',
       i18nKey: 'route.system-settings',
       icon: 'mdi:cog-outline',
       order: 2,
@@ -268,7 +256,6 @@ async function main() {
       routeName: 'system-settings',
       routePath: '/system/settings',
       menuName: '系统设置',
-      title: '系统设置',
       i18nKey: 'route.system-settings',
       icon: 'mdi:cog-outline',
       order: 2,
@@ -285,7 +272,6 @@ async function main() {
     update: {
       routePath: '/projects',
       menuName: '项目管理',
-      title: '项目管理',
       i18nKey: 'route.projects',
       icon: 'mdi:folder-multiple',
       order: 4,
@@ -296,7 +282,6 @@ async function main() {
       routeName: 'projects',
       routePath: '/projects',
       menuName: '项目管理',
-      title: '项目管理',
       i18nKey: 'route.projects',
       icon: 'mdi:folder-multiple',
       order: 4,
@@ -312,7 +297,6 @@ async function main() {
     update: {
       routePath: '/manage/dictionary',
       menuName: '字典管理',
-      title: '字典管理',
       i18nKey: 'route.manage_dictionary',
       icon: 'mdi:book-alphabet',
       order: 3,
@@ -324,7 +308,6 @@ async function main() {
       routeName: 'manage_dictionary',
       routePath: '/manage/dictionary',
       menuName: '字典管理',
-      title: '字典管理',
       i18nKey: 'route.manage_dictionary',
       icon: 'mdi:book-alphabet',
       order: 3,
@@ -554,18 +537,12 @@ async function main() {
       update: {
         name: perm.name,
         description: perm.description,
-        resource: perm.resource,
-        action: perm.action,
-        isSystem: true,
         status: 1,
       },
       create: {
         code: perm.code,
         name: perm.name,
         description: perm.description,
-        resource: perm.resource,
-        action: perm.action,
-        isSystem: true,
         status: 1,
       },
     });
@@ -637,6 +614,48 @@ async function main() {
   console.log('   - 所有现有数据均已保留');
   console.log('   - 仅更新了系统内置的角色、菜单和权限');
   console.log('   - 您的业务数据不会受到影响');
+  // ========== 创建默认管理员账户 ==========
+  console.log('');
+  console.log('👤 开始处理默认用户...');
+
+  const adminPassword = await bcrypt.hash('admin123', 10);
+
+  const adminUser = await prisma.user.upsert({
+    where: { userName: 'admin' },
+    update: {
+      password: adminPassword,
+      email: 'admin@example.com',
+      nickName: '超级管理员',
+      status: 1,
+    },
+    create: {
+      userName: 'admin',
+      password: adminPassword,
+      email: 'admin@example.com',
+      nickName: '超级管理员',
+      firstName: 'Admin',
+      lastName: 'System',
+      status: 1,
+    },
+  });
+  console.log('  ✅ 用户: admin (密码: admin123)');
+
+  // 为管理员分配 ADMIN 角色
+  await prisma.userRole.upsert({
+    where: {
+      userId_roleId: {
+        userId: adminUser.id,
+        roleId: adminRole.id,
+      },
+    },
+    update: {},
+    create: {
+      userId: adminUser.id,
+      roleId: adminRole.id,
+    },
+  });
+  console.log('  ✅ 分配角色: admin -> ADMIN');
+
   console.log('   - 可以安全地重复运行此脚本');
 }
 

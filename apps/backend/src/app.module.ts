@@ -10,7 +10,6 @@ import { APP_GUARD, APP_INTERCEPTOR, APP_FILTER } from '@nestjs/core';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
-import { ProjectsModule } from './modules/projects/projects.module';
 import { MenusModule } from './modules/menus/menus.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
@@ -24,9 +23,6 @@ import { AccessLogInterceptor } from './common/interceptors/access-log.intercept
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { SystemModule } from './modules/system/system.module';
 import { AuditModule } from './modules/audit/audit.module';
-import { ContentsModule } from './modules/contents/contents.module';
-import { CategoriesModule } from './modules/categories/categories.module';
-import { TagsModule } from './modules/tags/tags.module';
 import { LogsModule } from './modules/logs/logs.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
@@ -43,17 +39,12 @@ import { DictionariesModule } from './modules/dictionaries/dictionaries.module';
     PrismaModule,
     AuthModule,
     UsersModule,
-    ProjectsModule,
     MenusModule,
     RolesModule,
     PermissionsModule,
     SwaggerDocModule,
     SystemModule,
     AuditModule,
-    // 内容管理模块
-    ContentsModule,
-    CategoriesModule,
-    TagsModule,
     // 日志模块
     LogsModule,
     RedisModule,
