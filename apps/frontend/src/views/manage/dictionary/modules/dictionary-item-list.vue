@@ -33,7 +33,16 @@ async function getData() {
   loading.value = true;
   const { data: res, error } = await fetchGetDictionaryItems(props.dictionaryId);
   if (!error) {
-    data.value = res || [];
+    // 兼容可能的分页结构或直接数组
+    if (Array.isArray(res)) {
+      data.value = res;
+    } else if (res && (res as any).items) {
+      data.value = (res as any).items;
+    } else {
+      data.value = [];
+    }
+  } else {
+    console.error('获取字典项失败:', error);
   }
   loading.value = false;
 }
@@ -74,7 +83,10 @@ const columns = [
     title: '字典值',
     key: 'value',
     render: (row: Api.SystemManage.DictionaryItem) => (
-      <NTag color={{ borderColor: row.color, textColor: row.color }} bordered>
+      <NTag
+        color={{ borderColor: row.color || undefined, textColor: row.color || undefined }}
+        bordered
+      >
         {row.value}
       </NTag>
     ),

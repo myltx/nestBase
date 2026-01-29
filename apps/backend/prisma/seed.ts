@@ -90,219 +90,153 @@ async function main() {
       routePath: '/home',
       menuName: '首页',
       i18nKey: 'route.home',
-      icon: 'mdi:home',
+      icon: 'mdi:monitor-dashboard',
       order: 1,
       menuType: 2,
       constant: false,
+      component: 'layout.base$view.home',
     },
     create: {
       routeName: 'home',
       routePath: '/home',
       menuName: '首页',
       i18nKey: 'route.home',
-      icon: 'mdi:home',
+      icon: 'mdi:monitor-dashboard',
       order: 1,
       menuType: 2,
       constant: false,
+      component: 'layout.base$view.home',
     },
   });
   console.log('  ✅ 菜单: 首页');
 
-  // 2. 用户管理（目录）
-  const userManagementMenu = await prisma.menu.upsert({
-    where: { routeName: 'user-management' },
+  // 2. 系统管理 (Manage) - 作为一个目录/布局路由
+  const manageMenu = await prisma.menu.upsert({
+    where: { routeName: 'manage' },
     update: {
-      routePath: '/user-management',
-      menuName: '用户管理',
-      i18nKey: 'route.user-management',
-      icon: 'mdi:account-group',
+      routePath: '/manage',
+      menuName: '系统管理',
+      i18nKey: 'route.manage',
+      icon: 'mdi:cog',
       order: 2,
-      menuType: 1,
+      menuType: 1, // 目录
       constant: false,
+      component: 'layout.base',
     },
     create: {
-      routeName: 'user-management',
-      routePath: '/user-management',
-      menuName: '用户管理',
-      i18nKey: 'route.user-management',
-      icon: 'mdi:account-group',
+      routeName: 'manage',
+      routePath: '/manage',
+      menuName: '系统管理',
+      i18nKey: 'route.manage',
+      icon: 'mdi:cog',
       order: 2,
-      menuType: 1,
+      menuType: 1, // 目录
       constant: false,
+      component: 'layout.base',
+    },
+  });
+  console.log('  ✅ 菜单: 系统管理 (Manage)');
+
+  // 2.1 用户管理
+  const userMenu = await prisma.menu.upsert({
+    where: { routeName: 'manage_user' },
+    update: {
+      routePath: '/manage/user',
+      menuName: '用户管理',
+      i18nKey: 'route.manage_user',
+      icon: 'mdi:account-multiple',
+      order: 1,
+      parentId: manageMenu.id,
+      menuType: 2,
+      constant: false,
+      component: 'view.manage_user',
+    },
+    create: {
+      routeName: 'manage_user',
+      routePath: '/manage/user',
+      menuName: '用户管理',
+      i18nKey: 'route.manage_user',
+      icon: 'mdi:account-multiple',
+      order: 1,
+      parentId: manageMenu.id,
+      menuType: 2,
+      constant: false,
+      component: 'view.manage_user',
     },
   });
   console.log('  ✅ 菜单: 用户管理');
 
-  // 2.1 用户列表
-  const userListMenu = await prisma.menu.upsert({
-    where: { routeName: 'user-list' },
-    update: {
-      routePath: '/user-management/list',
-      menuName: '用户列表',
-      i18nKey: 'route.user-list',
-      icon: 'mdi:account-multiple',
-      order: 1,
-      parentId: userManagementMenu.id,
-      menuType: 2,
-      constant: false,
-    },
-    create: {
-      routeName: 'user-list',
-      routePath: '/user-management/list',
-      menuName: '用户列表',
-      i18nKey: 'route.user-list',
-      icon: 'mdi:account-multiple',
-      order: 1,
-      parentId: userManagementMenu.id,
-      menuType: 2,
-      constant: false,
-    },
-  });
-  console.log('  ✅ 菜单: 用户列表');
-
   // 2.2 角色管理
-  const roleManagementMenu = await prisma.menu.upsert({
-    where: { routeName: 'role-management' },
+  const roleMenu = await prisma.menu.upsert({
+    where: { routeName: 'manage_role' },
     update: {
-      routePath: '/user-management/roles',
+      routePath: '/manage/role',
       menuName: '角色管理',
-      i18nKey: 'route.role-management',
+      i18nKey: 'route.manage_role',
       icon: 'mdi:shield-account',
       order: 2,
-      parentId: userManagementMenu.id,
+      parentId: manageMenu.id,
       menuType: 2,
       constant: false,
+      component: 'view.manage_role',
     },
     create: {
-      routeName: 'role-management',
-      routePath: '/user-management/roles',
+      routeName: 'manage_role',
+      routePath: '/manage/role',
       menuName: '角色管理',
-      i18nKey: 'route.role-management',
+      i18nKey: 'route.manage_role',
       icon: 'mdi:shield-account',
       order: 2,
-      parentId: userManagementMenu.id,
+      parentId: manageMenu.id,
       menuType: 2,
       constant: false,
+      component: 'view.manage_role',
     },
   });
   console.log('  ✅ 菜单: 角色管理');
 
-  // 3. 系统管理（目录）
-  const systemMenu = await prisma.menu.upsert({
-    where: { routeName: 'system' },
+  // 2.3 菜单管理
+  const menuMenu = await prisma.menu.upsert({
+    where: { routeName: 'manage_menu' },
     update: {
-      routePath: '/system',
-      menuName: '系统管理',
-      i18nKey: 'route.system',
-      icon: 'mdi:cog',
-      order: 3,
-      menuType: 1,
-      constant: false,
-    },
-    create: {
-      routeName: 'system',
-      routePath: '/system',
-      menuName: '系统管理',
-      i18nKey: 'route.system',
-      icon: 'mdi:cog',
-      order: 3,
-      menuType: 1,
-      constant: false,
-    },
-  });
-  console.log('  ✅ 菜单: 系统管理');
-
-  // 3.1 菜单管理
-  const menuManagementMenu = await prisma.menu.upsert({
-    where: { routeName: 'menu-management' },
-    update: {
-      routePath: '/system/menus',
+      routePath: '/manage/menu',
       menuName: '菜单管理',
-      i18nKey: 'route.menu-management',
+      i18nKey: 'route.manage_menu',
       icon: 'mdi:menu',
-      order: 1,
-      parentId: systemMenu.id,
+      order: 3,
+      parentId: manageMenu.id,
       menuType: 2,
       constant: false,
+      component: 'view.manage_menu',
     },
     create: {
-      routeName: 'menu-management',
-      routePath: '/system/menus',
+      routeName: 'manage_menu',
+      routePath: '/manage/menu',
       menuName: '菜单管理',
-      i18nKey: 'route.menu-management',
+      i18nKey: 'route.manage_menu',
       icon: 'mdi:menu',
-      order: 1,
-      parentId: systemMenu.id,
+      order: 3,
+      parentId: manageMenu.id,
       menuType: 2,
       constant: false,
+      component: 'view.manage_menu',
     },
   });
   console.log('  ✅ 菜单: 菜单管理');
 
-  // 3.2 系统设置
-  const systemSettingsMenu = await prisma.menu.upsert({
-    where: { routeName: 'system-settings' },
-    update: {
-      routePath: '/system/settings',
-      menuName: '系统设置',
-      i18nKey: 'route.system-settings',
-      icon: 'mdi:cog-outline',
-      order: 2,
-      parentId: systemMenu.id,
-      menuType: 2,
-      constant: false,
-    },
-    create: {
-      routeName: 'system-settings',
-      routePath: '/system/settings',
-      menuName: '系统设置',
-      i18nKey: 'route.system-settings',
-      icon: 'mdi:cog-outline',
-      order: 2,
-      parentId: systemMenu.id,
-      menuType: 2,
-      constant: false,
-    },
-  });
-  console.log('  ✅ 菜单: 系统设置');
-
-  // 4. 项目管理
-  const projectMenu = await prisma.menu.upsert({
-    where: { routeName: 'projects' },
-    update: {
-      routePath: '/projects',
-      menuName: '项目管理',
-      i18nKey: 'route.projects',
-      icon: 'mdi:folder-multiple',
-      order: 4,
-      menuType: 2,
-      constant: false,
-    },
-    create: {
-      routeName: 'projects',
-      routePath: '/projects',
-      menuName: '项目管理',
-      i18nKey: 'route.projects',
-      icon: 'mdi:folder-multiple',
-      order: 4,
-      menuType: 2,
-      constant: false,
-    },
-  });
-  console.log('  ✅ 菜单: 项目管理');
-
-  // 5. 字典管理
-  const dictionaryMenu = await prisma.menu.upsert({
+  // 2.4 字典管理
+  const dictMenu = await prisma.menu.upsert({
     where: { routeName: 'manage_dictionary' },
     update: {
       routePath: '/manage/dictionary',
       menuName: '字典管理',
       i18nKey: 'route.manage_dictionary',
       icon: 'mdi:book-alphabet',
-      order: 3,
-      parentId: systemMenu.id,
+      order: 4,
+      parentId: manageMenu.id,
       menuType: 2,
       constant: false,
+      component: 'view.manage_dictionary',
     },
     create: {
       routeName: 'manage_dictionary',
@@ -310,10 +244,11 @@ async function main() {
       menuName: '字典管理',
       i18nKey: 'route.manage_dictionary',
       icon: 'mdi:book-alphabet',
-      order: 3,
-      parentId: systemMenu.id,
+      order: 4,
+      parentId: manageMenu.id,
       menuType: 2,
       constant: false,
+      component: 'view.manage_dictionary',
     },
   });
   console.log('  ✅ 菜单: 字典管理');
@@ -326,23 +261,15 @@ async function main() {
   const roleMenuMappings = [
     // ADMIN 拥有所有菜单
     { roleId: adminRole.id, menuId: homeMenu.id },
-    { roleId: adminRole.id, menuId: userManagementMenu.id },
-    { roleId: adminRole.id, menuId: userListMenu.id },
-    { roleId: adminRole.id, menuId: roleManagementMenu.id },
-    { roleId: adminRole.id, menuId: systemMenu.id },
-    { roleId: adminRole.id, menuId: menuManagementMenu.id },
-    { roleId: adminRole.id, menuId: systemSettingsMenu.id },
-    { roleId: adminRole.id, menuId: systemSettingsMenu.id },
-    { roleId: adminRole.id, menuId: projectMenu.id },
-    { roleId: adminRole.id, menuId: dictionaryMenu.id },
+    { roleId: adminRole.id, menuId: manageMenu.id },
+    { roleId: adminRole.id, menuId: userMenu.id },
+    { roleId: adminRole.id, menuId: roleMenu.id },
+    { roleId: adminRole.id, menuId: menuMenu.id },
+    { roleId: adminRole.id, menuId: dictMenu.id },
     // MODERATOR 拥有部分菜单
     { roleId: moderatorRole.id, menuId: homeMenu.id },
-    { roleId: moderatorRole.id, menuId: userManagementMenu.id },
-    { roleId: moderatorRole.id, menuId: userListMenu.id },
-    { roleId: moderatorRole.id, menuId: projectMenu.id },
-    // USER 拥有基础菜单
-    { roleId: userRole.id, menuId: homeMenu.id },
-    { roleId: userRole.id, menuId: projectMenu.id },
+    { roleId: moderatorRole.id, menuId: manageMenu.id },
+    { roleId: moderatorRole.id, menuId: userMenu.id },
   ];
 
   // 只创建不存在的角色菜单关联
@@ -498,34 +425,34 @@ async function main() {
       description: '允许删除权限',
     },
 
-    // 项目权限
+    // 字典权限
     {
-      code: 'project.create',
-      name: '创建项目',
-      resource: 'project',
+      code: 'dictionary.create',
+      name: '创建字典',
+      resource: 'dictionary',
       action: 'create',
-      description: '允许创建新项目',
+      description: '允许创建新字典',
     },
     {
-      code: 'project.read',
-      name: '查看项目',
-      resource: 'project',
+      code: 'dictionary.read',
+      name: '查看字典',
+      resource: 'dictionary',
       action: 'read',
-      description: '允许查看项目信息',
+      description: '允许查看字典信息',
     },
     {
-      code: 'project.update',
-      name: '更新项目',
-      resource: 'project',
+      code: 'dictionary.update',
+      name: '更新字典',
+      resource: 'dictionary',
       action: 'update',
-      description: '允许更新项目信息',
+      description: '允许更新字典信息',
     },
     {
-      code: 'project.delete',
-      name: '删除项目',
-      resource: 'project',
+      code: 'dictionary.delete',
+      name: '删除字典',
+      resource: 'dictionary',
       action: 'delete',
-      description: '允许删除项目',
+      description: '允许删除字典',
     },
   ];
 
@@ -567,10 +494,6 @@ async function main() {
     { roleId: moderatorRole.id, permissionId: createdPermissions['role.read'].id },
     { roleId: moderatorRole.id, permissionId: createdPermissions['menu.read'].id },
     { roleId: moderatorRole.id, permissionId: createdPermissions['permission.read'].id },
-    { roleId: moderatorRole.id, permissionId: createdPermissions['project.read'].id },
-    { roleId: moderatorRole.id, permissionId: createdPermissions['project.update'].id },
-    // USER 拥有基础权限（仅read）
-    { roleId: userRole.id, permissionId: createdPermissions['project.read'].id },
   ];
 
   // 只创建不存在的角色权限关联
@@ -657,6 +580,77 @@ async function main() {
   console.log('  ✅ 分配角色: admin -> ADMIN');
 
   console.log('   - 可以安全地重复运行此脚本');
+
+  // ========== 创建默认字典数据 ==========
+  console.log('');
+  console.log('📖 开始处理字典数据...');
+
+  const dictionaries = [
+    {
+      code: 'user_gender',
+      name: '用户性别',
+      description: '用户性别枚举',
+      items: [
+        { label: '男', value: 'MALE', sort: 1, color: 'blue', status: true },
+        { label: '女', value: 'FEMALE', sort: 2, color: 'pink', status: true },
+        { label: '未知', value: 'UNKNOWN', sort: 3, color: 'gray', status: true },
+      ],
+    },
+    {
+      code: 'enable_status',
+      name: '启用状态',
+      description: '通用启用/禁用状态',
+      items: [
+        { label: '启用', value: '1', sort: 1, color: 'green', status: true },
+        { label: '禁用', value: '2', sort: 2, color: 'red', status: true },
+      ],
+    },
+  ];
+
+  for (const dict of dictionaries) {
+    const dictionary = await prisma.dictionary.upsert({
+      where: { code: dict.code },
+      update: {
+        name: dict.name,
+        description: dict.description,
+      },
+      create: {
+        code: dict.code,
+        name: dict.name,
+        description: dict.description,
+        isActive: true,
+      },
+    });
+
+    console.log(`  ✅ 字典: ${dict.name} (${dict.code})`);
+
+    // 处理字典项
+    for (const item of dict.items) {
+      await prisma.dictionaryItem.upsert({
+        where: {
+          dictionaryId_value: {
+            dictionaryId: dictionary.id,
+            value: item.value,
+          },
+        },
+        update: {
+          label: item.label,
+          sort: item.sort,
+          color: item.color,
+          status: item.status,
+        },
+        create: {
+          dictionaryId: dictionary.id,
+          label: item.label,
+          value: item.value,
+          sort: item.sort,
+          color: item.color,
+          status: item.status,
+        },
+      });
+    }
+    console.log(`     - 已更新 ${dict.items.length} 个字典项`);
+  }
 }
 
 main()

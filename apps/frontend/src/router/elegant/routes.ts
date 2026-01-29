@@ -51,18 +51,6 @@ export const generatedRoutes: GeneratedRoute[] = [
     }
   },
   {
-    name: 'home-portal',
-    path: '/home-portal',
-    component: 'layout.base$view.home-portal',
-    meta: {
-      title: 'home-portal',
-      i18nKey: 'route.home-portal',
-      icon: 'mdi:view-dashboard-edit',
-      order: 1.5,
-      roles: ['ADMIN', 'EDITOR', 'AUTHOR']
-    }
-  },
-  {
     name: 'iframe-page',
     path: '/iframe-page/:url',
     component: 'layout.base$view.iframe-page',
@@ -99,24 +87,6 @@ export const generatedRoutes: GeneratedRoute[] = [
     },
     children: [
       {
-        name: 'manage_category',
-        path: '/manage/category',
-        component: 'view.manage_category',
-        meta: {
-          title: 'manage_category',
-          i18nKey: 'route.manage_category'
-        }
-      },
-      {
-        name: 'manage_content',
-        path: '/manage/content',
-        component: 'view.manage_content',
-        meta: {
-          title: 'manage_content',
-          i18nKey: 'route.manage_content'
-        }
-      },
-      {
         name: 'manage_dictionary',
         path: '/manage/dictionary',
         component: 'view.manage_dictionary',
@@ -135,30 +105,12 @@ export const generatedRoutes: GeneratedRoute[] = [
         }
       },
       {
-        name: 'manage_project',
-        path: '/manage/project',
-        component: 'view.manage_project',
-        meta: {
-          title: 'manage_project',
-          i18nKey: 'route.manage_project'
-        }
-      },
-      {
         name: 'manage_role',
         path: '/manage/role',
         component: 'view.manage_role',
         meta: {
           title: 'manage_role',
           i18nKey: 'route.manage_role'
-        }
-      },
-      {
-        name: 'manage_tag',
-        path: '/manage/tag',
-        component: 'view.manage_tag',
-        meta: {
-          title: 'manage_tag',
-          i18nKey: 'route.manage_tag'
         }
       },
       {

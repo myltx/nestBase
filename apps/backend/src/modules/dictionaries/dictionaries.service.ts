@@ -51,10 +51,10 @@ export class DictionariesService {
     ]);
 
     return {
-      items,
+      records: items,
       total,
-      page,
-      pageSize,
+      current: page,
+      size: pageSize,
       totalPages: Math.ceil(total / pageSize),
     };
   }

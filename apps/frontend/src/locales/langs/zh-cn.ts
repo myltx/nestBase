@@ -168,16 +168,12 @@ const local: App.I18n.Schema = {
     500: '服务器错误',
     'iframe-page': '外链页面',
     home: '首页',
-    'home-portal': '内容工作台',
     manage: '系统管理',
     manage_user: '用户管理',
     'manage_user-detail': '用户详情',
     manage_role: '角色管理',
     manage_menu: '菜单管理',
-    manage_project: '项目管理',
-    manage_content: '内容管理',
-    manage_category: '分类管理',
-    manage_tag: '标签管理',
+    manage_dictionary: '字典管理',
   },
   page: {
     login: {

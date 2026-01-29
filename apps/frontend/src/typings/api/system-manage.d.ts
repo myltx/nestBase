@@ -378,7 +378,7 @@ declare namespace Api {
     >;
 
     /** dictionary item */
-    type DictionaryItem = Common.CommonRecord<{
+    type DictionaryItem = Omit<Common.CommonRecord, 'status'> & {
       /** dictionary id */
       dictionaryId: string;
       /** item label */
@@ -391,7 +391,7 @@ declare namespace Api {
       color?: string | null;
       /** status */
       status: boolean;
-    }>;
+    };
 
     type CreateDictionaryItem = Pick<
       DictionaryItem,

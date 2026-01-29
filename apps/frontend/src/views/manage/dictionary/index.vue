@@ -1,10 +1,12 @@
 <script setup lang="tsx">
 import { ref } from 'vue';
-import { NButton, NPopconfirm, NTag } from 'naive-ui';
+import { NButton, NPopconfirm, NTag, NCard, NDataTable } from 'naive-ui';
 import { deleteDictionary, fetchGetDictionaryList } from '@/service/api/dictionary';
 import { useTable, useTableOperate } from '@/hooks/common/table';
 import { $t } from '@/locales';
 import { useBoolean } from '@sa/hooks';
+import TableHeaderOperation from '@/components/advanced/table-header-operation.vue';
+import DictionarySearch from './modules/dictionary-search.vue';
 import DictionaryOperateModal from './modules/dictionary-operate-modal.vue';
 import DictionaryItemList from './modules/dictionary-item-list.vue';
 
@@ -129,6 +131,11 @@ async function handleDelete(id: string) {
 
 <template>
   <div class="min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
+    <DictionarySearch
+      v-model:model="searchParams"
+      @reset="resetSearchParams"
+      @search="getDataByPage"
+    />
     <NCard title="字典管理" :bordered="false" size="small" class="sm:flex-1-hidden card-wrapper">
       <template #header-extra>
         <TableHeaderOperation
@@ -138,19 +145,7 @@ async function handleDelete(id: string) {
           @add="handleAdd"
           @delete="onBatchDeleted"
           @refresh="getData"
-        >
-          <template #default>
-            <div class="flex gap-4">
-              <NInput
-                v-model:value="searchParams.keyword"
-                placeholder="搜索名称或编码"
-                clearable
-                @keyup.enter="getDataByPage"
-              />
-              <NButton type="primary" ghost @click="getDataByPage"> 搜索 </NButton>
-            </div>
-          </template>
-        </TableHeaderOperation>
+        />
       </template>
       <NDataTable
         v-model:checked-row-keys="checkedRowKeys"

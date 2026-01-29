@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useFormRules, useNaiveForm } from '@/hooks/common/form';
 import { $t } from '@/locales';
 
 defineOptions({
-  name: 'TagSearch'
+  name: 'DictionarySearch',
 });
 
 interface Emits {
@@ -12,34 +14,42 @@ interface Emits {
 
 const emit = defineEmits<Emits>();
 
-const model = defineModel<Api.SystemManage.TagSearchParams>('model', {
-  required: true
+const { formRef, validate, restoreValidation } = useNaiveForm();
+
+const model = defineModel<Api.SystemManage.DictionarySearchParams>('model', { required: true });
+
+// If we need rules later
+const rules = computed<Record<string, App.Global.FormRule>>(() => {
+  return {};
 });
 
-function reset() {
+async function reset() {
+  await restoreValidation();
   emit('reset');
 }
 
-function search() {
+async function search() {
+  await validate();
   emit('search');
 }
 </script>
 
 <template>
   <NCard :bordered="false" size="small" class="card-wrapper">
-    <NCollapse :default-expanded-names="['tag-search']">
-      <NCollapseItem :title="$t('common.search')" name="tag-search">
-        <NForm :model="model" label-placement="left" :label-width="80">
+    <NCollapse>
+      <NCollapseItem :title="$t('common.search')" name="dictionary-search">
+        <NForm ref="formRef" :model="model" :rules="rules" label-placement="left" :label-width="80">
           <NGrid responsive="screen" item-responsive>
-            <NFormItemGi span="24 s:12 m:6" :label="$t('page.manage.tag.name')" path="name" class="pr-24px">
-              <NInput v-model:value="model.name" :placeholder="$t('page.manage.tag.form.name')" />
+            <NFormItemGi
+              span="24 s:12 m:6"
+              :label="$t('page.manage.menu.menuName')"
+              path="keyword"
+              class="pr-24px"
+            >
+              <NInput v-model:value="model.keyword" placeholder="搜索名称或编码" />
             </NFormItemGi>
-            <!--
- <NFormItemGi span="24 s:12" :label="$t('page.manage.tag.slug')" path="slug" class="pr-24px">
-              <NInput v-model:value="model.slug" :placeholder="$t('page.manage.tag.form.slug')" />
-            </NFormItemGi>
--->
-            <NFormItemGi span="18">
+
+            <NFormItemGi span="24 s:12 m:18" class="pr-24px">
               <NSpace class="w-full" justify="end">
                 <NButton @click="reset">
                   <template #icon>

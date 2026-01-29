@@ -9,13 +9,7 @@ import {
   UseGuards,
   Query,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiParam,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { DictionariesService } from './dictionaries.service';
 import {
   CreateDictionaryDto,
@@ -29,7 +23,6 @@ import { Roles, Public } from '@common/decorators';
 
 @ApiTags('基础数据模块')
 @Controller('dictionaries')
-@UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class DictionariesController {
   constructor(private readonly dictionariesService: DictionariesService) {}
@@ -44,8 +37,8 @@ export class DictionariesController {
   }
 
   @Get()
-  @Public() // Or restrict to logged in users? Design implies admin config, but usage is public usually. Keeping safe with Roles for config, public for reading? 
-  // Wait, standard CRUD usually requires auth. Let's stick to standard patterns: 
+  // Or restrict to logged in users? Design implies admin config, but usage is public usually. Keeping safe with Roles for config, public for reading?
+  // Wait, standard CRUD usually requires auth. Let's stick to standard patterns:
   // Reading dictionaries often needed by frontend. Let's make List Public or Authenticated?
   // Design says "Get dictionary by unique code (for frontend reading config)".
   // Let's make "Get by Code" Public. "List" might be Admin only or Auth.
@@ -99,10 +92,7 @@ export class DictionariesController {
   @Post(':id/items')
   @Roles('ADMIN')
   @ApiOperation({ summary: '添加字典项（仅管理员）' })
-  createItem(
-    @Param('id') dictionaryId: string,
-    @Body() createDto: CreateDictionaryItemDto,
-  ) {
+  createItem(@Param('id') dictionaryId: string, @Body() createDto: CreateDictionaryItemDto) {
     return this.dictionariesService.createItem(dictionaryId, createDto);
   }
 
@@ -120,10 +110,7 @@ export class DictionariesController {
   @Delete(':id/items/:itemId')
   @Roles('ADMIN')
   @ApiOperation({ summary: '移除字典项（仅管理员）' })
-  removeItem(
-    @Param('id') dictionaryId: string,
-    @Param('itemId') itemId: string,
-  ) {
+  removeItem(@Param('id') dictionaryId: string, @Param('itemId') itemId: string) {
     return this.dictionariesService.removeItem(dictionaryId, itemId);
   }
 }
