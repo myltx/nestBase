@@ -17,6 +17,17 @@ services:
     networks:
       - nestbase-network
 
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    ports:
+      - '80:80'
+    depends_on:
+      - app
+    networks:
+      - nestbase-network
+
   db:
     image: postgres:15-alpine
     ports:
