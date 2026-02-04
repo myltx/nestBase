@@ -8,5 +8,8 @@ packages:
   # 前端应用（预留）
   - 'apps/frontend'
 
+  # Mobile Application
+  - 'apps/mobile'
+
   # 共享包（可选）
   - 'packages/*'

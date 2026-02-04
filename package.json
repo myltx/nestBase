@@ -12,6 +12,8 @@
     "build:backend": "pnpm --filter backend build",
     "build:frontend": "pnpm --filter @nestbase/frontend build",
     "dev:frontend": "pnpm --filter @nestbase/frontend dev",
+    "dev:mobile": "pnpm --filter @nestbase/mobile dev",
+    "build:mobile": "pnpm --filter @nestbase/mobile build",
     "start": "pnpm --filter backend start",
     "start:prod": "pnpm --filter backend start:prod",
     "lint": "pnpm -r lint",
