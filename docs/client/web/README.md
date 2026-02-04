@@ -47,7 +47,7 @@ apps/frontend/
 ### 1. 认证与启动
 
 前端采用了 **聚合启动 (Bootstrap)** 模式来优化登录体验。
-详细流程请参考：[👉 前后端联调指南 (认证与启动)](../guides/INTEGRATION.zh-CN.md)
+详细流程请参考：[👉 前后端联调指南 (认证与启动)](../../guides/INTEGRATION.zh-CN.md)
 
 ### 2. 权限控制
 
@@ -63,6 +63,6 @@ apps/frontend/
 
 ## 📖 相关文档
 
-- **API 接口定义**: [src/service/api](../apps/frontend/src/service/api)
-- **类型定义**: [src/typings/api.d.ts](../apps/frontend/src/typings/api.d.ts)
-- **后端文档**: [../backend/README.md](../backend/README.md)
+- **API 接口定义**: [src/service/api](../../../apps/frontend/src/service/api)
+- **类型定义**: [src/typings/api.d.ts](../../../apps/frontend/src/typings/api.d.ts)
+- **后端文档**: [../../backend/README.md](../../backend/README.md)

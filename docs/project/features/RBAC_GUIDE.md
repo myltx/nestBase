@@ -35,6 +35,7 @@ NestBase 采用标准的 RBAC 三层权限模型：
 ```
 
 **关系说明**：
+
 - **用户 → 角色**：一个用户可以拥有多个角色（通过 `UserRole` 表关联）
 - **角色 → 菜单**：一个角色可以访问多个菜单（通过 `RoleMenu` 表关联）
 - **角色 → 权限**：一个角色可以拥有多个权限（通过 `RolePermission` 表关联）
@@ -105,14 +106,14 @@ deleteUser(@Param('id') id: string) {
 
 **系统内置权限示例**：
 
-| 权限代码 | 名称 | 资源 | 操作 | 说明 |
-|---------|------|------|------|------|
-| `user.create` | 创建用户 | user | create | 允许创建新用户 |
-| `user.read` | 查看用户 | user | read | 允许查看用户信息 |
-| `user.update` | 更新用户 | user | update | 允许更新用户信息 |
-| `user.delete` | 删除用户 | user | delete | 允许删除用户 |
-| `role.create` | 创建角色 | role | create | 允许创建新角色 |
-| `menu.read` | 查看菜单 | menu | read | 允许查看菜单信息 |
+| 权限代码         | 名称     | 资源    | 操作   | 说明             |
+| ---------------- | -------- | ------- | ------ | ---------------- |
+| `user.create`    | 创建用户 | user    | create | 允许创建新用户   |
+| `user.read`      | 查看用户 | user    | read   | 允许查看用户信息 |
+| `user.update`    | 更新用户 | user    | update | 允许更新用户信息 |
+| `user.delete`    | 删除用户 | user    | delete | 允许删除用户     |
+| `role.create`    | 创建角色 | role    | create | 允许创建新角色   |
+| `menu.read`      | 查看菜单 | menu    | read   | 允许查看菜单信息 |
 | `project.update` | 更新项目 | project | update | 允许更新项目信息 |
 
 ### 角色（Role）
@@ -121,11 +122,11 @@ deleteUser(@Param('id') id: string) {
 
 **系统内置角色**：
 
-| 角色代码 | 角色名称 | 说明 | 默认权限数量 |
-|---------|---------|------|-------------|
-| `ADMIN` | 管理员 | 拥有系统所有权限 | 20（全部） |
-| `MODERATOR` | 协调员 | 拥有部分管理权限（read + update） | 7 |
-| `USER` | 普通用户 | 基础用户权限 | 1（project.read） |
+| 角色代码    | 角色名称 | 说明                              | 默认权限数量      |
+| ----------- | -------- | --------------------------------- | ----------------- |
+| `ADMIN`     | 管理员   | 拥有系统所有权限                  | 20（全部）        |
+| `MODERATOR` | 协调员   | 拥有部分管理权限（read + update） | 7                 |
+| `USER`      | 普通用户 | 基础用户权限                      | 1（project.read） |
 
 ### 系统角色与自定义角色
 
@@ -221,6 +222,7 @@ pnpm prisma:seed
 ```
 
 **创建的数据**：
+
 - ✅ 3 个系统角色（ADMIN、MODERATOR、USER）
 - ✅ 8 个系统菜单
 - ✅ 20 个系统权限（5个资源 × 4个操作）
@@ -239,6 +241,7 @@ curl -X POST http://localhost:3000/api/auth/login \
 ```
 
 **响应示例**：
+
 ```json
 {
   "code": 0,
@@ -251,7 +254,8 @@ curl -X POST http://localhost:3000/api/auth/login \
     },
     "token": {
       "accessToken": "eyJhbGciOiJIUzI1NiIs...",
-      "expiresIn": "7d"
+      "refreshToken": "eyJhbGciOiJIUzI1NiIs...",
+      "expiresIn": "15m"
     }
   }
 }
@@ -308,14 +312,15 @@ NestBase 提供了完整的前端权限控制方案，支持**页面/路由权�
 // 请求示例
 const response = await fetch('/api/menus/user-routes', {
   headers: {
-    'Authorization': `Bearer ${token}`
-  }
+    Authorization: `Bearer ${token}`,
+  },
 });
 
 const menus = await response.json();
 ```
 
 **响应示例**：
+
 ```json
 {
   "code": 0,
@@ -362,14 +367,15 @@ const menus = await response.json();
 // 请求示例
 const response = await fetch('/api/auth/permissions', {
   headers: {
-    'Authorization': `Bearer ${token}`
-  }
+    Authorization: `Bearer ${token}`,
+  },
 });
 
 const { permissions } = await response.json();
 ```
 
 **响应示例**：
+
 ```json
 {
   "code": 0,
@@ -411,8 +417,8 @@ export const usePermissionStore = defineStore('permission', () => {
   async function fetchPermissions() {
     const response = await fetch('/api/auth/permissions', {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
     });
     const data = await response.json();
     permissions.value = data.data.permissions;
@@ -422,8 +428,8 @@ export const usePermissionStore = defineStore('permission', () => {
   async function fetchMenus() {
     const response = await fetch('/api/menus/user-routes', {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
     });
     const data = await response.json();
     menus.value = data.data;
@@ -436,12 +442,12 @@ export const usePermissionStore = defineStore('permission', () => {
 
   // 检查是否拥有任意权限（OR 逻辑）
   function hasAnyPermission(...perms: string[]): boolean {
-    return perms.some(p => permissions.value.includes(p));
+    return perms.some((p) => permissions.value.includes(p));
   }
 
   // 检查是否拥有所有权限（AND 逻辑）
   function hasAllPermissions(...perms: string[]): boolean {
-    return perms.every(p => permissions.value.includes(p));
+    return perms.every((p) => permissions.value.includes(p));
   }
 
   return {
@@ -451,7 +457,7 @@ export const usePermissionStore = defineStore('permission', () => {
     fetchMenus,
     hasPermission,
     hasAnyPermission,
-    hasAllPermissions
+    hasAllPermissions,
   };
 });
 ```
@@ -490,7 +496,7 @@ export const vPermission: Directive = {
       // 或者直接移除元素
       // el.parentNode?.removeChild(el);
     }
-  }
+  },
 };
 
 /**
@@ -509,7 +515,7 @@ export const vPermissionAll: Directive = {
     if (!hasPermission) {
       el.style.display = 'none';
     }
-  }
+  },
 };
 ```
 
@@ -538,41 +544,20 @@ app.mount('#app');
     <h1>用户管理</h1>
 
     <!-- 方式1: 使用指令控制按钮显示 -->
-    <button
-      v-permission="'user.create'"
-      @click="handleCreate"
-    >
-      创建用户
-    </button>
+    <button v-permission="'user.create'" @click="handleCreate">创建用户</button>
 
-    <button
-      v-permission="'user.delete'"
-      @click="handleDelete"
-    >
-      删除用户
-    </button>
+    <button v-permission="'user.delete'" @click="handleDelete">删除用户</button>
 
     <!-- 方式2: 使用函数判断 -->
-    <button
-      v-if="hasPermission('user.update')"
-      @click="handleUpdate"
-    >
-      更新用户
-    </button>
+    <button v-if="hasPermission('user.update')" @click="handleUpdate">更新用户</button>
 
     <!-- 方式3: 多个权限（OR 逻辑） -->
-    <button
-      v-permission="['user.update', 'user.create']"
-      @click="handleEdit"
-    >
+    <button v-permission="['user.update', 'user.create']" @click="handleEdit">
       编辑（需要 update 或 create 权限）
     </button>
 
     <!-- 方式4: 多个权限（AND 逻辑） -->
-    <button
-      v-permission-all="['user.delete', 'role.delete']"
-      @click="handleBatchDelete"
-    >
+    <button v-permission-all="['user.delete', 'role.delete']" @click="handleBatchDelete">
       批量删除（需要同时拥有两个权限）
     </button>
   </div>
@@ -790,9 +775,7 @@ export function setupPermissionGuard(router: Router) {
     }
 
     // 检查路由是否在用户可访问的菜单中
-    const hasRoute = permissionStore.menus.some(
-      menu => menu.routeName === to.name
-    );
+    const hasRoute = permissionStore.menus.some((menu) => menu.routeName === to.name);
 
     if (hasRoute || to.meta.public) {
       next();
@@ -847,10 +830,7 @@ async function handleLogin(credentials) {
 
   // 立即获取用户权限和菜单
   const permissionStore = usePermissionStore();
-  await Promise.all([
-    permissionStore.fetchPermissions(),
-    permissionStore.fetchMenus()
-  ]);
+  await Promise.all([permissionStore.fetchPermissions(), permissionStore.fetchMenus()]);
 
   // 跳转到首页
   router.push('/');
@@ -862,8 +842,8 @@ async function handleLogin(credentials) {
 ```typescript
 // axios 拦截器
 axios.interceptors.response.use(
-  response => response,
-  async error => {
+  (response) => response,
+  async (error) => {
     if (error.response?.status === 401) {
       // Token 过期，清空权限
       const permissionStore = usePermissionStore();
@@ -873,7 +853,7 @@ axios.interceptors.response.use(
       router.push('/login');
     }
     return Promise.reject(error);
-  }
+  },
 );
 ```
 
@@ -904,21 +884,21 @@ if (cachedMenus) {
 ```typescript
 // 根据用户菜单动态生成路由
 function generateRoutes(menus: any[]) {
-  return menus.map(menu => ({
+  return menus.map((menu) => ({
     path: menu.routePath,
     name: menu.routeName,
     component: () => import(`@/views/${menu.component}.vue`),
     meta: {
       title: menu.title,
-      icon: menu.icon
+      icon: menu.icon,
     },
-    children: menu.children ? generateRoutes(menu.children) : []
+    children: menu.children ? generateRoutes(menu.children) : [],
   }));
 }
 
 // 添加到路由
 const dynamicRoutes = generateRoutes(permissionStore.menus);
-dynamicRoutes.forEach(route => router.addRoute(route));
+dynamicRoutes.forEach((route) => router.addRoute(route));
 ```
 
 ### 注意事项
@@ -944,6 +924,7 @@ GET /api/permissions?page=1&pageSize=10&resource=user&action=create&search=创�
 ```
 
 **查询参数**：
+
 - `page` - 页码（默认 1）
 - `pageSize` - 每页数量（默认 10）
 - `resource` - 筛选资源类型（可选）
@@ -951,6 +932,7 @@ GET /api/permissions?page=1&pageSize=10&resource=user&action=create&search=创�
 - `search` - 搜索关键词（匹配 code、name、description）
 
 **响应示例**：
+
 ```json
 {
   "code": 0,
@@ -983,6 +965,7 @@ GET /api/permissions/by-resource
 ```
 
 **响应示例**：
+
 ```json
 {
   "code": 0,
@@ -1019,6 +1002,7 @@ Content-Type: application/json
 ```
 
 **注意事项**：
+
 - ✅ 仅 ADMIN 角色可以创建权限
 - ✅ `code` 必须唯一
 - ✅ `name` 必须唯一
@@ -1038,6 +1022,7 @@ Content-Type: application/json
 ```
 
 **注意事项**：
+
 - ✅ 仅 ADMIN 角色可以更新权限
 - ✅ 系统权限（`isSystem: true`）也可以更新
 - ❌ 不建议修改 `code` 字段（可能影响已有代码）
@@ -1050,6 +1035,7 @@ Authorization: Bearer <admin_token>
 ```
 
 **注意事项**：
+
 - ✅ 仅 ADMIN 角色可以删除权限
 - ⚠️ 删除权限会自动删除所有角色的该权限关联（级联删除）
 - ⚠️ 删除后使用该权限的 API 将无法访问
@@ -1075,6 +1061,7 @@ Content-Type: application/json
 ```
 
 **响应示例**：
+
 ```json
 {
   "code": 0,
@@ -1087,6 +1074,7 @@ Content-Type: application/json
 ```
 
 **注意事项**：
+
 - ✅ 传入空数组 `[]` 会清空该角色的所有权限
 - ✅ 每次调用会覆盖之前的权限配置（非增量）
 - ✅ 系统会自动验证权限 ID 是否存在
@@ -1099,6 +1087,7 @@ Authorization: Bearer <admin_token>
 ```
 
 **响应示例**：
+
 ```json
 {
   "code": 0,
@@ -1131,6 +1120,7 @@ Authorization: Bearer <admin_token>
 ```
 
 **响应示例**：
+
 ```json
 {
   "code": 0,
@@ -1192,6 +1182,7 @@ updateUser(@Param('id') id: string, @Body() updateDto: UpdateUserDto) {
 ```
 
 **权限检查逻辑**：
+
 - 用户必须同时拥有列出的所有权限
 - 缺少任何一个权限都会返回 403 错误
 
@@ -1210,6 +1201,7 @@ deleteUser(@Param('id') id: string) {
 ```
 
 **检查顺序**：
+
 1. `JwtAuthGuard` - 验证是否登录
 2. `RolesGuard` - 验证是否拥有所需角色
 3. `PermissionsGuard` - 验证是否拥有所需权限
@@ -1228,10 +1220,7 @@ export class UsersService {
 
   async updateUser(userId: string, updateDto: UpdateUserDto, currentUser: any) {
     // 获取用户权限
-    const hasPermission = await this.checkUserPermission(
-      currentUser.id,
-      'user.update'
-    );
+    const hasPermission = await this.checkUserPermission(currentUser.id, 'user.update');
 
     if (!hasPermission) {
       throw new ForbiddenException('没有更新用户的权限');
@@ -1251,7 +1240,7 @@ export class UsersService {
       select: { roleId: true },
     });
 
-    const roleIds = userRoles.map(ur => ur.roleId);
+    const roleIds = userRoles.map((ur) => ur.roleId);
 
     // 获取角色权限
     const rolePermissions = await this.prisma.rolePermission.findMany({
@@ -1265,7 +1254,7 @@ export class UsersService {
 
     // 检查是否拥有指定权限
     return rolePermissions.some(
-      rp => rp.permission.code === permissionCode && rp.permission.status === 1
+      (rp) => rp.permission.code === permissionCode && rp.permission.status === 1,
     );
   }
 }
@@ -1322,35 +1311,35 @@ const permissions = [
     name: '创建文章',
     resource: 'article',
     action: 'create',
-    description: '允许创建新文章'
+    description: '允许创建新文章',
   },
   {
     code: 'article.read',
     name: '查看文章',
     resource: 'article',
     action: 'read',
-    description: '允许查看文章内容'
+    description: '允许查看文章内容',
   },
   {
     code: 'article.update',
     name: '更新文章',
     resource: 'article',
     action: 'update',
-    description: '允许更新文章内容'
+    description: '允许更新文章内容',
   },
   {
     code: 'article.delete',
     name: '删除文章',
     resource: 'article',
     action: 'delete',
-    description: '允许删除文章'
+    description: '允许删除文章',
   },
   {
     code: 'article.publish',
     name: '发布文章',
     resource: 'article',
     action: 'publish',
-    description: '允许发布文章到公开频道'
+    description: '允许发布文章到公开频道',
   },
 ];
 ```
@@ -1372,23 +1361,24 @@ pnpm prisma:seed
 ### 1. 权限命名规范
 
 **✅ 推荐**：
+
 - 使用 `resource.action` 格式
 - 资源名称使用单数形式
 - 操作名称使用标准 CRUD 动词
 
 ```typescript
 // ✅ 好的命名
-'user.create'
-'article.read'
-'comment.update'
-'project.delete'
-'report.export'
+'user.create';
+'article.read';
+'comment.update';
+'project.delete';
+'report.export';
 
 // ❌ 不好的命名
-'users.create'        // 资源应该用单数
-'article-read'        // 应该用点号分隔
-'deleteComment'       // 顺序错误
-'PROJECT_DELETE'      // 不应该用大写
+'users.create'; // 资源应该用单数
+'article-read'; // 应该用点号分隔
+'deleteComment'; // 顺序错误
+'PROJECT_DELETE'; // 不应该用大写
 ```
 
 ### 2. 权限粒度控制
@@ -1397,25 +1387,26 @@ pnpm prisma:seed
 
 ```typescript
 // ✅ 推荐：按操作划分
-'article.create'
-'article.read'
-'article.update'
-'article.delete'
-'article.publish'
+'article.create';
+'article.read';
+'article.update';
+'article.delete';
+'article.publish';
 
 // ❌ 不推荐：按场景划分
-'article.createDraft'
-'article.createAndPublish'
-'article.updateTitle'
-'article.updateContent'
+'article.createDraft';
+'article.createAndPublish';
+'article.updateTitle';
+'article.updateContent';
 ```
 
 **特殊操作可以单独定义**：
+
 ```typescript
-'article.publish'      // 发布文章
-'article.archive'      // 归档文章
-'user.resetPassword'   // 重置密码
-'report.export'        // 导出报告
+'article.publish'; // 发布文章
+'article.archive'; // 归档文章
+'user.resetPassword'; // 重置密码
+'report.export'; // 导出报告
 ```
 
 ### 3. 角色设计原则
@@ -1481,11 +1472,11 @@ pnpm prisma:seed
 
 #### 使用 @Roles 还是 @RequirePermissions？
 
-| 场景 | 推荐使用 | 原因 |
-|------|---------|------|
-| 前端路由/菜单控制 | `@Roles()` | 粗粒度，便于前端判断 |
-| 后端 API 操作控制 | `@RequirePermissions()` | 细粒度，更安全 |
-| 管理员专属功能 | 两者结合 | 双重保护 |
+| 场景              | 推荐使用                | 原因                 |
+| ----------------- | ----------------------- | -------------------- |
+| 前端路由/菜单控制 | `@Roles()`              | 粗粒度，便于前端判断 |
+| 后端 API 操作控制 | `@RequirePermissions()` | 细粒度，更安全       |
+| 管理员专属功能    | 两者结合                | 双重保护             |
 
 **示例**：
 
@@ -1673,7 +1664,7 @@ async function assignReadPermissions() {
     select: { id: true },
   });
 
-  const permissionIds = readPermissions.map(p => p.id);
+  const permissionIds = readPermissions.map((p) => p.id);
 
   // 查找 MODERATOR 角色
   const moderatorRole = await prisma.role.findUnique({
@@ -1687,7 +1678,7 @@ async function assignReadPermissions() {
 
   // 创建新关联
   await prisma.rolePermission.createMany({
-    data: permissionIds.map(permissionId => ({
+    data: permissionIds.map((permissionId) => ({
       roleId: moderatorRole.id,
       permissionId,
     })),
@@ -1696,8 +1687,7 @@ async function assignReadPermissions() {
   console.log(`✅ 已为 MODERATOR 分配 ${permissionIds.length} 个 read 权限`);
 }
 
-assignReadPermissions()
-  .finally(() => prisma.$disconnect());
+assignReadPermissions().finally(() => prisma.$disconnect());
 ```
 
 ### Q5: 如何实现资源级别的权限控制？
@@ -1746,6 +1736,7 @@ export class ArticlesService {
 3. 可能导致角色权限关联数据不一致
 
 **建议做法**：
+
 - 如果不想使用某个系统权限，将其 `status` 设置为 0（禁用）
 - 或者从角色中移除该权限，但保留权限记录
 
@@ -1755,23 +1746,23 @@ export class ArticlesService {
 
 ### 权限 API
 
-| 方法 | 路径 | 说明 | 权限要求 |
-|------|------|------|---------|
-| POST | `/api/permissions` | 创建权限 | ADMIN 角色 |
-| GET | `/api/permissions` | 分页查询权限 | 需要登录 |
-| GET | `/api/permissions/by-resource` | 按资源分组查询 | 需要登录 |
-| GET | `/api/permissions/:id` | 查询权限详情 | 需要登录 |
-| PATCH | `/api/permissions/:id` | 更新权限 | ADMIN 角色 |
-| DELETE | `/api/permissions/:id` | 删除权限 | ADMIN 角色 |
+| 方法   | 路径                           | 说明           | 权限要求   |
+| ------ | ------------------------------ | -------------- | ---------- |
+| POST   | `/api/permissions`             | 创建权限       | ADMIN 角色 |
+| GET    | `/api/permissions`             | 分页查询权限   | 需要登录   |
+| GET    | `/api/permissions/by-resource` | 按资源分组查询 | 需要登录   |
+| GET    | `/api/permissions/:id`         | 查询权限详情   | 需要登录   |
+| PATCH  | `/api/permissions/:id`         | 更新权限       | ADMIN 角色 |
+| DELETE | `/api/permissions/:id`         | 删除权限       | ADMIN 角色 |
 
 ### 角色权限 API
 
-| 方法 | 路径 | 说明 | 权限要求 |
-|------|------|------|---------|
-| POST | `/api/roles/:id/permissions` | 为角色分配权限 | ADMIN 角色 |
-| GET | `/api/roles/:id/permissions` | 获取角色的权限列表 | ADMIN 角色 |
-| GET | `/api/roles/:id/permissions/count` | 获取角色的权限数量 | ADMIN 角色 |
-| GET | `/api/roles/:id/stats` | 获取角色统计信息 | ADMIN 角色 |
+| 方法 | 路径                               | 说明               | 权限要求   |
+| ---- | ---------------------------------- | ------------------ | ---------- |
+| POST | `/api/roles/:id/permissions`       | 为角色分配权限     | ADMIN 角色 |
+| GET  | `/api/roles/:id/permissions`       | 获取角色的权限列表 | ADMIN 角色 |
+| GET  | `/api/roles/:id/permissions/count` | 获取角色的权限数量 | ADMIN 角色 |
+| GET  | `/api/roles/:id/stats`             | 获取角色统计信息   | ADMIN 角色 |
 
 ### 完整 API 文档
 
@@ -1787,28 +1778,28 @@ http://localhost:3000/api-docs
 
 ### 系统内置权限列表
 
-| 权限代码 | 名称 | 资源 | 操作 | 说明 |
-|---------|------|------|------|------|
-| `user.create` | 创建用户 | user | create | 允许创建新用户 |
-| `user.read` | 查看用户 | user | read | 允许查看用户信息 |
-| `user.update` | 更新用户 | user | update | 允许更新用户信息 |
-| `user.delete` | 删除用户 | user | delete | 允许删除用户 |
-| `role.create` | 创建角色 | role | create | 允许创建新角色 |
-| `role.read` | 查看角色 | role | read | 允许查看角色信息 |
-| `role.update` | 更新角色 | role | update | 允许更新角色信息 |
-| `role.delete` | 删除角色 | role | delete | 允许删除角色 |
-| `menu.create` | 创建菜单 | menu | create | 允许创建新菜单 |
-| `menu.read` | 查看菜单 | menu | read | 允许查看菜单信息 |
-| `menu.update` | 更新菜单 | menu | update | 允许更新菜单信息 |
-| `menu.delete` | 删除菜单 | menu | delete | 允许删除菜单 |
-| `permission.create` | 创建权限 | permission | create | 允许创建新权限 |
-| `permission.read` | 查看权限 | permission | read | 允许查看权限信息 |
+| 权限代码            | 名称     | 资源       | 操作   | 说明             |
+| ------------------- | -------- | ---------- | ------ | ---------------- |
+| `user.create`       | 创建用户 | user       | create | 允许创建新用户   |
+| `user.read`         | 查看用户 | user       | read   | 允许查看用户信息 |
+| `user.update`       | 更新用户 | user       | update | 允许更新用户信息 |
+| `user.delete`       | 删除用户 | user       | delete | 允许删除用户     |
+| `role.create`       | 创建角色 | role       | create | 允许创建新角色   |
+| `role.read`         | 查看角色 | role       | read   | 允许查看角色信息 |
+| `role.update`       | 更新角色 | role       | update | 允许更新角色信息 |
+| `role.delete`       | 删除角色 | role       | delete | 允许删除角色     |
+| `menu.create`       | 创建菜单 | menu       | create | 允许创建新菜单   |
+| `menu.read`         | 查看菜单 | menu       | read   | 允许查看菜单信息 |
+| `menu.update`       | 更新菜单 | menu       | update | 允许更新菜单信息 |
+| `menu.delete`       | 删除菜单 | menu       | delete | 允许删除菜单     |
+| `permission.create` | 创建权限 | permission | create | 允许创建新权限   |
+| `permission.read`   | 查看权限 | permission | read   | 允许查看权限信息 |
 | `permission.update` | 更新权限 | permission | update | 允许更新权限信息 |
-| `permission.delete` | 删除权限 | permission | delete | 允许删除权限 |
-| `project.create` | 创建项目 | project | create | 允许创建新项目 |
-| `project.read` | 查看项目 | project | read | 允许查看项目信息 |
-| `project.update` | 更新项目 | project | update | 允许更新项目信息 |
-| `project.delete` | 删除项目 | project | delete | 允许删除项目 |
+| `permission.delete` | 删除权限 | permission | delete | 允许删除权限     |
+| `project.create`    | 创建项目 | project    | create | 允许创建新项目   |
+| `project.read`      | 查看项目 | project    | read   | 允许查看项目信息 |
+| `project.update`    | 更新项目 | project    | update | 允许更新项目信息 |
+| `project.delete`    | 删除项目 | project    | delete | 允许删除项目     |
 
 ### 系统内置角色权限分配
 
@@ -1819,6 +1810,7 @@ http://localhost:3000/api-docs
 #### MODERATOR（协调员）
 
 拥有以下 7 个权限：
+
 - `user.read`
 - `user.update`
 - `role.read`
@@ -1830,6 +1822,7 @@ http://localhost:3000/api-docs
 #### USER（普通用户）
 
 拥有以下 1 个权限：
+
 - `project.read`
 
 ---

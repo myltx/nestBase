@@ -100,11 +100,14 @@ pnpm prisma:seed
 #### 启动服务
 
 ```bash
-# 启动后端
+# 启动后端 (Port: 9423)
 pnpm dev:backend
 
-# 启动前端 (另开终端)
+# 启动前端 (Port: 5173)
 pnpm dev:frontend
+
+# 启动移动端 H5 (Port: 9000)
+pnpm dev:mobile
 ```
 
 ---
@@ -146,12 +149,13 @@ pnpm dev:frontend
 ```
 nestbase/
 ├── apps/
-│   ├── backend/         # NestJS 后端
+│   ├── backend/         # NestJS 后端 (Port: 9423)
 │   │   ├── Dockerfile   # 后端镜像构建配置
 │   │   └── ...
-│   └── frontend/        # Vue3 前端
-│       ├── Dockerfile   # 前端镜像构建配置
-│       └── nginx.conf   # 前端 Nginx 配置
+│   ├── frontend/        # Vue3 前端 (Port: 5173)
+│   │   ├── Dockerfile   # 前端镜像构建配置
+│   │   └── nginx.conf   # 前端 Nginx 配置
+│   └── mobile/          # UniApp 移动端 (NestBase Mobile)
 ├── docker-compose.yml   # 全栈服务编排
 ├── package.json         # 根配置
 └── ...

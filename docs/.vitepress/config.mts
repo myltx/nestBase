@@ -14,7 +14,7 @@ export default withMermaid(
     themeConfig: {
       nav: [
         { text: '指南', link: '/guides/USAGE.zh-CN' },
-        { text: '前端', link: '/frontend/README' },
+        { text: '客户端', link: '/client/README' },
         { text: '后端', link: '/backend/README' },
         { text: '项目管理', link: '/project/README' },
         { text: '资源', link: '/resources/INTERVIEW_QA' },
@@ -30,14 +30,21 @@ export default withMermaid(
             ],
           },
         ],
-        '/frontend/': [
+        '/client/': [
           {
-            text: '前端服务',
+            text: 'Web 端指南',
             items: [
-              { text: '概览', link: '/frontend/README' },
-              { text: '开发指南', link: '/frontend/DEVELOPER_GUIDE' },
-              { text: '前后端联调指南', link: '/guides/INTEGRATION.zh-CN' },
+              { text: '概览', link: '/client/web/README' },
+              { text: '开发指南', link: '/client/web/DEVELOPER_GUIDE' },
             ],
+          },
+          {
+            text: 'Mobile 端指南',
+            items: [{ text: '概览', link: '/client/mobile/README' }],
+          },
+          {
+            text: '联调指南',
+            items: [{ text: '前后端联调指南', link: '/guides/INTEGRATION.zh-CN' }],
           },
         ],
         '/guides/': [

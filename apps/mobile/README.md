@@ -5,14 +5,13 @@
 </p>
 
 <h1 align="center">
-  <a href="https://github.com/unibest-tech/unibest" target="_blank">unibest - 最好的 uniapp 开发框架</a>
+  <a href="https://github.com/unibest-tech/unibest" target="_blank">NestBase Mobile</a>
 </h1>
 
 <div align="center">
-旧仓库 codercup 进不去了，star 也拿不回来，这里也展示一下那个地址的 star.
 
-[![GitHub Repo stars](https://img.shields.io/github/stars/codercup/unibest?style=flat&logo=github)](https://github.com/codercup/unibest)
-[![GitHub forks](https://img.shields.io/github/forks/codercup/unibest?style=flat&logo=github)](https://github.com/codercup/unibest)
+NestBase 移动端项目，基于 [unibest](https://github.com/feige996/unibest) 模板开发。
+集成 **NestJS Backend** 接口，支持双 Token 认证模式。
 
 </div>
 
@@ -53,14 +52,20 @@
 
 注意每种 `UI框架` 支持的平台有所不同，详情请看各 `UI框架` 的官网，也可以看 `unibest` 文档。
 
-## ⚙️ 环境
+## ⚙️ 环境 & 配置
 
 - node>=18
 - pnpm>=7.30
-- Vue Official>=2.1.10
-- TypeScript>=5.0
 
-## 新版分支 
+### 核心配置
+
+配置文件位于 `env/` 目录下：
+
+- **VITE_SERVER_BASEURL**: 后端 API 地址 (e.g. `http://localhost:9423/api`)
+- **VITE_AUTH_MODE**: 认证模式，必须设置为 `'double'` 以匹配 NestBase 后端。
+
+## 新版分支
+
 - main == base
 - base --> base-i18n
 - base-login --> base-login-i18n

@@ -18,8 +18,9 @@ docs/
 │   ├── guides/                 # 使用指南
 │   ├── migrations/             # 数据库迁移
 │   └── api/                    # API 参考
-├── frontend/                    # 前端服务文档（预留）
-│   └── README.md               # Frontend 文档索引（待添加）
+├── client/                      # 客户端文档 (Web & Mobile)
+│   ├── web/                    # Web 端文档 (原 frontend)
+│   └── mobile/                 # Mobile 端文档
 └── project/                     # 项目级文档
     ├── README.md               # 项目文档索引
     ├── setup/                  # 项目设置和配置
@@ -35,11 +36,11 @@ docs/
 
 ### 按服务查看
 
-| 服务            | 说明                    | 文档入口                                        | 文档数量 |
-| --------------- | ----------------------- | ----------------------------------------------- | -------- |
-| 🔧 **Backend**  | NestJS 后端服务技术文档 | [docs/backend/README.md](./backend/README.md)   | 29 个    |
-| 🎨 **Frontend** | Frontend 前端服务文档   | [docs/frontend/README.md](./frontend/README.md) | 1 个     |
-| 📦 **Project**  | 项目级配置和管理文档    | [docs/project/README.md](./project/README.md)   | 19 个    |
+| 服务           | 说明                    | 文档入口                                      | 文档数量 |
+| -------------- | ----------------------- | --------------------------------------------- | -------- |
+| 🔧 **Backend** | NestJS 后端服务技术文档 | [docs/backend/README.md](./backend/README.md) | 29 个    |
+| 💻 **Client**  | 客户端 (Web & Mobile)   | [docs/client/README.md](./client/README.md)   | 2 个     |
+| 📦 **Project** | 项目级配置和管理文档    | [docs/project/README.md](./project/README.md) | 19 个    |
 
 ### 按角色查看
 
@@ -65,16 +66,17 @@ docs/
 5. [CMS API 指南](./backend/guides/CMS_API_GUIDE.md)
 6. [数据库迁移指南](./backend/migrations/MIGRATION_GUIDE.md)
 
-#### 🎨 前端开发人员
+#### 💻 客户端开发人员 (Web & Mobile)
 
 **推荐阅读顺序**:
 
-1. [前后端联调指南](./guides/INTEGRATION.zh-CN.md) - **(必读)** 启动与认证流程
-2. [Apifox 导入指南](./project/api-tools/APIFOX_IMPORT_GUIDE.md) - API 文档导入
-3. [CMS API 使用指南](./backend/guides/CMS_API_GUIDE.md) - CMS 接口使用
-4. [菜单管理指南](./backend/guides/MENU_MANAGEMENT.md) - 菜单系统
-5. [用户角色 API](./backend/guides/API_USER_ROLES.md) - 用户权限
-6. [业务状态码](./backend/architecture/BUSINESS_CODES.md) - 错误处理
+1. [Web 端开发指南](./client/web/README.md) 或 [Mobile 端开发指南](./client/mobile/README.md)
+2. [前后端联调指南](./guides/INTEGRATION.zh-CN.md) - **(必读)** 启动与认证流程
+3. [Apifox 导入指南](./project/api-tools/APIFOX_IMPORT_GUIDE.md) - API 文档导入
+4. [CMS API 使用指南](./backend/guides/CMS_API_GUIDE.md) - CMS 接口使用
+5. [菜单管理指南](./backend/guides/MENU_MANAGEMENT.md) - 菜单系统
+6. [用户角色 API](./backend/guides/API_USER_ROLES.md) - 用户权限
+7. [业务状态码](./backend/architecture/BUSINESS_CODES.md) - 错误处理
 
 #### 🧪 测试人员
 
@@ -136,16 +138,18 @@ docs/
 
 📖 **详细索引**: [docs/project/README.md](./project/README.md)
 
-### 🎨 Frontend 前端服务文档
+### 💻 Client 客户端文档 (Web & Mobile)
 
-前端应用的开发与集成指南。
+包含 Web 端管理后台和移动端应用的开发与集成指南。
 
-| 文档         | 说明                     | 入口                                                  |
-| ------------ | ------------------------ | ----------------------------------------------------- |
-| **README**   | 前端技术栈与目录概览     | [README.md](./frontend/README.md)                     |
-| **联调指南** | 前后端认证与启动流程交互 | [INTEGRATION.zh-CN.md](./guides/INTEGRATION.zh-CN.md) |
+| 文档                  | 说明                     | 入口                                                  |
+| --------------------- | ------------------------ | ----------------------------------------------------- |
+| **Web Admin README**  | Web 端技术栈与目录概览   | [README.md](./client/web/README.md)                   |
+| **Mobile App README** | 移动端技术栈与集成说明   | [README.md](./client/mobile/README.md)                |
+| **Client Index**      | 客户端文档总览           | [README.md](./client/README.md)                       |
+| **联调指南**          | 前后端认证与启动流程交互 | [INTEGRATION.zh-CN.md](./guides/INTEGRATION.zh-CN.md) |
 
-📖 **详细索引**: [docs/frontend/README.md](./frontend/README.md)
+📖 **详细索引**: [docs/client/README.md](./client/README.md)
 
 ---
 
@@ -156,7 +160,7 @@ docs/
 | 主题              | 相关文档                                                                                                                                                               |
 | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **🚀 快速开始**   | [QUICKSTART.md](./project/setup/QUICKSTART.md), [SUPABASE_SETUP.md](./project/setup/SUPABASE_SETUP.md)                                                                 |
-| **🤝 前后端交互** | [INTEGRATION.zh-CN.md](./guides/INTEGRATION.zh-CN.md), [frontend/README.md](./frontend/README.md)                                                                      |
+| **🤝 前后端交互** | [INTEGRATION.zh-CN.md](./guides/INTEGRATION.zh-CN.md), [client/web/README.md](./client/web/README.md)                                                                  |
 | **🏗️ 架构设计**   | [MONOREPO.md](./project/setup/MONOREPO.md), [Backend Architecture](./backend/architecture/)                                                                            |
 | **🔐 权限系统**   | [RBAC_GUIDE.md](./project/features/RBAC_GUIDE.md), [RBAC_REDESIGN.md](./project/features/RBAC_REDESIGN.md), [ROLE_MIGRATION.md](./backend/features/ROLE_MIGRATION.md)  |
 | **📝 命名规范**   | [API_NAMING_CONVENTION.md](./backend/architecture/API_NAMING_CONVENTION.md), [NAMING_CONVENTION_CONCLUSION.md](./backend/architecture/NAMING_CONVENTION_CONCLUSION.md) |
@@ -179,7 +183,7 @@ docs/
 | 文档                                                                                | 类型 | 更新日期   | 说明                       |
 | ----------------------------------------------------------------------------------- | ---- | ---------- | -------------------------- |
 | [INTEGRATION.zh-CN.md](./guides/INTEGRATION.zh-CN.md)                               | 指南 | 2025-12-29 | 前后端联调指南 (登录/启动) |
-| [frontend/README.md](./frontend/README.md)                                          | 索引 | 2025-12-29 | 前端文档索引               |
+| [client/web/README.md](./client/web/README.md)                                      | 索引 | 2025-12-29 | Web 端文档索引             |
 | [LOGGING_SYSTEM_RELEASE.md](./backend/features/LOGGING_SYSTEM_RELEASE.md)           | 功能 | 2025-11-11 | 日志管理系统 v1.1.0        |
 | [CONTENT_MANAGEMENT_MODULE.md](./backend/features/CONTENT_MANAGEMENT_MODULE.md)     | 功能 | 2025-11-07 | CMS 模块 v1.0.0            |
 | [MARKDOWN_PARSER_INTEGRATION.md](./backend/features/MARKDOWN_PARSER_INTEGRATION.md) | 功能 | 2025-11-06 | Markdown 解析器            |
@@ -191,7 +195,7 @@ docs/
 - **总文档数**: 51 个
   - Backend 文档: 29 个
   - Project 文档: 19 个
-  - Frontend 文档: 2 个 (含联调指南)
+  - Client 文档: 3 个 (Web, Mobile, 联调指南)
   - 索引文档: 1 个
 
 - **按类型统计**:
@@ -213,7 +217,7 @@ docs/
 
 1. **确定文档类型和位置**:
    - Backend 技术文档 → `docs/backend/`
-   - Frontend 技术文档 → `docs/frontend/`
+   - Client 技术文档 → `docs/client/{web,mobile}/`
    - 项目级文档 → `docs/project/`
 
 2. **选择合适的子目录**:

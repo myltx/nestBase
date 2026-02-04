@@ -13,8 +13,8 @@ hero:
       text: '后端文档'
       link: '/backend/README'
     - theme: alt
-      text: '前端指南'
-      link: '/frontend/DEVELOPER_GUIDE'
+      text: '客户端指南'
+      link: '/client/README'
 
 features:
   - title: '全栈 TypeScript'
